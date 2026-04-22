@@ -1,16 +1,23 @@
 'use client'
 import Link from 'next/link'
-import { Search, ShoppingCart, User, Heart, Menu, X } from 'lucide-react'
+import {
+  Search,
+  ShoppingCart,
+  User,
+  Heart,
+  Menu,
+  X,
+  LogOut,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useApp } from '@/app/context/AppContext'
 import { useCartStore } from '@/app/store/useCartStore'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { setAuthModalOpen, user, searchTerm, setSearchTerm } = useApp()
+  const { user, searchTerm, setSearchTerm, setUser } = useApp() // Added setUser for logout logic
   const cart = useCartStore((state) => state.cart)
 
-  // Calculate total items in cart for the badge
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0)
 
   const navLinks = [
@@ -23,8 +30,8 @@ export default function Navbar() {
 
   return (
     <header className="w-full bg-white sticky top-0 z-50 shadow-sm">
-      {/* Top Bar: Logo, Search, and Actions */}
       <div className="container mx-auto px-4 py-3 lg:py-4 flex items-center justify-between gap-4">
+        {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
           <div className="w-10 h-10 bg-[#0052CC] rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform">
             <ShoppingCart className="text-white" size={22} />
@@ -46,7 +53,7 @@ export default function Navbar() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search products, brands..."
-            className="w-full bg-[#F4F7FA] border-none rounded-full py-2.5 px-6 focus:ring-2 focus:ring-[#0052CC] transition-all outline-none text-sm"
+            className="w-full bg-[#F4F7FA] border-none rounded-full py-2.5 px-6 focus:ring-2 focus:ring-[#0052CC] transition-all outline-none text-sm text-black"
           />
           <button className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#FF8A00] p-2 rounded-full text-white hover:bg-orange-600 transition">
             <Search size={18} />
@@ -55,15 +62,21 @@ export default function Navbar() {
 
         {/* User Actions */}
         <div className="flex items-center gap-3 lg:gap-6">
-          <button
-            onClick={() => setAuthModalOpen(true)}
+          {/* DYNAMIC AUTH LINK */}
+          <Link
+            href={user ? '/profile' : '/auth'}
             className="flex items-center gap-2 text-gray-700 hover:text-[#0052CC] transition font-medium"
           >
             <User size={20} />
-            <span className="hidden lg:inline text-sm">
-              {user ? user.fullName : 'Account'}
-            </span>
-          </button>
+            <div className="hidden lg:flex flex-col items-start leading-tight">
+              <span className="text-[10px] text-gray-400 font-bold uppercase">
+                {user ? 'Welcome' : 'Sign In'}
+              </span>
+              <span className="text-sm font-bold truncate max-w-[100px]">
+                {user ? user.fullName : 'Account'}
+              </span>
+            </div>
+          </Link>
 
           <Link
             href="/wishlist"
@@ -93,7 +106,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Bottom Bar: Category Links (Desktop) */}
+      {/* Categories Navigation */}
       <nav className="hidden md:block bg-[#0052CC] text-white">
         <div className="container mx-auto px-4 flex items-center gap-8 py-2.5">
           <button className="flex items-center gap-2 bg-[#0041a3] px-4 py-1.5 rounded-md font-semibold text-xs uppercase tracking-wider">
@@ -116,13 +129,23 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t p-4 space-y-4 animate-in slide-in-from-top duration-300">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full bg-gray-100 rounded-lg py-2.5 px-4 outline-none text-sm"
-            />
-          </div>
+          <Link
+            href={user ? '/profile' : '/auth'}
+            onClick={() => setIsMenuOpen(false)}
+            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
+          >
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <User size={20} className="text-gray-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-black">
+                {user ? user.fullName : 'Sign in to your account'}
+              </p>
+              <p className="text-xs text-gray-500">
+                {user ? user.email : 'Manage orders & settings'}
+              </p>
+            </div>
+          </Link>
           <div className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
