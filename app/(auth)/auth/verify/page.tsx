@@ -1,0 +1,111 @@
+'use client'
+import { useEffect, useState, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useSnackbar } from 'notistack'
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { useApp } from '@/app/context/AppContext'
+
+export default function VerifyPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+  const { enqueueSnackbar } = useSnackbar()
+  const { setUser } = useApp()
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
+    'loading',
+  )
+
+  // Use a ref to prevent strict mode from running the effect twice
+  const hasCalled = useRef(false)
+
+  useEffect(() => {
+    // Prevent multiple calls in React Strict Mode
+    if (hasCalled.current) return
+    hasCalled.current = true
+
+    const verifyToken = async () => {
+      // 1. Check for token inside the async block to avoid cascading render warning
+      if (!token) {
+        setStatus('error')
+        enqueueSnackbar('Invalid or missing token.', { variant: 'error' })
+        return
+      }
+
+      try {
+        const res = await fetch(`/api/auth/verify?token=${token}`)
+        const data = await res.json()
+
+        if (res.ok) {
+          setStatus('success')
+
+          // Hydrate the global context
+          setUser(data.user)
+
+          enqueueSnackbar('Successfully signed in!', { variant: 'success' })
+
+          // Redirect to home after 2 seconds
+          setTimeout(() => {
+            router.push('/')
+          }, 2000)
+        } else {
+          setStatus('error')
+          enqueueSnackbar(data.error || 'Link expired or already used.', {
+            variant: 'error',
+          })
+        }
+      } catch (err) {
+        setStatus('error')
+        enqueueSnackbar('Connection error. Please try again.', {
+          variant: 'error',
+        })
+      }
+    }
+
+    verifyToken()
+  }, [token, router, enqueueSnackbar, setUser])
+
+  return (
+    <div className="min-h-[80vh] flex items-center justify-center p-6">
+      <div className="w-full max-w-md text-center space-y-6">
+        {status === 'loading' && (
+          <div className="animate-in fade-in duration-500">
+            <Loader2 className="w-12 h-12 text-[#0052CC] animate-spin mx-auto mb-4" />
+            <h2 className="text-2xl font-bold italic">
+              Velora<span className="text-[#FF8A00]">.</span>
+            </h2>
+            <h3 className="text-xl font-semibold">Verifying your link...</h3>
+            <p className="text-gray-500">Securing your session, please wait.</p>
+          </div>
+        )}
+
+        {status === 'success' && (
+          <div className="animate-in zoom-in duration-500">
+            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900">Welcome back!</h2>
+            <p className="text-gray-500">
+              Authentication successful. Taking you to the shop...
+            </p>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className="animate-in shake duration-500">
+            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Verification Failed
+            </h2>
+            <p className="text-gray-500 mb-6">
+              This link is invalid or has expired.
+            </p>
+            <button
+              onClick={() => router.push('/auth')}
+              className="bg-[#0052CC] text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+            >
+              Back to Login
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
