@@ -18,6 +18,7 @@ export interface IUser extends Document {
   email: string
   fullName: string
   phone?: string
+  image?: string
   role: 'customer' | 'admin' | 'editor'
   magicToken?: string
   tokenExpiry?: Date
@@ -98,11 +99,12 @@ export interface IOrder extends Document {
 
 // --- Cart Types (Client Side) ---
 export interface CartItem {
-  id: string // Product or Variant ID
+  _id?: string
+  id: string
   name: string
   price: number
   // image: string
-  
+
   image: StaticImageData
   quantity: number
   variantSku?: string
