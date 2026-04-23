@@ -5,29 +5,32 @@ import {
   ShoppingCart,
   User as UserIcon,
   Heart,
-  Menu as MenuIcon,
-  X,
   LogOut,
   Package,
   Settings,
-  ChevronDown
+  ChevronDown,
+  LayoutGrid,
 } from 'lucide-react'
-import { useState } from 'react'
 import { useApp } from '@/app/context/AppContext'
 import { useCartStore } from '@/app/store/useCartStore'
-import { 
-  Menu, 
-  Button, 
-  Text, 
-  Avatar, 
-  Group, 
-  UnstyledButton, 
-  rem, 
-  Divider 
+import { useDisclosure } from '@mantine/hooks'
+import {
+  Menu,
+  Button,
+  Text,
+  Avatar,
+  Group,
+  UnstyledButton,
+  rem,
+  Divider,
+  Drawer,
+  Burger,
+  ScrollArea,
+  NavLink,
 } from '@mantine/core'
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [opened, { toggle, close }] = useDisclosure(false)
   const { user, searchTerm, setSearchTerm, setUser } = useApp()
   const cart = useCartStore((state) => state.cart)
 
@@ -43,7 +46,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     setUser(null)
-    // Add any logic to clear cookies/tokens here
+    close()
   }
 
   return (
@@ -81,17 +84,16 @@ export default function Navbar() {
         {/* User Actions */}
         <div className="flex items-center gap-3 lg:gap-6">
           {user ? (
-            /* SIGNED IN STATE: Mantine Dropdown */
             <Menu
               shadow="md"
               width={220}
               radius="md"
-              transitionProps={{ transition: 'pop-top-right' }}
               position="bottom-end"
               withinPortal
+              transitionProps={{ transition: 'pop-top-right' }}
             >
               <Menu.Target>
-                <UnstyledButton className="p-1 pr-2 rounded-xl hover:bg-gray-50 transition-colors">
+                <UnstyledButton className="p-1 pr-2 rounded-xl hover:bg-gray-50 transition-colors hidden md:block">
                   <Group gap={8}>
                     <Avatar color="blue" radius="xl" size="sm" variant="filled">
                       {user.fullName?.charAt(0).toUpperCase()}
@@ -121,54 +123,27 @@ export default function Navbar() {
                   </Group>
                 </UnstyledButton>
               </Menu.Target>
-
               <Menu.Dropdown p="xs">
+                {/* ... (Same Desktop Menu Items as before) */}
                 <Menu.Label>My Account</Menu.Label>
                 <Menu.Item
-                  leftSection={
-                    <UserIcon style={{ width: rem(16), height: rem(16) }} />
-                  }
+                  leftSection={<UserIcon size={16} />}
                   component={Link}
                   href="/profile"
                 >
                   Profile Details
                 </Menu.Item>
                 <Menu.Item
-                  leftSection={
-                    <Package style={{ width: rem(16), height: rem(16) }} />
-                  }
+                  leftSection={<Package size={16} />}
                   component={Link}
                   href="/orders"
                 >
                   My Orders
                 </Menu.Item>
-                <Menu.Item
-                  leftSection={
-                    <Heart style={{ width: rem(16), height: rem(16) }} />
-                  }
-                  component={Link}
-                  href="/wishlist"
-                >
-                  Wishlist
-                </Menu.Item>
-
                 <Divider my="xs" />
-
-                <Menu.Label>Settings</Menu.Label>
-                <Menu.Item
-                  leftSection={
-                    <Settings style={{ width: rem(16), height: rem(16) }} />
-                  }
-                  component={Link}
-                  href="/settings"
-                >
-                  Account Settings
-                </Menu.Item>
                 <Menu.Item
                   color="red"
-                  leftSection={
-                    <LogOut style={{ width: rem(16), height: rem(16) }} />
-                  }
+                  leftSection={<LogOut size={16} />}
                   onClick={handleLogout}
                 >
                   Log out
@@ -176,15 +151,14 @@ export default function Navbar() {
               </Menu.Dropdown>
             </Menu>
           ) : (
-            /* LOGGED OUT STATE */
             <Link
               href="/auth"
-              className="flex items-center gap-2 text-gray-700 hover:text-[#0052CC] transition font-medium"
+              className="hidden md:flex items-center gap-2 text-gray-700 hover:text-[#0052CC] font-medium"
             >
               <div className="p-2 bg-gray-100 rounded-full">
                 <UserIcon size={20} />
               </div>
-              <div className="hidden lg:flex flex-col items-start leading-tight">
+              <div className="hidden lg:flex flex-col leading-tight">
                 <span className="text-[10px] text-gray-400 font-bold uppercase">
                   Sign In
                 </span>
@@ -199,77 +173,132 @@ export default function Navbar() {
           >
             <ShoppingCart size={22} />
             {cartCount > 0 && (
-              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold `min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border-2 border-white">
                 {cartCount}
               </span>
             )}
           </Link>
 
-          <button
-            className="md:hidden text-gray-700 p-2"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
-          </button>
+          <Burger
+            opened={opened}
+            onClick={toggle}
+            hiddenFrom="md"
+            size="sm"
+            aria-label="Toggle navigation"
+          />
         </div>
       </div>
 
-      {/* Categories Navigation (Desktop) */}
+      {/* Desktop Navigation */}
       <nav className="hidden md:block bg-[#0052CC] text-white">
-        <div className="container mx-auto px-4 flex items-center gap-8 py-2">
-          <div className="flex items-center gap-7">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-xs lg:text-sm font-semibold opacity-90 hover:opacity-100 hover:text-orange-400 transition-all"
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
+        <div className="container mx-auto px-4 flex items-center gap-7 py-2.5">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className="text-xs lg:text-sm font-semibold opacity-90 hover:opacity-100 hover:text-orange-400 transition-all"
+            >
+              {link.name}
+            </Link>
+          ))}
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t p-4 space-y-4 shadow-xl">
-          {!user && (
-            <Button
-              fullWidth
-              component={Link}
-              href="/auth"
-              color="blue"
-              radius="md"
-              size="md"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Sign In to Velora
-            </Button>
-          )}
+      {/* Mobile Menu Drawer */}
+      <Drawer
+        opened={opened}
+        onClose={close}
+        size="80%"
+        padding="md"
+        title={
+          <Text fw={900} size="xl">
+            Velora<span className="text-[#FF8A00]">.</span>
+          </Text>
+        }
+        hiddenFrom="md"
+        zIndex={1000}
+      >
+        <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
+          <div className="px-md pb-xl">
+            {user ? (
+              <Group p="md" className="bg-gray-50 rounded-2xl mb-4">
+                <Avatar color="blue" radius="xl" size="lg" variant="filled">
+                  {user.fullName?.charAt(0).toUpperCase()}
+                </Avatar>
+                <div style={{ flex: 1 }}>
+                  <Text size="sm" fw={700}>
+                    {user.fullName}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {user.email}
+                  </Text>
+                </div>
+              </Group>
+            ) : (
+              <Button
+                fullWidth
+                component={Link}
+                href="/auth"
+                onClick={close}
+                radius="md"
+                mb="md"
+                color="blue"
+              >
+                Sign In / Register
+              </Button>
+            )}
 
-          <div className="flex flex-col gap-1">
+            <Divider my="sm" label="Navigation" labelPosition="center" />
+
             {navLinks.map((link) => (
-              <Link
+              <NavLink
                 key={link.name}
+                component={Link}
                 href={link.href}
-                onClick={() => setIsMenuOpen(false)}
-                className="text-gray-800 font-bold py-3 border-b border-gray-50 flex items-center justify-between"
-              >
-                {link.name}
-              </Link>
+                label={link.name}
+                onClick={close}
+                leftSection={<LayoutGrid size={18} strokeWidth={1.5} />}
+                styles={{ label: { fontWeight: 600 } }}
+              />
             ))}
+
+            <Divider my="sm" label="Account" labelPosition="center" />
+
+            <NavLink
+              component={Link}
+              href="/profile"
+              label="Profile Settings"
+              leftSection={<Settings size={18} />}
+              onClick={close}
+            />
+            <NavLink
+              component={Link}
+              href="/orders"
+              label="Track Orders"
+              leftSection={<Package size={18} />}
+              onClick={close}
+            />
+            <NavLink
+              component={Link}
+              href="/wishlist"
+              label="My Wishlist"
+              leftSection={<Heart size={18} />}
+              onClick={close}
+            />
+
             {user && (
-              <button
+              <NavLink
+                label="Logout"
+                color="red"
+                leftSection={<LogOut size={18} />}
                 onClick={handleLogout}
-                className="text-red-500 font-bold py-3 flex items-center gap-2"
-              >
-                <LogOut size={18} /> Logout
-              </button>
+                mt="xl"
+                variant="subtle"
+              />
             )}
           </div>
-        </div>
-      )}
+        </ScrollArea>
+      </Drawer>
     </header>
   )
 }
