@@ -1,17 +1,21 @@
 'use client'
-import { useEffect, useState, useRef, Suspense } from 'react' // 1. Added Suspense
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSnackbar } from 'notistack'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
-import { useApp } from '@/app/context/AppContext'
+// import { useApp } from '@/app/context/AppContext'
+import { useUserStore } from '@/app/store/useUserStore' // 1. Import the User Store
 
-// 2. Move the logic into a separate "Content" component
 function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
   const { enqueueSnackbar } = useSnackbar()
-  const { setUser } = useApp()
+
+  // 2. Extract setUser from Zustand instead of useApp
+  const setUser = useUserStore((state) => state.setUser)
+  // const { setIsLoading } = useApp()
+
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading',
   )
@@ -34,8 +38,10 @@ function VerifyContent() {
 
         if (res.ok) {
           setStatus('success')
+          // 3. This now calls the persistent Zustand store
           setUser(data.user)
           enqueueSnackbar('Successfully signed in!', { variant: 'success' })
+
           setTimeout(() => {
             router.push('/')
           }, 2000)
@@ -81,7 +87,7 @@ function VerifyContent() {
           </h2>
           <button
             onClick={() => router.push('/auth')}
-            className="mt-4 bg-[#0052CC] text-white px-8 py-3 rounded-xl font-bold"
+            className="mt-4 bg-[#0052CC] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#0041a3] transition-colors"
           >
             Back to Login
           </button>
@@ -91,7 +97,7 @@ function VerifyContent() {
   )
 }
 
-// 3. The main page component wraps the content in Suspense
+// Main Page Component
 export default function VerifyPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6">

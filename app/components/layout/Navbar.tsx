@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '@/app/context/AppContext'
 import { useCartStore } from '@/app/store/useCartStore'
+import { useUserStore } from '@/app/store/useUserStore' // Import User Store
 import { useDisclosure } from '@mantine/hooks'
 import {
   Menu,
@@ -31,7 +32,11 @@ import {
 
 export default function Navbar() {
   const [opened, { toggle, close }] = useDisclosure(false)
-  const { user, searchTerm, setSearchTerm, setUser } = useApp()
+  const { searchTerm, setSearchTerm } = useApp()
+
+  // Use Zustand for User and Cart
+  const user = useUserStore((state) => state.user)
+  const logout = useUserStore((state) => state.logout)
   const cart = useCartStore((state) => state.cart)
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0)
@@ -45,7 +50,7 @@ export default function Navbar() {
   ]
 
   const handleLogout = () => {
-    setUser(null)
+    logout() // Clears store and localStorage automatically
     close()
   }
 
@@ -67,7 +72,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Search Bar (Desktop) */}
+        {/* Search Bar */}
         <div className="hidden md:flex flex-1 max-w-xl relative">
           <input
             type="text"
@@ -104,7 +109,6 @@ export default function Navbar() {
                         c="dimmed"
                         fw={700}
                         tt="uppercase"
-                        lts="0.5px"
                         style={{ lineHeight: 1 }}
                       >
                         Welcome
@@ -124,7 +128,6 @@ export default function Navbar() {
                 </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown p="xs">
-                {/* ... (Same Desktop Menu Items as before) */}
                 <Menu.Label>My Account</Menu.Label>
                 <Menu.Item
                   leftSection={<UserIcon size={16} />}
@@ -167,42 +170,22 @@ export default function Navbar() {
             </Link>
           )}
 
+          {/* Cart Icon */}
           <Link
             href="/cart"
             className="relative text-gray-700 hover:text-[#0052CC] p-2 hover:bg-gray-50 rounded-full transition"
           >
             <ShoppingCart size={22} />
             {cartCount > 0 && (
-              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold `min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border-2 border-white">
                 {cartCount}
               </span>
             )}
           </Link>
 
-          <Burger
-            opened={opened}
-            onClick={toggle}
-            hiddenFrom="md"
-            size="sm"
-            aria-label="Toggle navigation"
-          />
+          <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
         </div>
       </div>
-
-      {/* Desktop Navigation */}
-      <nav className="hidden md:block bg-[#0052CC] text-white">
-        <div className="container mx-auto px-4 flex items-center gap-7 py-2.5">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-xs lg:text-sm font-semibold opacity-90 hover:opacity-100 hover:text-orange-400 transition-all"
-            >
-              {link.name}
-            </Link>
-          ))}
-        </div>
-      </nav>
 
       {/* Mobile Menu Drawer */}
       <Drawer
@@ -249,7 +232,6 @@ export default function Navbar() {
             )}
 
             <Divider my="sm" label="Navigation" labelPosition="center" />
-
             {navLinks.map((link) => (
               <NavLink
                 key={link.name}
@@ -257,13 +239,11 @@ export default function Navbar() {
                 href={link.href}
                 label={link.name}
                 onClick={close}
-                leftSection={<LayoutGrid size={18} strokeWidth={1.5} />}
-                styles={{ label: { fontWeight: 600 } }}
+                leftSection={<LayoutGrid size={18} />}
               />
             ))}
 
             <Divider my="sm" label="Account" labelPosition="center" />
-
             <NavLink
               component={Link}
               href="/profile"
@@ -271,21 +251,6 @@ export default function Navbar() {
               leftSection={<Settings size={18} />}
               onClick={close}
             />
-            <NavLink
-              component={Link}
-              href="/orders"
-              label="Track Orders"
-              leftSection={<Package size={18} />}
-              onClick={close}
-            />
-            <NavLink
-              component={Link}
-              href="/wishlist"
-              label="My Wishlist"
-              leftSection={<Heart size={18} />}
-              onClick={close}
-            />
-
             {user && (
               <NavLink
                 label="Logout"
