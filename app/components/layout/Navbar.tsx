@@ -1,4 +1,5 @@
 'use client'
+
 import Link from 'next/link'
 import {
   Search,
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '@/app/context/AppContext'
 import { useCartStore } from '@/app/store/useCartStore'
-import { useUserStore } from '@/app/store/useUserStore' // Import User Store
+import { useUserStore } from '@/app/store/useUserStore'
 import { useDisclosure } from '@mantine/hooks'
 import {
   Menu,
@@ -34,7 +35,7 @@ export default function Navbar() {
   const [opened, { toggle, close }] = useDisclosure(false)
   const { searchTerm, setSearchTerm } = useApp()
 
-  // Use Zustand for User and Cart
+  // Zustand State Management
   const user = useUserStore((state) => state.user)
   const logout = useUserStore((state) => state.logout)
   const cart = useCartStore((state) => state.cart)
@@ -50,13 +51,14 @@ export default function Navbar() {
   ]
 
   const handleLogout = () => {
-    logout() // Clears store and localStorage automatically
+    logout() // Clears state and localStorage
     close()
   }
 
   return (
     <header className="w-full bg-white sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 py-3 lg:py-4 flex items-center justify-between gap-4">
+        
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
           <div className="w-10 h-10 bg-[#0052CC] rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform">
@@ -72,7 +74,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Search Bar */}
+        {/* Search Bar (Desktop) */}
         <div className="hidden md:flex flex-1 max-w-xl relative">
           <input
             type="text"
@@ -81,7 +83,7 @@ export default function Navbar() {
             placeholder="Search products, brands..."
             className="w-full bg-[#F4F7FA] border-none rounded-full py-2.5 px-6 focus:ring-2 focus:ring-[#0052CC] transition-all outline-none text-sm text-black"
           />
-          <button className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#FF8A00] p-2 rounded-full text-white hover:bg-orange-600 transition">
+          <button className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#FF8A00] p-2 rounded-full text-white hover:bg-orange-600 transition shadow-md">
             <Search size={18} />
           </button>
         </div>
@@ -98,27 +100,17 @@ export default function Navbar() {
               transitionProps={{ transition: 'pop-top-right' }}
             >
               <Menu.Target>
-                <UnstyledButton className="p-1 pr-2 rounded-xl hover:bg-gray-50 transition-colors hidden md:block">
+                <UnstyledButton className="p-1 pr-2 rounded-xl hover:bg-gray-50 transition-colors hidden md:block border border-transparent hover:border-gray-100">
                   <Group gap={8}>
                     <Avatar color="blue" radius="xl" size="sm" variant="filled">
                       {user.fullName?.charAt(0).toUpperCase()}
                     </Avatar>
                     <div className="hidden lg:block text-left">
-                      <Text
-                        size="xs"
-                        c="dimmed"
-                        fw={700}
-                        tt="uppercase"
-                        style={{ lineHeight: 1 }}
-                      >
+                      <Text size="xs" c="dimmed" fw={700} tt="uppercase" lts="0.5px" style={{ lineHeight: 1 }}>
                         Welcome
                       </Text>
                       <Group gap={4}>
-                        <Text
-                          size="sm"
-                          fw={800}
-                          className="text-black leading-none"
-                        >
+                        <Text size="sm" fw={800} className="text-black leading-none">
                           {user.fullName.split(' ')[0]}
                         </Text>
                         <ChevronDown size={14} className="text-gray-400" />
@@ -129,63 +121,61 @@ export default function Navbar() {
               </Menu.Target>
               <Menu.Dropdown p="xs">
                 <Menu.Label>My Account</Menu.Label>
-                <Menu.Item
-                  leftSection={<UserIcon size={16} />}
-                  component={Link}
-                  href="/profile"
-                >
+                <Menu.Item leftSection={<UserIcon size={16} />} component={Link} href="/profile">
                   Profile Details
                 </Menu.Item>
-                <Menu.Item
-                  leftSection={<Package size={16} />}
-                  component={Link}
-                  href="/orders"
-                >
+                <Menu.Item leftSection={<Package size={16} />} component={Link} href="/orders">
                   My Orders
                 </Menu.Item>
+                <Menu.Item leftSection={<Heart size={16} />} component={Link} href="/wishlist">
+                  Wishlist
+                </Menu.Item>
                 <Divider my="xs" />
-                <Menu.Item
-                  color="red"
-                  leftSection={<LogOut size={16} />}
-                  onClick={handleLogout}
-                >
+                <Menu.Item color="red" leftSection={<LogOut size={16} />} onClick={handleLogout}>
                   Log out
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
           ) : (
-            <Link
-              href="/auth"
-              className="hidden md:flex items-center gap-2 text-gray-700 hover:text-[#0052CC] font-medium"
-            >
+            <Link href="/auth" className="hidden md:flex items-center gap-2 text-gray-700 hover:text-[#0052CC] font-medium transition-colors">
               <div className="p-2 bg-gray-100 rounded-full">
                 <UserIcon size={20} />
               </div>
               <div className="hidden lg:flex flex-col leading-tight">
-                <span className="text-[10px] text-gray-400 font-bold uppercase">
-                  Sign In
-                </span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase">Sign In</span>
                 <span className="text-sm font-bold">Account</span>
               </div>
             </Link>
           )}
 
           {/* Cart Icon */}
-          <Link
-            href="/cart"
-            className="relative text-gray-700 hover:text-[#0052CC] p-2 hover:bg-gray-50 rounded-full transition"
-          >
+          <Link href="/cart" className="relative text-gray-700 hover:text-[#0052CC] p-2 hover:bg-gray-50 rounded-full transition">
             <ShoppingCart size={22} />
             {cartCount > 0 && (
-              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white">
                 {cartCount}
               </span>
             )}
           </Link>
 
-          <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
+          <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" aria-label="Toggle navigation" />
         </div>
       </div>
+
+      {/* Desktop Navigation Sub-bar */}
+      <nav className="hidden md:block bg-[#0052CC] text-white">
+        <div className="container mx-auto px-4 flex items-center gap-8 py-2.5">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className="text-xs lg:text-sm font-semibold opacity-90 hover:opacity-100 hover:text-orange-400 transition-all"
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
+      </nav>
 
       {/* Mobile Menu Drawer */}
       <Drawer
@@ -209,29 +199,17 @@ export default function Navbar() {
                   {user.fullName?.charAt(0).toUpperCase()}
                 </Avatar>
                 <div style={{ flex: 1 }}>
-                  <Text size="sm" fw={700}>
-                    {user.fullName}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {user.email}
-                  </Text>
+                  <Text size="sm" fw={700}>{user.fullName}</Text>
+                  <Text size="xs" c="dimmed" className="truncate w-40">{user.email}</Text>
                 </div>
               </Group>
             ) : (
-              <Button
-                fullWidth
-                component={Link}
-                href="/auth"
-                onClick={close}
-                radius="md"
-                mb="md"
-                color="blue"
-              >
+              <Button fullWidth component={Link} href="/auth" onClick={close} radius="md" mb="md" color="blue">
                 Sign In / Register
               </Button>
             )}
 
-            <Divider my="sm" label="Navigation" labelPosition="center" />
+            <Divider my="sm" label="Explore" labelPosition="center" />
             {navLinks.map((link) => (
               <NavLink
                 key={link.name}
@@ -239,11 +217,12 @@ export default function Navbar() {
                 href={link.href}
                 label={link.name}
                 onClick={close}
-                leftSection={<LayoutGrid size={18} />}
+                leftSection={<LayoutGrid size={18} strokeWidth={1.5} />}
+                styles={{ label: { fontWeight: 600 } }}
               />
             ))}
 
-            <Divider my="sm" label="Account" labelPosition="center" />
+            <Divider my="sm" label="Your Account" labelPosition="center" />
             <NavLink
               component={Link}
               href="/profile"
@@ -251,6 +230,21 @@ export default function Navbar() {
               leftSection={<Settings size={18} />}
               onClick={close}
             />
+            <NavLink
+              component={Link}
+              href="/orders"
+              label="Track Orders"
+              leftSection={<Package size={18} />}
+              onClick={close}
+            />
+            <NavLink
+              component={Link}
+              href="/wishlist"
+              label="My Wishlist"
+              leftSection={<Heart size={18} />}
+              onClick={close}
+            />
+
             {user && (
               <NavLink
                 label="Logout"
@@ -258,7 +252,8 @@ export default function Navbar() {
                 leftSection={<LogOut size={18} />}
                 onClick={handleLogout}
                 mt="xl"
-                variant="subtle"
+                variant="light"
+                className="rounded-lg"
               />
             )}
           </div>
