@@ -96,7 +96,7 @@ export default function AuthPage() {
 
           <button
             disabled={loading}
-            className="w-full bg-[#0052CC] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-all disabled:opacity-50"
+            className="w-full bg-[#0052CC] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-700 transition-all disabled:opacity-50"
           >
             {loading ? (
               'Sending link...'
