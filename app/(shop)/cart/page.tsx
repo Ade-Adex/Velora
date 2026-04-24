@@ -1,4 +1,4 @@
-// /app/cart/page.tsx
+// /app/(shop)/cart/page.tsx
 
 'use client'
 
@@ -14,7 +14,6 @@ import {
   Stack,
   Button,
   Divider,
-  NumberInput,
   Title,
   Tooltip,
 } from '@mantine/core'
@@ -31,20 +30,24 @@ import { ReactNode } from 'react'
 
 interface BadgeProps {
   children: ReactNode
-  variant?: string
-  color?: string
-  size?: 'sm' | 'md' | 'lg'
+}
+
+function Badge({ children }: BadgeProps) {
+  return (
+    <span className="px-2 py-0.5 rounded text-sm font-bold bg-blue-100 text-blue-700">
+      {children}
+    </span>
+  )
 }
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCartStore()
 
-  // Calculations
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
   )
-  const shipping = subtotal > 500 ? 0 : 15 // Free shipping over $500
+  const shipping = subtotal > 500 ? 0 : 15
   const total = subtotal + shipping
 
   if (cart.length === 0) {
@@ -54,18 +57,11 @@ export default function CartPage() {
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
             <Trash2 size={40} className="text-gray-300" />
           </div>
-          <div className="text-center">
-            <Title order={2}>Your cart is empty</Title>
-            <Text c="dimmed" mt="sm">
-              Looks like you haven&apos;t added anything to your cart yet.
-            </Text>
-          </div>
+          <Title order={2}>Your cart is empty</Title>
           <Button
             component={Link}
             href="/"
-            size="lg"
-            color="blue"
-            radius="md"
+            size="sm"
             leftSection={<ArrowLeft size={18} />}
           >
             Continue Shopping
@@ -78,37 +74,55 @@ export default function CartPage() {
   return (
     <Container size="lg" py="xl">
       <Title order={2} mb="xl" className="flex items-center gap-3">
-        Shopping Cart{' '}
-        <Badge size="lg" variant="light" color="blue">
-          {cart.length}
-        </Badge>
+        Shopping Cart <Badge>{cart.length}</Badge>
       </Title>
 
       <Grid gap="xl">
-        {/* Cart Items List */}
         <Grid.Col span={{ base: 12, md: 8 }}>
           <Stack gap="md">
             {cart.map((item) => (
-              <Paper key={item._id} withBorder p="md" radius="md">
+              <Paper
+                key={item.id}
+                withBorder
+                p="md"
+                radius="md"
+                className="hover:shadow-sm transition-shadow"
+              >
                 <Grid align="center">
                   <Grid.Col span={{ base: 4, sm: 3 }}>
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      radius="md"
-                      fallbackSrc="https://placehold.co/200x200?text=No+Image"
-                    />
+                    <Link href={`/product/${item.slug}`}>
+                      <Image
+                        src={
+                          typeof item.image === 'string'
+                            ? item.image
+                            : item.image.src
+                        }
+                        alt={item.name}
+                        radius="md"
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                        fallbackSrc="https://placehold.co/200x200?text=No+Image"
+                      />
+                    </Link>
                   </Grid.Col>
 
                   <Grid.Col span={{ base: 8, sm: 5 }}>
                     <Stack gap={4}>
-                      <Text fw={700} size="lg" className="line-clamp-1">
-                        {item.name}
-                      </Text>
+                      <Link
+                        href={`/product/${item.slug}`}
+                        className="no-underline group"
+                      >
+                        <Text
+                          fw={700}
+                          size="lg"
+                          className="group-hover:text-blue-600 transition-colors cursor-pointer"
+                        >
+                          {item.name}
+                        </Text>
+                      </Link>
                       <Text c="dimmed" size="xs">
-                        SKU: {item._id ? item._id.slice(-6).toUpperCase() : 'N/A'}
+                        SKU: {item.id.slice(-6).toUpperCase()}
                       </Text>
-                      <Text fw={800} color="blue" size="xl" mt="xs">
+                      <Text fw={800} c="blue" size="xl">
                         ${item.price.toLocaleString()}
                       </Text>
                     </Stack>
@@ -120,8 +134,9 @@ export default function CartPage() {
                         <ActionIcon
                           variant="subtle"
                           color="gray"
+                          /* 3. Pass item.id to match store function */
                           onClick={() =>
-                            updateQuantity(item._id ?? '', item.quantity - 1)
+                            updateQuantity(item.id, item.quantity - 1)
                           }
                           disabled={item.quantity <= 1}
                         >
@@ -136,7 +151,7 @@ export default function CartPage() {
                           variant="subtle"
                           color="gray"
                           onClick={() =>
-                            updateQuantity(item._id ?? '', item.quantity + 1)
+                            updateQuantity(item.id, item.quantity + 1)
                           }
                         >
                           <Plus size={14} />
@@ -148,7 +163,8 @@ export default function CartPage() {
                           variant="light"
                           color="red"
                           size="lg"
-                          onClick={() => removeFromCart(item._id ?? '')}
+                          /* 4. Pass item.id to match store function */
+                          onClick={() => removeFromCart(item.id)}
                         >
                           <Trash2 size={18} />
                         </ActionIcon>
@@ -176,52 +192,38 @@ export default function CartPage() {
           </Stack>
         </Grid.Col>
 
-        {/* Order Summary Sidebar */}
         <Grid.Col span={{ base: 12, md: 4 }}>
           <Stack gap="md" className="sticky top-24">
             <Paper withBorder p="xl" radius="md" className="bg-gray-50/50">
               <Text fw={800} size="lg" mb="md">
                 Order Summary
               </Text>
-
               <Stack gap="xs">
                 <Group justify="space-between">
                   <Text c="dimmed">Subtotal</Text>
                   <Text fw={600}>${subtotal.toLocaleString()}</Text>
                 </Group>
-
                 <Group justify="space-between">
                   <Text c="dimmed">Shipping</Text>
-                  <Text fw={600} color={shipping === 0 ? 'green' : 'black'}>
+                  <Text fw={600} c={shipping === 0 ? 'green' : 'black'}>
                     {shipping === 0 ? 'FREE' : `$${shipping}`}
                   </Text>
                 </Group>
-
                 <Divider my="sm" />
-
                 <Group justify="space-between">
                   <Text fw={800} size="xl">
                     Total
                   </Text>
-                  <Text fw={900} size="xl" color="blue">
+                  <Text fw={900} size="xl" c="blue">
                     ${total.toLocaleString()}
                   </Text>
                 </Group>
               </Stack>
-
-              <Button
-                fullWidth
-                size="lg"
-                mt="xl"
-                radius="md"
-                color="blue"
-                className="shadow-lg shadow-blue-100"
-              >
+              <Button fullWidth size="sm" mt="xl" radius="md" color="blue">
                 Proceed to Checkout
               </Button>
             </Paper>
 
-            {/* Trust Badges */}
             <Paper withBorder p="md" radius="md">
               <Stack gap="sm">
                 <Group gap="sm" wrap="nowrap">
@@ -253,16 +255,5 @@ export default function CartPage() {
         </Grid.Col>
       </Grid>
     </Container>
-  )
-}
-
-// Helper Badge component if not imported
-function Badge({ children }: BadgeProps) {
-  return (
-    <span
-      className={`px-2 py-0.5 rounded text-sm font-bold bg-blue-100 text-blue-700`}
-    >
-      {children}
-    </span>
   )
 }

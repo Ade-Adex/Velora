@@ -14,7 +14,6 @@ interface CartState {
   getItemCount: () => number
 }
 
-// Typing the creator function specifically helps with middleware inference
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
@@ -22,31 +21,27 @@ export const useCartStore = create<CartState>()(
 
       addToCart: (item) => {
         const currentCart = get().cart
-        const existingItem = currentCart.find(
-          (i) => i.id === item.id && i.variantSku === item.variantSku,
-        )
+        // Check for existing item by id
+        const existingItem = currentCart.find((i) => i.id === item.id)
 
         if (existingItem) {
           set({
             cart: currentCart.map((i) =>
-              i.id === item.id && i.variantSku === item.variantSku
-                ? { ...i, quantity: i.quantity + item.quantity }
-                : i,
+              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
             ),
           })
         } else {
-          set({ cart: [...currentCart, item] })
+          set({ cart: [...currentCart, { ...item, quantity: 1 }] })
         }
       },
 
       removeFromCart: (id) =>
-        set((state: CartState) => ({
-          // Explicitly type 'state' here if error persists
+        set((state) => ({
           cart: state.cart.filter((item) => item.id !== id),
         })),
 
       updateQuantity: (id, qty) =>
-        set((state: CartState) => ({
+        set((state) => ({
           cart: state.cart.map((item) =>
             item.id === id ? { ...item, quantity: Math.max(1, qty) } : item,
           ),
@@ -66,7 +61,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'vantage-commerce-storage',
+      name: 'vantage-commerce-storage', 
     },
   ),
 )

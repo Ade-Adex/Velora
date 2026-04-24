@@ -3,10 +3,13 @@
 import { Document, Types } from 'mongoose'
 import { StaticImageData } from 'next/image'
 
+// Helper for images that could be local imports OR remote URLs
+export type ImageSource = string | StaticImageData
+
 // --- User Types ---
 export interface IAddress {
   isDefault: boolean
-  label: string // e.g., "Home", "Office"
+  label: string
   street: string
   city: string
   state: string
@@ -24,7 +27,7 @@ export interface IUser extends Document {
   tokenExpiry?: Date
   lastLogin?: Date
   addresses: IAddress[]
-  wishlist: Types.ObjectId[] // Array of Product IDs
+  wishlist: Types.ObjectId[] | string[]
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -41,44 +44,57 @@ export interface ICategory extends Document {
 
 export interface IVariant {
   sku: string
-  attributes: Map<string, string> // Matches the 'Map' type in the model
-  priceOverride?: number
+  name?: string // e.g. "Midnight Blue / XL"
+  attributes: Record<string, string> // Record is cleaner than Map for JSON responses
+  price?: number // Specific price for this variant
   stock: number
+  images?: string[] // Variant specific images
 }
 
 export interface IProduct extends Document {
   name: string
+  brand: string // Added for professional branding
   slug: string
   description: string
+  shortDescription?: string // Added for snippets/grid
   basePrice: number
   discountPrice?: number
   category: Types.ObjectId | ICategory
   tags: string[]
-  // mainImage: string
-  mainImage: StaticImageData
-
+  mainImage: ImageSource // Flexible type
   gallery: string[]
+  videoUrl?: string
+  stock: number // Global stock fallback
   variants: IVariant[]
+  specifications: { label: string; value: string }[] // Technical details
   ratings: {
     average: number
     count: number
   }
+  seo: {
+    title?: string
+    description?: string
+    keywords?: string[]
+  }
   isPublished: boolean
+  isFeatured: boolean // For homepage highlights
+  onSale: boolean
   createdAt: Date
   updatedAt: Date
 }
 
 // --- Order Types ---
 export interface IOrderItem {
-  product: Types.ObjectId | IProduct
+  product: Types.ObjectId | string
   variantSku?: string
-  name: string // Snapshot for history
+  name: string
+  image: string // Snapshot for order history
   quantity: number
-  price: number // Snapshot for history
+  price: number
 }
 
 export interface IOrder extends Document {
-  user: Types.ObjectId | IUser
+  user: Types.ObjectId | string
   orderNumber: string
   items: IOrderItem[]
   totals: {
@@ -88,25 +104,25 @@ export interface IOrder extends Document {
     discount: number
     grandTotal: number
   }
-  shippingAddress: IAddress // Captured snapshot
+  shippingAddress: IAddress
   paymentStatus: 'unpaid' | 'processing' | 'paid' | 'failed' | 'refunded'
   orderStatus: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+  paymentMethod: 'card' | 'transfer' | 'cod'
   paymentReference?: string
   trackingNumber?: string
   createdAt: Date
   updatedAt: Date
 }
 
-// --- Cart Types (Client Side) ---
+// --- Cart Types (Client Side Store) ---
 export interface CartItem {
-  _id?: string
-  id: string
+  id: string // Consistently use 'id' to match Zustand store
   name: string
   price: number
-  // image: string
-
-  image: StaticImageData
+  image: ImageSource
   quantity: number
   variantSku?: string
   slug: string
+  brand?: string
+  stock?: number // To prevent adding more than available
 }

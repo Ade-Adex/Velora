@@ -2,10 +2,11 @@
 
 'use client'
 import { useCartStore } from '@/app/store/useCartStore'
-import { ShoppingCart, Star } from 'lucide-react'
+import { ShoppingCart, Star, Eye } from 'lucide-react'
 import { CartItem } from '@/app/types'
 import Image from 'next/image'
-import proImage from '@/public/Images/product1.webp'
+import Link from 'next/link'
+import { products } from '@/app/data/products'
 
 interface ProductGridProps {
   limit: number
@@ -18,112 +19,6 @@ export default function ProductGrid({
 }: ProductGridProps) {
   const addToCart = useCartStore((state) => state.addToCart)
 
-  const products = [
-    {
-      id: '1',
-      name: 'Smart TV 55" UHD',
-      price: 199,
-      basePrice: 249,
-      image: proImage,
-      slug: 'smart-tv',
-      rating: 4,
-      reviews: 6299,
-    },
-    {
-      id: '2',
-      name: 'Smartphone Pro',
-      price: 199,
-      basePrice: 282,
-      image: proImage,
-      slug: 'iphone-15',
-      rating: 5,
-      reviews: 8299,
-    },
-    {
-      id: '3',
-      name: 'Wireless Headphones',
-      price: 199,
-      basePrice: 229,
-      image: proImage,
-      slug: 'headphones',
-      rating: 4,
-      reviews: 5299,
-    },
-    {
-      id: '4',
-      name: 'Sport Sneakers',
-      price: 99,
-      basePrice: 152,
-      image: proImage,
-      slug: 'sneakers',
-      rating: 5,
-      reviews: 5299,
-    },
-    {
-      id: '5',
-      name: 'Luxury Watch',
-      price: 189,
-      basePrice: 252,
-      image: proImage,
-      slug: 'watch',
-      rating: 4,
-      reviews: 5299,
-    },
-    {
-      id: '6',
-      name: 'Gaming Laptop',
-      price: 850,
-      basePrice: 950,
-      image: proImage,
-      slug: 'laptop',
-      rating: 5,
-      reviews: 1200,
-    },
-    {
-      id: '7',
-      name: 'Designer Handbag',
-      price: 75,
-      basePrice: 95,
-      image: proImage,
-      slug: 'bag',
-      rating: 4,
-      reviews: 340,
-    },
-    {
-      id: '8',
-      name: 'Espresso Maker',
-      price: 120,
-      basePrice: 145,
-      image: proImage,
-      slug: 'coffee',
-      rating: 5,
-      reviews: 890,
-    },
-    {
-      id: '9',
-      name: 'Mechanical Keyboard',
-      price: 35,
-      basePrice: 50,
-      image: proImage,
-      slug: 'keyboard',
-      rating: 4,
-      reviews: 2100,
-    },
-    {
-      id: '10',
-      name: 'Table Lamp',
-      price: 15,
-      basePrice: 25,
-      image: proImage,
-      slug: 'lamp',
-      rating: 5,
-      reviews: 450,
-    },
-  ].map((p) => ({
-    ...p,
-    quantity: 1,
-  }))
-
   return (
     <div
       className={`grid gap-4 ${
@@ -132,60 +27,112 @@ export default function ProductGrid({
           : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
       }`}
     >
-      {products.slice(0, limit).map((product) => (
-        <div
-          key={product.id}
-          className="bg-white rounded-2xl p-3 border border-gray-100 group transition-all"
-        >
-          {/* Image Container - Matching reference layout */}
-          <div className="aspect-square bg-[#F8F9FA] rounded-xl mb-3 relative overflow-hidden flex items-center justify-center p-4">
-            <Image
-              src={product.image}
-              alt={product.name}
-              className="object-contain w-full h-full group-hover:scale-105 transition-transform duration-300"
-            />
+      {products.slice(0, limit).map((product) => {
+        // Calculate discount percentage if applicable
+        const discount =
+          product.basePrice > product.price
+            ? Math.round(
+                ((product.basePrice - product.price) / product.basePrice) * 100,
+              )
+            : null
 
-            {/* Corner Icon Indicator (Orange badge from image) */}
-            <div className="absolute top-2 right-2 bg-[#FF8A00] w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
-              <span className="text-white text-[8px] font-bold">⚡</span>
-            </div>
-          </div>
-
-          {/* Product Info */}
-          <h4 className="font-medium text-sm text-gray-800 truncate mb-1">
-            {product.name}
-          </h4>
-
-          {/* Ratings (Stars from image) */}
-          <div className="flex items-center gap-0.5 mb-2">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={12}
-                className={`${i < product.rating ? 'fill-[#FFC107] text-[#FFC107]' : 'text-gray-300'}`}
-              />
-            ))}
-          </div>
-
-          {/* Price & Metadata Row (Matches image font sizing) */}
-          <div className="flex items-baseline gap-2">
-            <span className="text-[#FF8A00] font-bold text-sm">
-              ${product.price}
-            </span>
-            <span className="text-[11px] text-gray-400">{product.reviews}</span>
-          </div>
-
-          {/* Quick Add Button */}
-          <button
-            onClick={() => addToCart(product as CartItem)}
-            className="w-full mt-3 py-2 bg-blue-50 text-[#0052CC] text-xs font-bold rounded-lg hover:bg-[#0052CC] hover:text-white transition-colors flex items-center justify-center gap-2"
+        return (
+          <div
+            key={product.id}
+            className="group relative bg-white rounded-2xl p-3 border border-gray-100 hover:border-blue-100 hover:shadow-xl hover:shadow-blue-50/40 transition-all duration-300 flex flex-col"
           >
-            <ShoppingCart size={14} />
-            <span className="hidden xs:inline">Add to Cart</span>{' '}
-            {/* Hides text on tiny screens */}
-          </button>
-        </div>
-      ))}
+            {/* 1. SALE BADGE */}
+            {discount && (
+              <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
+                -{discount}%
+              </div>
+            )}
+
+            {/* 2. IMAGE CONTAINER WITH LINK */}
+            <Link
+              href={`/product/${product.slug}`}
+              className="relative aspect-square bg-[#F8F9FA] rounded-xl mb-3 overflow-hidden flex items-center justify-center p-4"
+            >
+              <Image
+                src={product.image}
+                alt={product.name}
+                className="object-contain w-full h-full group-hover:scale-110 transition-transform duration-500"
+              />
+
+              {/* Overlay on Hover */}
+              <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="bg-white p-2 rounded-full shadow-md text-blue-600">
+                  <Eye size={18} />
+                </div>
+              </div>
+            </Link>
+
+            {/* 3. BRAND & NAME */}
+            <div className="flex-1">
+              <p className="text-[10px] font-bold text-blue-500 uppercase tracking-tighter mb-0.5">
+                {product.brand}
+              </p>
+              <Link href={`/product/${product.slug}`}>
+                <h4 className="font-semibold text-sm text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors mb-1">
+                  {product.name}
+                </h4>
+              </Link>
+
+              {/* RATINGS */}
+              <div className="flex items-center gap-1 mb-2">
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={10}
+                      className={`${i < product.rating ? 'fill-[#FFC107] text-[#FFC107]' : 'text-gray-200'}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-[10px] text-gray-400 font-medium">
+                  ({product.reviews.toLocaleString()})
+                </span>
+              </div>
+
+              {/* PRICE SECTION */}
+              <div className="flex items-center gap-2">
+                <span className="text-[#FF8A00] font-bold text-base">
+                  ${product.price.toLocaleString()}
+                </span>
+                {product.basePrice > product.price && (
+                  <span className="text-gray-400 line-through text-[11px]">
+                    ${product.basePrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 4. SMART BUTTON (Handle Out of Stock) */}
+            <button
+              disabled={product.stock <= 0}
+              onClick={() =>
+                addToCart({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: product.image,
+                  quantity: 1,
+                  slug: product.slug,
+                } as CartItem)
+              }
+              className={`w-full mt-3 py-3 rounded-xl text-xs! font-bold transition-all flex items-center justify-center gap-2 
+                ${
+                  product.stock > 0
+                    ? 'bg-blue-50 text-[#0052CC] hover:bg-[#0052CC] hover:text-white'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
+            >
+              <ShoppingCart size={14} />
+              <span>{product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }
