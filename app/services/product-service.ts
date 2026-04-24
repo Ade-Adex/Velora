@@ -11,6 +11,15 @@ export type CreateProductInput = Omit<
   category: string
 }
 
+
+export async function getProducts(limit: number) {
+  await connectDB()
+  return await Product.find({ isPublished: true })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .lean()
+}
+
 export async function createProduct(data: CreateProductInput) {
   await connectDB()
 

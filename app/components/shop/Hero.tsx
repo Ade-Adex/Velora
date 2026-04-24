@@ -30,7 +30,7 @@ export default function Hero() {
             bottom: rem(20),
             left: '20%',
             transform: 'translateX(-50%)',
-            [`@media (min-width: 1024px)`]: {
+            [` @media (minWidth: 1024px)`]: {
               bottom: rem(40),
               left: '8%',
               transform: 'none',
