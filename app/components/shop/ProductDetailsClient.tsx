@@ -35,6 +35,7 @@ import {
 import { useCartStore } from '@/app/store/useCartStore'
 import { IProduct, ICategory, CartItem, ImageSource } from '@/app/types'
 import { Types } from 'mongoose'
+import { useProductStore } from '@/app/store/useProductStore'
 
 export default function ProductDetailsClient({
   product,
@@ -43,6 +44,13 @@ export default function ProductDetailsClient({
 }) {
   const router = useRouter()
   const { cart, addToCart, updateQuantity } = useCartStore()
+
+  const allProductsInStore = useProductStore((state) => state.products)
+
+  // Example: Get products from the same brand (excluding the current one)
+  const relatedByBrand = allProductsInStore
+    .filter((p) => p.brand === product.brand && p.slug !== product.slug)
+    .slice(0, 4)
 
   const [activeImg, setActiveImg] = useState<ImageSource>(product.mainImage)
 
@@ -188,7 +196,7 @@ export default function ProductDetailsClient({
           <Stack gap="xl">
             <Stack gap={5}>
               <Group justify="space-between" align="center">
-                <Badge variant="filled" color="blue" size="lg" radius="sm">
+                <Badge variant="filled" color="blue" size="md" radius="sm">
                   {product.brand}
                 </Badge>
                 <Group gap="xs">
@@ -205,7 +213,7 @@ export default function ProductDetailsClient({
 
               <Title
                 order={1}
-                fz={{ base: 32, md: 48 }}
+                fz={{ base: 24, md: 32 }}
                 fw={900}
                 lh={1.1}
                 mt="sm"

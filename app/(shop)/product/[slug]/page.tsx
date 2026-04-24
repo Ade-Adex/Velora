@@ -17,14 +17,15 @@ export default async function ProductPage({ params }: Props) {
     notFound()
   }
 
+  // Ensure MongoDB objects are converted to plain JSON for Client Components
   const serializedProduct = JSON.parse(JSON.stringify(product))
 
   return (
     <>
-      {/* 1. Sync this specific product to the Zustand store */}
+      {/* Sync this specific product to the store for other components to use */}
       <ProductHydrator products={[serializedProduct]} />
 
-      {/* 2. Render the UI */}
+      {/* Render the detailed view */}
       <ProductDetailsClient product={serializedProduct} />
     </>
   )

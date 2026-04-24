@@ -1,4 +1,5 @@
 // /app/components/shop/ProductHydrator.tsx
+
 'use client'
 import { useEffect } from 'react'
 import { useProductStore } from '@/app/store/useProductStore'
@@ -9,11 +10,18 @@ export default function ProductHydrator({
 }: {
   products: IProduct[]
 }) {
-  const setProducts = useProductStore((state) => state.setProducts)
+  const { products: existingProducts, setProducts } = useProductStore()
 
   useEffect(() => {
-    setProducts(products)
-  }, [products, setProducts])
+    // Only add products that aren't already in the store to avoid duplicates
+    const newItems = products.filter(
+      (p) => !existingProducts.some((existing) => existing.slug === p.slug),
+    )
 
-  return null // This component renders nothing, it just manages data
+    if (newItems.length > 0) {
+      setProducts([...existingProducts, ...newItems])
+    }
+  }, [products, setProducts, existingProducts])
+
+  return null
 }
