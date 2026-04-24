@@ -217,7 +217,11 @@ export default function ProductDetails() {
                 onClick={handleAddToCart}
                 disabled={product.stock <= 0}
                 variant={cartItem ? 'light' : 'filled'}
-                className={!cartItem ? 'shadow-lg shadow-blue-100 text-xs! md:text-sm!' : ''}
+                className={
+                  !cartItem
+                    ? 'shadow-lg shadow-blue-100 text-xs! md:text-sm!'
+                    : 'text-xs! md:text-sm!'
+                }
               >
                 {product.stock <= 0
                   ? 'Out of Stock'
