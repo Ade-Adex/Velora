@@ -40,35 +40,45 @@ import { CartItem } from '@/app/types'
 export default function ProductDetails() {
   const { slug } = useParams()
   const router = useRouter()
-  const addToCart = useCartStore((state) => state.addToCart)
 
-  // Find product by slug
+  const { cart, addToCart, updateQuantity } = useCartStore()
+
   const product = products.find((p) => p.slug === slug)
 
-  // States for interactive elements
-  const [quantity, setQuantity] = useState(1)
+  // 2. Check if product exists in cart
+  const cartItem = cart.find((item) => item.id === product?.id)
+
+  // 3. Local state for items NOT yet in cart
+  const [localQuantity, setLocalQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
 
-  if (!product) {
-    return (
-      <Container size="lg" py={100} ta="center">
-        <Title order={2}>Product Not Found</Title>
-        <Button onClick={() => router.push('/')} mt="md">
-          Back to Shop
-        </Button>
-      </Container>
-    )
+  if (!product) return null
+
+  const currentQuantity = cartItem ? cartItem.quantity : localQuantity
+
+  const handleQuantityChange = (newQty: number) => {
+    const val = Math.max(1, newQty)
+    if (cartItem) {
+      updateQuantity(product.id, val)
+    } else {
+      setLocalQuantity(val)
+    }
   }
 
   const handleAddToCart = () => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      quantity: quantity,
-      slug: product.slug,
-    } as CartItem)
+    if (cartItem) {
+      // Optional: Redirect to cart or show a "Go to Cart" state
+      router.push('/cart')
+    } else {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: localQuantity,
+        slug: product.slug,
+      } as CartItem)
+    }
   }
 
   return (
@@ -180,18 +190,19 @@ export default function ProductDetails() {
                   <ActionIcon
                     variant="subtle"
                     color="gray"
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    disabled={quantity <= 1}
+                    onClick={() => handleQuantityChange(currentQuantity - 1)}
+                    disabled={currentQuantity <= 1}
                   >
                     <Minus size={16} />
                   </ActionIcon>
                   <Text fw={700} w={40} ta="center">
-                    {quantity}
+                    {currentQuantity}
                   </Text>
                   <ActionIcon
                     variant="subtle"
                     color="gray"
-                    onClick={() => setQuantity((q) => q + 1)}
+                    onClick={() => handleQuantityChange(currentQuantity + 1)}
+                    disabled={product.stock <= currentQuantity}
                   >
                     <Plus size={16} />
                   </ActionIcon>
@@ -202,12 +213,17 @@ export default function ProductDetails() {
                 size="lg"
                 radius="md"
                 flex={1}
-                leftSection={<ShoppingCart size={20} />}
+                leftSection={cartItem ? null : <ShoppingCart size={20} />}
                 onClick={handleAddToCart}
                 disabled={product.stock <= 0}
-                className="shadow-lg shadow-blue-100"
+                variant={cartItem ? 'light' : 'filled'}
+                className={!cartItem ? 'shadow-lg shadow-blue-100' : ''}
               >
-                {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                {product.stock <= 0
+                  ? 'Out of Stock'
+                  : cartItem
+                    ? 'View in Cart'
+                    : 'Add to Cart'}
               </Button>
 
               <ActionIcon size={54} variant="light" color="gray" radius="md">

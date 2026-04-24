@@ -21,17 +21,18 @@ export const useCartStore = create<CartState>()(
 
       addToCart: (item) => {
         const currentCart = get().cart
-        // Check for existing item by id
         const existingItem = currentCart.find((i) => i.id === item.id)
 
         if (existingItem) {
           set({
             cart: currentCart.map((i) =>
-              i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
+              i.id === item.id
+                ? { ...i, quantity: i.quantity + item.quantity }
+                : i,
             ),
           })
         } else {
-          set({ cart: [...currentCart, { ...item, quantity: 1 }] })
+          set({ cart: [...currentCart, item] })
         }
       },
 
@@ -61,7 +62,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'vantage-commerce-storage', 
+      name: 'vantage-commerce-storage',
     },
   ),
 )
