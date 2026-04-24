@@ -252,7 +252,7 @@ export default function ProfilePage() {
                               {addr.street}
                             </Text>
                             <Text size="xs" c="dimmed">
-                              {addr.city}, {addr.state} {addr.zip}
+                              {addr.city}, {addr.state} {addr.zipCode}
                             </Text>
                             <ActionIcon
                               color="red"
