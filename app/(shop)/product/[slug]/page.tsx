@@ -210,14 +210,14 @@ export default function ProductDetails() {
               </Stack>
 
               <Button
-                size="lg"
+                size="md"
                 radius="md"
                 flex={1}
                 leftSection={cartItem ? null : <ShoppingCart size={20} />}
                 onClick={handleAddToCart}
                 disabled={product.stock <= 0}
                 variant={cartItem ? 'light' : 'filled'}
-                className={!cartItem ? 'shadow-lg shadow-blue-100' : ''}
+                className={!cartItem ? 'shadow-lg shadow-blue-100 text-xs! md:text-sm!' : ''}
               >
                 {product.stock <= 0
                   ? 'Out of Stock'
@@ -227,7 +227,7 @@ export default function ProductDetails() {
               </Button>
 
               <ActionIcon size={54} variant="light" color="gray" radius="md">
-                <Heart size={24} />
+                <Heart size={20} />
               </ActionIcon>
             </Group>
 
