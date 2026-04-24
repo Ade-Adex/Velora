@@ -328,7 +328,7 @@ const isPopulatedCategory = (
               <Table.Tr>
                 <Table.Th bg="gray.0">Category</Table.Th>
                 <Table.Td>
-                  {isPopulatedCategory(product.category)
+                  {product?.category && isPopulatedCategory(product.category)
                     ? product.category.name
                     : 'General'}
                 </Table.Td>

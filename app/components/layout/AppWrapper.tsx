@@ -17,7 +17,7 @@ interface AppWrapperProps {
 
 export default function AppWrapper({ children }: AppWrapperProps) {
   return (
-    <MantineProvider theme={theme}>
+    <MantineProvider theme={theme} defaultColorScheme="light">
       {/* AuthProvider must wrap the parts of the app using useSession */}
       <AuthProvider>
         <AppContextProvider>

@@ -13,6 +13,8 @@ export default async function ProductPage({ params }: Props) {
 
   const product = await getProductBySlug(slug)
 
+  console.log('Fetched product for slug:', slug, product)
+
   if (!product) {
     notFound()
   }
