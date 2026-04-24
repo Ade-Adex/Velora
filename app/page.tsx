@@ -7,16 +7,17 @@ import ProductGrid from '@/app/components/shop/ProductGrid'
 import PromotionalBanner from '@/app/components/shop/PromotionalBanner'
 import QuickNav from '@/app/components/shop/QuickNav'
 import { getProducts } from '@/app/services/product-service'
+import ProductHydrator from '@/app/components/shop/ProductHydrator'
 
 export default async function Home() {
-  // Fetch real data from the database
-  const allProducts = await getProducts(15);
-  
-  // Serialize for the client to avoid ObjectId issues
-  const serializedProducts = JSON.parse(JSON.stringify(allProducts));
+ const allProducts = await getProducts(15)
+ const serializedProducts = JSON.parse(JSON.stringify(allProducts))
 
   return (
     <main className="flex flex-col w-full min-h-screen bg-[#F4F7FA]">
+
+      <ProductHydrator products={serializedProducts} />
+
       <Hero />
 
       <div className="container mx-auto px-4 relative z-20">
@@ -35,10 +36,7 @@ export default async function Home() {
           </button>
         </div>
         {/* Pass the products prop here! */}
-        <ProductGrid 
-          products={serializedProducts.slice(0, 5)} 
-          variant="deal" 
-        />
+        <ProductGrid products={serializedProducts.slice(0, 5)} variant="deal" />
       </section>
 
       <section className="container mx-auto px-4 py-8">
@@ -46,9 +44,9 @@ export default async function Home() {
           Top Categories
         </h2>
         {/* Pass the products prop here! */}
-        <ProductGrid 
-          products={serializedProducts.slice(0, 10)} 
-          variant="standard" 
+        <ProductGrid
+          products={serializedProducts.slice(0, 10)}
+          variant="standard"
         />
       </section>
 
