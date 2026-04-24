@@ -1,10 +1,9 @@
 // /app/components/providers/AuthProvider.tsx
 
-
-
 'use client'
 import { useEffect } from 'react'
 import { useUserStore } from '@/app/store/useUserStore'
+import { SessionProvider } from 'next-auth/react' // Add this import
 
 export default function AuthProvider({
   children,
@@ -31,5 +30,6 @@ export default function AuthProvider({
     checkAuth()
   }, [setUser])
 
-  return <>{children}</>
+  // Wrap children with SessionProvider
+  return <SessionProvider>{children}</SessionProvider>
 }
