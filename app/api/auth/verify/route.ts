@@ -1,3 +1,5 @@
+// /app/api/auth/verify/route.ts
+
 import { NextResponse } from 'next/server'
 import { verifyMagicToken } from '@/app/services/auth-service'
 import { cookies } from 'next/headers'
