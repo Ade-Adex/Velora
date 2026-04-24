@@ -317,6 +317,7 @@ const isPopulatedCategory = (
         <Tabs.Panel value="specifications" pt="xl">
           <Table withTableBorder withColumnBorders verticalSpacing="md">
             <Table.Tbody>
+              fProduct Name
               {product.specifications?.map((spec, i) => (
                 <Table.Tr key={i}>
                   <Table.Th bg="gray.0" w={250}>

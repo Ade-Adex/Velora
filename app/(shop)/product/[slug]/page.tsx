@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import ProductDetailsClient from '@/app/components/shop/ProductDetailsClient'
 
 interface Props {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -19,7 +19,7 @@ export default async function ProductPage({ params }: Props) {
     notFound()
   }
 
-  // Serialize MongoDB data (converts ObjectIds to strings)
+  // Serialize MongoDB data
   const serializedProduct = JSON.parse(JSON.stringify(product))
 
   return <ProductDetailsClient product={serializedProduct} />
