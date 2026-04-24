@@ -129,7 +129,7 @@ export default function ProductGrid({
       className={`grid gap-4 ${
         variant === 'deal'
           ? 'grid-cols-2 md:grid-cols-5'
-          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+          : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
       }`}
     >
       {products.slice(0, limit).map((product) => (
@@ -175,12 +175,14 @@ export default function ProductGrid({
             <span className="text-[11px] text-gray-400">{product.reviews}</span>
           </div>
 
-          {/* Quick Add Button (Hidden by default, shown on hover for cleaner UI) */}
+          {/* Quick Add Button */}
           <button
             onClick={() => addToCart(product as CartItem)}
             className="w-full mt-3 py-2 bg-blue-50 text-[#0052CC] text-xs font-bold rounded-lg hover:bg-[#0052CC] hover:text-white transition-colors flex items-center justify-center gap-2"
           >
-            <ShoppingCart size={14} /> Add to Cart
+            <ShoppingCart size={14} />
+            <span className="hidden xs:inline">Add to Cart</span>{' '}
+            {/* Hides text on tiny screens */}
           </button>
         </div>
       ))}

@@ -9,8 +9,6 @@ export async function POST(req: Request) {
     const { email } = await req.json()
     const token = await generateMagicToken(email)
 
-    // 1. DYNAMIC BASE URL LOGIC
-    // This removes any existing "https://" and trailing slashes to prevent doubling
     const rawDomain = process.env.NEXT_PUBLIC_DOMAIN || 'localhost:3000'
     const cleanDomain = rawDomain.replace(/^https?:\/\//, '').replace(/\/$/, '')
 
