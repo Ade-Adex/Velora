@@ -22,6 +22,7 @@ export interface IUser extends Document {
   fullName: string
   phone?: string
   image?: string
+  birthday?: Date
   role: 'customer' | 'admin' | 'editor'
   magicToken?: string
   tokenExpiry?: Date
