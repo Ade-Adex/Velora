@@ -226,7 +226,7 @@ export default function ProductDetails() {
                     : 'Add to Cart'}
               </Button>
 
-              <ActionIcon size={54} variant="light" color="gray" radius="md">
+              <ActionIcon size={45} variant="light" color="gray" radius="md">
                 <Heart size={20} />
               </ActionIcon>
             </Group>
