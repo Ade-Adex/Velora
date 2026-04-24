@@ -1,8 +1,11 @@
 // next.config.ts
+
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
+    // Enable AVIF and WebP support for the Image component
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -10,7 +13,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // If you plan to use images from other sources like Cloudinary later, add them here too
     ],
   },
 }
