@@ -2,8 +2,9 @@
 
 import connectDB from '@/app/lib/mongodb'
 import { Product } from '@/app/models/Product'
-import { Category } from '@/app/models/Category' 
 import { IProduct } from '@/app/types'
+import { Category } from '@/app/models/Category'  
+import '../models/Category'
 
 export type CreateProductInput = Omit<
   IProduct,
@@ -24,6 +25,9 @@ export async function getProducts(limit: number) {
 // Add this for your dynamic [slug] pages
 export async function getProductBySlug(slug: string) {
   await connectDB()
+
+  const _forceRegister = Category.modelName
+  
   return await Product.findOne({ slug, isPublished: true })
     .populate('category')
     .lean()

@@ -9,7 +9,9 @@ interface Props {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = await getProductBySlug(params.slug)
+  const { slug } = await params
+
+  const product = await getProductBySlug(slug)
 
   if (!product) {
     notFound()

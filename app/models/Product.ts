@@ -2,6 +2,7 @@
 
 import { Schema, model, models } from 'mongoose'
 import { IProduct } from '@/app/types'
+import './Category'
 
 const ProductSchema = new Schema<IProduct>(
   {
