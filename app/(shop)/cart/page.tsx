@@ -79,6 +79,7 @@ export default function CartPage() {
        name: item.name,
        quantity: item.quantity,
        price: item.price,
+       image: item.image, // Pass the image here!
        variantSku: item.variantSku || '',
      })),
      totals: {

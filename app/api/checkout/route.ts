@@ -5,6 +5,24 @@ import { NextResponse } from 'next/server'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import connectDB from '@/app/lib/mongodb'
 import { Order } from '@/app/models/Order'
+import mongoose from 'mongoose'
+import { IOrderItem, IAddress } from '@/app/types'
+
+interface CheckoutRequestBody {
+  items: (Omit<IOrderItem, 'product' | 'image'> & {
+    product: string
+    image: string | { src: string }
+  })[]
+  totals: {
+    subtotal: number
+    shipping: number
+    tax: number
+    discount: number
+    grandTotal: number
+  }
+  shippingAddress: IAddress
+  paymentMethod: 'card' | 'transfer'
+}
 
 interface UserPayload extends JwtPayload {
   id: string
@@ -14,7 +32,9 @@ interface UserPayload extends JwtPayload {
 
 export async function POST(req: Request) {
   try {
-    // 1. Auth Check (Matching your /user/update logic)
+    await connectDB()
+
+    // 1. Auth Check
     const cookieStore = await cookies()
     const token = cookieStore.get('session')?.value
 
@@ -27,40 +47,65 @@ export async function POST(req: Request) {
       process.env.JWT_SECRET as string,
     ) as UserPayload
 
-    const body = await req.json()
+    const body: CheckoutRequestBody = await req.json()
     const { items, totals, shippingAddress, paymentMethod } = body
 
-    await connectDB()
+    // 2. Sanitize Items to match IOrderItem exactly
+    const sanitizedItems = items.map((item) => ({
+      product: new mongoose.Types.ObjectId(item.product),
+      name: item.name,
+      variantSku: item.variantSku || '',
+      // Ensure image is a string (if your frontend passes the ImageSource object)
+      image: typeof item.image === 'string' ? item.image : item.image.src,
+      quantity: item.quantity,
+      price: item.price,
+    }))
 
-    // 2. Generate Order Number
+    // 3. Generate Professional Order Number
     const orderNumber = `Velora-${Math.random().toString(36).toUpperCase().substring(2, 10)}`
 
-    // 3. Create Order using your model
-    const newOrder = await Order.create({
-      user: decoded.id,
-      orderNumber,
-      items,
-      totals,
-      shippingAddress,
-      paymentMethod,
-      paymentStatus: paymentMethod === 'transfer' ? 'unpaid' : 'processing',
-      orderStatus: 'pending',
-    })
+    // 4. Create Order
+    try {
+      const newOrder = await Order.create({
+        user: new mongoose.Types.ObjectId(decoded.id),
+        orderNumber,
+        items: sanitizedItems,
+        totals,
+        shippingAddress, // Matches IAddress now
+        paymentMethod,
+        paymentStatus: paymentMethod === 'transfer' ? 'unpaid' : 'processing',
+        orderStatus: 'pending',
+      })
 
-    // 4. Return response matching your frontend expectation
-    return NextResponse.json({
-      success: true,
-      order: newOrder,
-      // For transfer, we go straight to success. For card, you'd integrate your gateway here.
-      redirectUrl:
-        paymentMethod === 'transfer'
-          ? `/orders/success?id=${newOrder._id}&method=transfer`
-          : `/checkout/paystack?id=${newOrder._id}`,
-    })
+      return NextResponse.json({
+        success: true,
+        orderId: newOrder._id,
+        redirectUrl:
+          paymentMethod === 'transfer'
+            ? `/orders/success?id=${newOrder._id}&method=transfer`
+            : `/checkout/paystack?id=${newOrder._id}`,
+      })
+    } catch (dbError) {
+      if (dbError instanceof mongoose.Error.ValidationError) {
+        console.error('Validation Error Details:', dbError.errors)
+        return NextResponse.json(
+          { error: 'Order validation failed', details: dbError.message },
+          { status: 400 },
+        )
+      }
+      throw dbError
+    }
   } catch (error) {
-    console.error('Checkout API Error:', error)
+    console.error('Checkout API Full Error:', error)
+
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+    }
+
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Internal Server Error', message: errorMessage },
       { status: 500 },
     )
   }
