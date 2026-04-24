@@ -9,19 +9,15 @@ import QuickNav from '@/app/components/shop/QuickNav'
 
 export default function Home() {
   return (
-    <main className="flex flex-col min-h-screen bg-[#F4F7FA]">
-      {/* 1. Dynamic Blue Hero with White/Orange accents */}
+    <main className="flex flex-col w-full min-h-screen bg-[#F4F7FA]">
       <Hero />
 
-      <div className="container mx-auto px-4 -mt-8 relative z-20">
-        {/* 2. Quick Info Bar (Flash Sales, New Arrivals, Best Sellers) */}
+      <div className="container mx-auto px-4 relative z-20">
         <QuickNav />
       </div>
 
-      {/* 3. Rounded Bubble Categories */}
       <FeaturedCategories />
 
-      {/* 4. Today's Deals Section */}
       <section className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">

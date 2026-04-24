@@ -29,6 +29,7 @@ import {
   Burger,
   ScrollArea,
   NavLink,
+  Center,
 } from '@mantine/core'
 
 export default function Navbar() {
@@ -58,7 +59,6 @@ export default function Navbar() {
   return (
     <header className="w-full bg-white sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 py-3 lg:py-4 flex items-center justify-between gap-4">
-        
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
           <div className="w-10 h-10 bg-[#0052CC] rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform">
@@ -106,11 +106,22 @@ export default function Navbar() {
                       {user.fullName?.charAt(0).toUpperCase()}
                     </Avatar>
                     <div className="hidden lg:block text-left">
-                      <Text size="xs" c="dimmed" fw={700} tt="uppercase" lts="0.5px" style={{ lineHeight: 1 }}>
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                        fw={700}
+                        tt="uppercase"
+                        lts="0.5px"
+                        style={{ lineHeight: 1 }}
+                      >
                         Welcome
                       </Text>
                       <Group gap={4}>
-                        <Text size="sm" fw={800} className="text-black leading-none">
+                        <Text
+                          size="sm"
+                          fw={800}
+                          className="text-black leading-none"
+                        >
                           {user.fullName.split(' ')[0]}
                         </Text>
                         <ChevronDown size={14} className="text-gray-400" />
@@ -121,35 +132,59 @@ export default function Navbar() {
               </Menu.Target>
               <Menu.Dropdown p="xs">
                 <Menu.Label>My Account</Menu.Label>
-                <Menu.Item leftSection={<UserIcon size={16} />} component={Link} href="/profile">
+                <Menu.Item
+                  leftSection={<UserIcon size={16} />}
+                  component={Link}
+                  href="/profile"
+                >
                   Profile Details
                 </Menu.Item>
-                <Menu.Item leftSection={<Package size={16} />} component={Link} href="/orders">
+                <Menu.Item
+                  leftSection={<Package size={16} />}
+                  component={Link}
+                  href="/orders"
+                >
                   My Orders
                 </Menu.Item>
-                <Menu.Item leftSection={<Heart size={16} />} component={Link} href="/wishlist">
+                <Menu.Item
+                  leftSection={<Heart size={16} />}
+                  component={Link}
+                  href="/wishlist"
+                >
                   Wishlist
                 </Menu.Item>
                 <Divider my="xs" />
-                <Menu.Item color="red" leftSection={<LogOut size={16} />} onClick={handleLogout}>
+                <Menu.Item
+                  color="red"
+                  leftSection={<LogOut size={16} />}
+                  onClick={handleLogout}
+                >
                   Log out
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
           ) : (
-            <Link href="/auth" className="hidden md:flex items-center gap-2 text-gray-700 hover:text-[#0052CC] font-medium transition-colors">
+            <Link
+              href="/auth"
+              className="hidden md:flex items-center gap-2 text-gray-700 hover:text-[#0052CC] font-medium transition-colors"
+            >
               <div className="p-2 bg-gray-100 rounded-full">
                 <UserIcon size={20} />
               </div>
               <div className="hidden lg:flex flex-col leading-tight">
-                <span className="text-[10px] text-gray-400 font-bold uppercase">Sign In</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase">
+                  Sign In
+                </span>
                 <span className="text-sm font-bold">Account</span>
               </div>
             </Link>
           )}
 
           {/* Cart Icon */}
-          <Link href="/cart" className="relative text-gray-700 hover:text-[#0052CC] p-2 hover:bg-gray-50 rounded-full transition">
+          <Link
+            href="/cart"
+            className="relative text-gray-700 hover:text-[#0052CC] p-2 hover:bg-gray-50 rounded-full transition"
+          >
             <ShoppingCart size={22} />
             {cartCount > 0 && (
               <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white">
@@ -158,7 +193,13 @@ export default function Navbar() {
             )}
           </Link>
 
-          <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" aria-label="Toggle navigation" />
+          <Burger
+            opened={opened}
+            onClick={toggle}
+            hiddenFrom="md"
+            size="sm"
+            aria-label="Toggle navigation"
+          />
         </div>
       </div>
 
@@ -199,14 +240,28 @@ export default function Navbar() {
                   {user.fullName?.charAt(0).toUpperCase()}
                 </Avatar>
                 <div style={{ flex: 1 }}>
-                  <Text size="sm" fw={700}>{user.fullName}</Text>
-                  <Text size="xs" c="dimmed" className="truncate w-40">{user.email}</Text>
+                  <Text size="sm" fw={700}>
+                    {user.fullName}
+                  </Text>
+                  <Text size="xs" c="dimmed" className="truncate w-40">
+                    {user.email}
+                  </Text>
                 </div>
               </Group>
             ) : (
-              <Button fullWidth component={Link} href="/auth" onClick={close} radius="md" mb="md" color="blue">
-                Sign In / Register
-              </Button>
+              <Center mb="md">
+                <Button
+                  component={Link}
+                  href="/auth"
+                  onClick={close}
+                  radius="xl"
+                  color="blue"
+                  px="xl"
+                  className="bg-[#0052CC]! hover:bg-[#0045ad]! transition-colors"
+                >
+                  Sign In / Register
+                </Button>
+              </Center>
             )}
 
             <Divider my="sm" label="Explore" labelPosition="center" />
@@ -222,39 +277,41 @@ export default function Navbar() {
               />
             ))}
 
-            <Divider my="sm" label="Your Account" labelPosition="center" />
-            <NavLink
-              component={Link}
-              href="/profile"
-              label="Profile Settings"
-              leftSection={<Settings size={18} />}
-              onClick={close}
-            />
-            <NavLink
-              component={Link}
-              href="/orders"
-              label="Track Orders"
-              leftSection={<Package size={18} />}
-              onClick={close}
-            />
-            <NavLink
-              component={Link}
-              href="/wishlist"
-              label="My Wishlist"
-              leftSection={<Heart size={18} />}
-              onClick={close}
-            />
-
             {user && (
-              <NavLink
-                label="Logout"
-                color="red"
-                leftSection={<LogOut size={18} />}
-                onClick={handleLogout}
-                mt="xl"
-                variant="light"
-                className="rounded-lg"
-              />
+              <>
+                <Divider my="sm" label="Your Account" labelPosition="center" />
+                <NavLink
+                  component={Link}
+                  href="/profile"
+                  label="Profile Settings"
+                  leftSection={<Settings size={18} />}
+                  onClick={close}
+                />
+                <NavLink
+                  component={Link}
+                  href="/orders"
+                  label="Track Orders"
+                  leftSection={<Package size={18} />}
+                  onClick={close}
+                />
+                <NavLink
+                  component={Link}
+                  href="/wishlist"
+                  label="My Wishlist"
+                  leftSection={<Heart size={18} />}
+                  onClick={close}
+                />
+
+                <NavLink
+                  label="Logout"
+                  color="red"
+                  leftSection={<LogOut size={18} />}
+                  onClick={handleLogout}
+                  mt="xl"
+                  variant="light"
+                  className="rounded-lg"
+                />
+              </>
             )}
           </div>
         </ScrollArea>

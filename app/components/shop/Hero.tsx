@@ -1,3 +1,143 @@
+// 'use client'
+
+// import { useMemo } from 'react'
+// import Link from 'next/link'
+// import Image from 'next/image'
+// import { Carousel } from '@mantine/carousel'
+// import Autoplay from 'embla-carousel-autoplay'
+// import { MoveRight } from 'lucide-react'
+// import { rem, Badge } from '@mantine/core'
+
+// import '@mantine/carousel/styles.css'
+// import { SLIDE_DATA } from '@/app/data/hero'
+
+// export default function Hero() {
+//   const autoplay = useMemo(
+//     () => Autoplay({ delay: 5000, stopOnInteraction: false }),
+//     [],
+//   )
+
+//   return (
+//     <section className="w-full py-4 lg:py-8 overflow-hidden">
+//       <Carousel
+//         withIndicators
+//         withControls={false}
+//         plugins={[autoplay]}
+//         // loop
+//         styles={{
+//           root: {
+//             width: '100%',
+//             overflow: 'hidden',
+//             isolation: 'isolate',
+//           },
+//           indicators: {
+//             bottom: rem(20),
+//             left: '20%',
+//             transform: 'translateX(-50%)',
+//             [`@media (min-width: 1024px)`]: {
+//               bottom: rem(40),
+//               left: '8%',
+//               transform: 'none',
+//               justifyContent: 'flex-start',
+//             },
+//             gap: rem(8),
+//           },
+//           indicator: {
+//             width: rem(8),
+//             height: rem(8),
+//             transition: 'width 250ms ease, background-color 250ms ease',
+//             '&[data-active]': { width: rem(32), backgroundColor: '#fff' },
+//             backgroundColor: 'rgba(255, 255, 255, 0.6)',
+//           },
+//         }}
+//       >
+//         {SLIDE_DATA.map((slide, index) => (
+//           <Carousel.Slide key={index}>
+//             <div
+//               className="relative flex flex-col lg:flex-row w-full min-h-100 lg:h-10 overflow-hidden transition-colors duration-500"
+//               style={{ backgroundColor: slide.bgColor }}
+//             >
+//               {/* Desktop Accent Shape - Hidden on Mobile */}
+//               <div
+//                 className="hidden lg:block absolute inset-0 lg:inset-y-0 lg:right-0 lg:left-auto lg:w-[45%] opacity-100 transition-all duration-700"
+//                 style={{
+//                   backgroundColor: slide.accentColor,
+//                   clipPath: 'polygon(0 0, 100% 0, 100% 100%, 20% 100%)',
+//                 }}
+//               />
+
+//               {/* Mobile Accent Overlay - Subtle Glow at the top */}
+//               <div
+//                 className="lg:hidden absolute inset-0 opacity-40"
+//                 style={{
+//                   background: `linear-gradient(to bottom, ${slide.accentColor}, transparent)`,
+//                 }}
+//               />
+
+//               {/* Content Container: High-end Typography & Layering */}
+//               <div className="relative z-30 flex flex-col justify-center px-6 py-12 lg:p-16 lg:w-[55%] text-center lg:text-left items-center lg:items-start">
+//                 <Badge
+//                   variant="white"
+//                   size="lg"
+//                   radius="md"
+//                   className="mb-4 shadow-sm"
+//                   style={{ color: slide.bgColor }}
+//                 >
+//                   {slide.label}
+//                 </Badge>
+
+//                 <h1 className="text-3xl sm:text-5xl lg:text-5xl font-black leading-[1.1] text-white tracking-tight mb-4 drop-shadow-sm">
+//                   {slide.title}
+//                 </h1>
+
+//                 <p className="text-base lg:text-xl text-white/90 font-medium max-w-xs sm:max-w-md lg:max-w-xl mb-8">
+//                   {slide.desc}
+//                 </p>
+
+//                 <Link
+//                   href={slide.link}
+//                   className="group inline-flex items-center gap-3 px-8 lg:px-10 py-2 bg-white text-[#171717] rounded-full font-bold hover:bg-[#F4F7FA] transition-all shadow-2xl hover:-translate-y-1 active:scale-95"
+//                 >
+//                   Shop Now
+//                   <MoveRight
+//                     size={20}
+//                     className="group-hover:translate-x-1 transition-transform"
+//                   />
+//                 </Link>
+//               </div>
+
+//               {/* Image Container: Clean Mobile Alignment */}
+//               <div
+//                 className="relative z-20 flex-1 flex items-end justify-center lg:justify-end overflow-hidden lg:clip-path-none"
+//                 style={{
+//                   clipPath:
+//                     typeof window !== 'undefined' && window.innerWidth > 1024
+//                       ? 'polygon(0 0, 100% 0, 100% 100%, 20% 100%)'
+//                       : 'none',
+//                 }}
+//               >
+//                 <div className="relative w-[90%] sm:w-[70%] lg:w-[85%] h-[280px] sm:h-[320px] lg:h-[90%] mb-10 lg:mb-0 transition-transform duration-700">
+//                   <Image
+//                     src={slide.image}
+//                     alt={slide.title}
+//                     fill
+//                     style={{
+//                       objectFit: 'contain',
+//                       objectPosition: 'bottom center',
+//                     }}
+//                     className="drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)] lg:drop-shadow-[0_35px_60px_rgba(0,0,0,0.4)]"
+//                     priority={index === 0}
+//                   />
+//                 </div>
+//               </div>
+//             </div>
+//           </Carousel.Slide>
+//         ))}
+//       </Carousel>
+//     </section>
+//   )
+// }
+
 'use client'
 
 import { useMemo } from 'react'
@@ -8,72 +148,8 @@ import Autoplay from 'embla-carousel-autoplay'
 import { MoveRight } from 'lucide-react'
 import { rem, Badge } from '@mantine/core'
 
-// IMPORTANT: This handles the horizontal layout and sliding logic
 import '@mantine/carousel/styles.css'
-
-import HeroImg1 from '@/public/Images/hero2.png'
-import HeroImg2 from '@/public/Images/hero2.jpg'
-import HeroImg3 from '@/public/Images/hero1.webp'
-import HeroImg4 from '@/public/Images/hero3.png'
-import HeroImg5 from '@/public/Images/hero4.jpg'
-import HeroImg6 from '@/public/Images/product1.webp'
-
-const SLIDE_DATA = [
-  {
-    label: 'Limited Time',
-    title: 'BIG SALE EVENT!',
-    desc: 'Up to 50% OFF | Shop top brands in Fashion & Electronics.',
-    image: HeroImg1,
-    bgColor: '#0052CC',
-    accentColor: '#FF8A00',
-    link: '/products',
-  },
-  {
-    label: 'New Season',
-    title: 'SUMMER FASHION',
-    desc: 'Stay cool with our new seasonal collection. Fresh styles inside.',
-    image: HeroImg2,
-    bgColor: '#7048E8',
-    accentColor: '#FF8A00',
-    link: '/products?category=fashion',
-  },
-  {
-    label: 'Next Gen',
-    title: 'SMART TECH HUB',
-    desc: 'Revolutionize your workspace with high-performance gadgets.',
-    image: HeroImg3,
-    bgColor: '#1A1B1E',
-    accentColor: '#0052CC',
-    link: '/products?category=electronics',
-  },
-  {
-    label: 'Style Guide',
-    title: 'MODERN ACCESSORIES',
-    desc: 'The final touch to every outfit. Shop premium watches and bags.',
-    image: HeroImg4,
-    bgColor: '#C92A2A',
-    accentColor: '#171717',
-    link: '/products?category=accessories',
-  },
-  {
-    label: 'Comfort First',
-    title: 'HOME ESSENTIALS',
-    desc: 'Turn your house into a home with our curated interior decor.',
-    image: HeroImg5,
-    bgColor: '#099268',
-    accentColor: '#FF8A00',
-    link: '/products?category=home',
-  },
-  {
-    label: 'Flash Deal',
-    title: 'WEEKEND SPECIALS',
-    desc: "Exclusive 24-hour offers. Grab your favorites before they're gone.",
-    image: HeroImg6,
-    bgColor: '#E67700',
-    accentColor: '#0052CC',
-    link: '/products?category=deals',
-  },
-]
+import { SLIDE_DATA } from '@/app/data/hero'
 
 export default function Hero() {
   const autoplay = useMemo(
@@ -82,91 +158,110 @@ export default function Hero() {
   )
 
   return (
-    <section className="bg-[#F4F7FA] pt-6 pb-12">
-      <div className="container mx-auto px-4">
-        <Carousel
-          withIndicators
-          withControls={false}
-          plugins={[autoplay]}
-          // loop
-          // dragFree={false}
-          // speed={10}
-          styles={{
-            root: { borderRadius: '2rem', overflow: 'hidden' },
-            indicators: {
+    <section className="w-full  py-4 lg:py-8 overflow-hidden">
+      <Carousel
+        withIndicators
+        withControls={false}
+        plugins={[autoplay]}
+        // loop
+        styles={{
+          root: { width: '100%', overflow: 'hidden', isolation: 'isolate' },
+          indicators: {
+            bottom: rem(20),
+            left: '20%',
+            transform: 'translateX(-50%)',
+            [`@media (min-width: 1024px)`]: {
               bottom: rem(40),
-              left: '10%',
+              left: '8%',
+              transform: 'none',
               justifyContent: 'flex-start',
-              gap: rem(8),
             },
-            indicator: {
-              width: rem(8),
-              height: rem(8),
-              transition: 'width 250ms ease, background-color 250ms ease',
-              '&[data-active]': { width: rem(32), backgroundColor: '#fff' },
-              backgroundColor: 'rgba(255, 255, 255, 0.3)',
-            },
-          }}
-        >
-          {SLIDE_DATA.map((slide, index) => (
-            <Carousel.Slide key={index}>
+            gap: rem(8),
+          },
+          indicator: {
+            width: rem(8),
+            height: rem(8),
+            transition: 'width 250ms ease, background-color 250ms ease',
+            '&[data-active]': { width: rem(24), backgroundColor: '#fff' },
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+          },
+        }}
+      >
+        {SLIDE_DATA.map((slide, index) => (
+          <Carousel.Slide key={index}>
+            <div
+              className="relative flex flex-col lg:flex-row w-full  min-h-100 lg:h-10 overflow-hidden"
+              style={{ backgroundColor: slide.bgColor }}
+            >
+              {/* Desktop Accent Shape */}
               <div
-                className="relative flex flex-col lg:flex-row items-stretch min-h-112.5 lg:h-112.5"
-                style={{ backgroundColor: slide.bgColor }}
-              >
-                <div
-                  className="hidden lg:block absolute inset-y-0 right-0 w-[35%] rounded-r-4xl"
-                  style={{ backgroundColor: slide.accentColor }}
-                />
+                className="hidden lg:block absolute inset-0 lg:inset-y-0 lg:right-0 lg:left-auto lg:w-[45%] opacity-100 transition-all duration-700"
+                style={{
+                  backgroundColor: slide.accentColor,
+                  clipPath: 'polygon(0 0, 100% 0, 100% 100%, 20% 100%)',
+                }}
+              />
 
-                <div className="z-10 p-10 lg:p-15 flex flex-col justify-center space-y-6 lg:w-[65%]">
-                  <Badge
-                    variant="white"
-                    color="dark"
-                    size="lg"
-                    radius="sm"
-                    className="w-fit"
-                  >
-                    {slide.label}
-                  </Badge>
+              {/* Mobile Background: Simple solid color or very subtle top glow */}
+              <div
+                className="lg:hidden absolute inset-0 opacity-30"
+                style={{
+                  background: `linear-gradient(to bottom, ${slide.accentColor}, transparent)`,
+                }}
+              />
 
-                  <h1 className="text-5xl lg:text-6xl font-black leading-[1.1] text-white tracking-tight">
-                    {slide.title}
-                  </h1>
+              {/* Content Container: Compact for Mobile */}
+              <div className="relative z-30 flex flex-col justify-center px-6 pt-10 pb-4 lg:p-16 lg:w-[55%] text-center lg:text-left items-center lg:items-start">
+                <Badge
+                  variant="white"
+                  size="sm" // Smaller badge for mobile
+                  radius="md"
+                  className="mb-2 shadow-sm"
+                  style={{ color: slide.bgColor }}
+                >
+                  {slide.label}
+                </Badge>
 
-                  <p className="text-lg lg:text-xl text-white/90 font-medium max-w-125">
-                    {slide.desc}
-                  </p>
+                <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black leading-tight text-white tracking-tight mb-2">
+                  {slide.title}
+                </h1>
 
-                  <div className="pt-4">
-                    <Link
-                      href={slide.link}
-                      className="inline-flex items-center gap-3 px-10 py-3 bg-white text-[#171717] rounded-full font-bold hover:scale-105 transition-all shadow-xl"
-                    >
-                      Shop Now <MoveRight size={20} />
-                    </Link>
-                  </div>
-                </div>
+                <p className="text-sm lg:text-xl text-white/90 font-mediummax-w-70 sm:max-w-md lg:max-w-xl mb-6">
+                  {slide.desc}
+                </p>
 
-                <div className="z-10 relative flex-1 flex items-end justify-center">
-                  <div className="relative w-full h-75 lg:h-full flex justify-center items-end px-6 lg:px-12">
-                    <Image
-                      src={slide.image}
-                      alt={slide.title}
-                      fill
-                      style={{
-                        objectFit: 'cover',
-                        objectPosition: 'bottom center',
-                      }}
-                      priority={index === 0}
-                    />
-                  </div>
+                <Link
+                  href={slide.link}
+                  className="group inline-flex items-center gap-2 px-7 py-2.5 bg-white text-[#171717] rounded-full text-sm font-bold hover:bg-[#F4F7FA] transition-all shadow-xl active:scale-95"
+                >
+                  Shop Now
+                  <MoveRight
+                    size={18}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </Link>
+              </div>
+
+              {/* Image Container: Cleanly integrated without taking much vertical space */}
+              <div className="relative z-20 flex-1 flex items-end justify-center lg:justify-end overflow-hidden">
+                <div className="relative w-[70%] sm:w-[50%] lg:w-[85%] h-45 sm:h-55 lg:h-[90%] mb-8 lg:mb-0">
+                  <Image
+                    src={slide.image}
+                    alt={slide.title}
+                    fill
+                    style={{
+                      objectFit: 'contain',
+                      objectPosition: 'bottom center',
+                    }}
+                    className="drop-shadow-[0_15px_30px_rgba(0,0,0,0.3)] lg:drop-shadow-[0_35px_60px_rgba(0,0,0,0.4)]"
+                    priority={index === 0}
+                  />
                 </div>
               </div>
-            </Carousel.Slide>
-          ))}
-        </Carousel>
-      </div>
+            </div>
+          </Carousel.Slide>
+        ))}
+      </Carousel>
     </section>
   )
 }
