@@ -1,9 +1,10 @@
 // /app/services/product-service.ts
+
 import connectDB from '@/app/lib/mongodb'
 import { Product } from '@/app/models/Product'
+import { Category } from '@/app/models/Category' 
 import { IProduct } from '@/app/types'
 
-// Define the input type here or import it from your types file
 export type CreateProductInput = Omit<
   IProduct,
   '_id' | 'createdAt' | 'updatedAt' | 'category'
@@ -11,23 +12,28 @@ export type CreateProductInput = Omit<
   category: string
 }
 
-
 export async function getProducts(limit: number) {
   await connectDB()
   return await Product.find({ isPublished: true })
+    .populate('category', 'name slug') 
     .sort({ createdAt: -1 })
     .limit(limit)
+    .lean()
+}
+
+// Add this for your dynamic [slug] pages
+export async function getProductBySlug(slug: string) {
+  await connectDB()
+  return await Product.findOne({ slug, isPublished: true })
+    .populate('category')
     .lean()
 }
 
 export async function createProduct(data: CreateProductInput) {
   await connectDB()
 
-  // Prepare the object for Mongoose
-  // We spread the data; Mongoose will automatically cast the category string to an ObjectId
   const productData = { ...data }
 
-  // Auto-generate slug if not provided
   if (productData.name && !productData.slug) {
     productData.slug =
       productData.name
