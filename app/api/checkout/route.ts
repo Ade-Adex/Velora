@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     await connectDB()
 
     // 2. Generate Order Number
-    const orderNumber = `CBC-${Math.random().toString(36).toUpperCase().substring(2, 10)}`
+    const orderNumber = `Velora-${Math.random().toString(36).toUpperCase().substring(2, 10)}`
 
     // 3. Create Order using your model
     const newOrder = await Order.create({
