@@ -1,5 +1,6 @@
 // next.config.ts
 
+// next.config.ts
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
@@ -13,17 +14,17 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'uk.pcmag.com',
+        hostname: 'i.ebayimg.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'sm.pcmag.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'encrypted-tbn0.gstatic.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.techradar.com',
         pathname: '/**',
       },
       {
