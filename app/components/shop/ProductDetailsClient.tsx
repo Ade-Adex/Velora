@@ -19,6 +19,7 @@ import {
   Table,
   Paper,
   AspectRatio,
+  Box,
 } from '@mantine/core'
 import {
   ShoppingCart,
@@ -32,7 +33,7 @@ import {
   Share2,
 } from 'lucide-react'
 import { useCartStore } from '@/app/store/useCartStore'
-import { IProduct, ICategory, CartItem } from '@/app/types'
+import { IProduct, ICategory, CartItem, ImageSource } from '@/app/types'
 import { Types } from 'mongoose'
 
 export default function ProductDetailsClient({
@@ -43,28 +44,29 @@ export default function ProductDetailsClient({
   const router = useRouter()
   const { cart, addToCart, updateQuantity } = useCartStore()
 
-  // Dynamic Image State - mainImage is typed as ImageSource
-  const [activeImg, setActiveImg] = useState(product.mainImage)
+  const [activeImg, setActiveImg] = useState<ImageSource>(product.mainImage)
 
-  // Price Logic
   const currentPrice = product.discountPrice || product.basePrice
   const hasDiscount =
     !!product.discountPrice && product.discountPrice < product.basePrice
-
-  // Extract ID safely. Since IProduct extends Document, _id exists.
-  const productId = product._id.toString()
-
+  const productId = product._id ? product._id.toString() : ''
   const cartItem = cart.find((item) => item.id === productId)
   const [localQuantity, setLocalQuantity] = useState(1)
   const currentQuantity = cartItem ? cartItem.quantity : localQuantity
 
-const isPopulatedCategory = (
-  cat: ICategory | Types.ObjectId,
-): cat is ICategory => {
-  return (cat as ICategory).name !== undefined
-}
+  // Helper to extract string URL from ImageSource
+  const getImageUrl = (src: ImageSource): string => {
+    return typeof src === 'string' ? src : src.src
+  }
+
+  const isPopulatedCategory = (
+    cat: ICategory | Types.ObjectId,
+  ): cat is ICategory => {
+    return cat && (cat as ICategory).name !== undefined
+  }
+
   const handleQuantityChange = (newQty: number) => {
-    const val = Math.max(1, newQty)
+    const val = Math.max(1, Math.min(newQty, product.stock || 99))
     if (cartItem) {
       updateQuantity(productId, val)
     } else {
@@ -90,6 +92,9 @@ const isPopulatedCategory = (
     }
   }
 
+  // Combine main image and gallery for the thumbnails
+  const allImages = [product.mainImage, ...(product.gallery || [])]
+
   return (
     <Container size="lg" py="xl">
       <Button
@@ -99,239 +104,274 @@ const isPopulatedCategory = (
         onClick={() => router.back()}
         mb="xl"
       >
-        Back to Results
+        Back to shopping
       </Button>
 
-      <Grid gap={50}>
-        {/* GALLERY SECTION */}
+      <Grid gap={60}>
+        {/* LEFT: GALLERY SECTION */}
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Stack pos="sticky" top={100}>
+            {/* Main Feature Image */}
             <Paper
               withBorder
               radius="lg"
-              bg="gray.0"
-              style={{ overflow: 'hidden' }}
+              bg="#fff"
+              style={{
+                overflow: 'hidden',
+                boxShadow: 'var(--mantine-shadow-md)',
+                position: 'relative',
+              }}
             >
               <AspectRatio ratio={1}>
-                <Image
-                  src={activeImg}
-                  alt={product.name}
-                  fill
-                  style={{ objectFit: 'contain', padding: '20px' }}
-                  priority
-                />
+                <Box style={{ overflow: 'hidden' }}>
+                  <Image
+                    src={getImageUrl(activeImg)}
+                    alt={product.name}
+                    fill
+                    style={{
+                      objectFit: 'contain',
+                      padding: '20px',
+                      transition: 'transform 0.5s ease',
+                    }}
+                    className="hover:scale-110" // Simple CSS zoom effect
+                    priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </Box>
               </AspectRatio>
             </Paper>
 
-            <Group gap="sm">
-              {[product.mainImage, ...(product.gallery || [])].map((img, i) => (
-                <Paper
-                  key={i}
-                  withBorder
-                  radius="md"
-                  p={4}
-                  onClick={() => setActiveImg(img)}
-                  className={`cursor-pointer transition-all ${
-                    activeImg === img
-                      ? 'border-blue-600 ring-2 ring-blue-100'
-                      : 'hover:border-gray-400'
-                  }`}
-                >
-                  <Image
-                    src={img}
-                    alt={`${product.name} gallery ${i}`}
-                    width={70}
-                    height={70}
-                    style={{ objectFit: 'contain' }}
-                  />
-                </Paper>
-              ))}
+            {/* Thumbnail Navigation */}
+            <Group gap="sm" justify="center">
+              {allImages.map((img, i) => {
+                const isSelected = getImageUrl(activeImg) === getImageUrl(img)
+                return (
+                  <Paper
+                    key={i}
+                    withBorder
+                    radius="md"
+                    onClick={() => setActiveImg(img)}
+                    style={{
+                      cursor: 'pointer',
+                      width: 80,
+                      height: 80,
+                      padding: 6,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#fff',
+                      borderColor: isSelected
+                        ? 'var(--mantine-color-blue-filled)'
+                        : undefined,
+                      boxShadow: isSelected
+                        ? '0 0 0 2px var(--mantine-color-blue-1)'
+                        : undefined,
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Image
+                      src={getImageUrl(img)}
+                      alt={`${product.name} thumb ${i}`}
+                      width={65}
+                      height={65}
+                      style={{ objectFit: 'contain' }}
+                    />
+                  </Paper>
+                )
+              })}
             </Group>
           </Stack>
         </Grid.Col>
 
-        {/* INFO SECTION */}
+        {/* RIGHT: INFO SECTION */}
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Stack gap="xl">
-            <Stack gap="xs">
-              <Group justify="space-between" align="flex-start">
-                <Badge color="blue" variant="light" size="lg" radius="sm">
+            <Stack gap={5}>
+              <Group justify="space-between" align="center">
+                <Badge variant="filled" color="blue" size="lg" radius="sm">
                   {product.brand}
                 </Badge>
-                <ActionIcon variant="subtle" color="gray">
-                  <Share2 size={18} />
-                </ActionIcon>
+                <Group gap="xs">
+                  {product.onSale && (
+                    <Badge color="red" variant="light">
+                      SALE
+                    </Badge>
+                  )}
+                  <ActionIcon variant="subtle" color="gray" radius="xl">
+                    <Share2 size={18} />
+                  </ActionIcon>
+                </Group>
               </Group>
 
-              <Title order={1} fz={36} fw={900} lh={1.1}>
+              <Title
+                order={1}
+                fz={{ base: 32, md: 48 }}
+                fw={900}
+                lh={1.1}
+                mt="sm"
+              >
                 {product.name}
               </Title>
 
-              <Group gap="xs">
+              <Group gap="xs" mt="xs">
                 <Rating value={product.ratings?.average || 0} readOnly />
-                <Text size="sm" c="dimmed" fw={500}>
-                  ({product.ratings?.count || 0} Customer Reviews)
+                <Text size="sm" c="dimmed" fw={600}>
+                  ({product.ratings?.count || 0} customer reviews)
                 </Text>
               </Group>
             </Stack>
 
-            <Stack gap={5}>
-              <Group align="flex-end" gap="sm">
-                <Text fz={40} fw={900} c="blue.7">
-                  ${currentPrice.toLocaleString()}
-                </Text>
-                {hasDiscount && (
-                  <Text fz="xl" c="dimmed" td="line-through" mb={8}>
-                    ${product.basePrice.toLocaleString()}
-                  </Text>
-                )}
-              </Group>
-              {product.stock > 0 && product.stock < 10 && (
-                <Text c="orange" fz="sm" fw={700}>
-                  Only {product.stock} items left in stock!
+            <Group align="flex-end" gap="sm">
+              <Text fz={48} fw={900} c="blue.9">
+                ${currentPrice.toLocaleString()}
+              </Text>
+              {hasDiscount && (
+                <Text fz="xl" c="dimmed" td="line-through" mb={12}>
+                  ${product.basePrice.toLocaleString()}
                 </Text>
               )}
-            </Stack>
+            </Group>
 
-            <Text size="lg" c="gray.7" lh={1.7}>
+            <Text size="lg" c="gray.7" lh={1.7} fw={400}>
               {product.shortDescription ||
-                product.description.substring(0, 160) + '...'}
+                product.description.substring(0, 200) + '...'}
             </Text>
 
             <Divider />
 
-            <Group align="flex-end" gap="md">
-              <Stack gap={5}>
-                <Text size="xs" fw={800} tt="uppercase" c="dimmed">
-                  Quantity
-                </Text>
-                <Group
-                  gap={0}
-                  className="border rounded-lg overflow-hidden border-gray-300"
-                >
-                  <ActionIcon
-                    variant="transparent"
-                    size={42}
-                    onClick={() => handleQuantityChange(currentQuantity - 1)}
-                    disabled={currentQuantity <= 1}
-                  >
-                    <Minus size={16} />
-                  </ActionIcon>
-                  <Text fw={700} w={40} ta="center">
-                    {currentQuantity}
+            {/* ACTION SECTION */}
+            <Stack gap="md">
+              <Group align="flex-end" gap="lg">
+                <Stack gap={5}>
+                  <Text size="xs" fw={800} tt="uppercase" c="dimmed">
+                    Quantity
                   </Text>
-                  <ActionIcon
-                    variant="transparent"
-                    size={42}
-                    onClick={() => handleQuantityChange(currentQuantity + 1)}
-                    disabled={product.stock <= currentQuantity}
+                  <Group
+                    gap={0}
+                    style={{ border: '1px solid #e0e0e0', borderRadius: '8px' }}
                   >
-                    <Plus size={16} />
-                  </ActionIcon>
-                </Group>
-              </Stack>
-
-              <Button
-                size="xl"
-                radius="md"
-                flex={1}
-                leftSection={cartItem ? null : <ShoppingCart size={22} />}
-                onClick={handleAddToCart}
-                disabled={product.stock <= 0}
-                variant={cartItem ? 'outline' : 'filled'}
-                color="blue.7"
-              >
-                {product.stock <= 0
-                  ? 'Out of Stock'
-                  : cartItem
-                    ? 'View in Cart'
-                    : 'Add to Cart'}
-              </Button>
-
-              <ActionIcon size={54} variant="light" color="red" radius="md">
-                <Heart size={24} />
-              </ActionIcon>
-            </Group>
-
-            {/* TRUST SIGNALS */}
-            <Grid grow gap="sm">
-              {[
-                {
-                  icon: Truck,
-                  label: 'Free Shipping',
-                  desc: 'On orders over $100',
-                },
-                {
-                  icon: ShieldCheck,
-                  label: 'Secure Payment',
-                  desc: '100% Secure',
-                },
-                {
-                  icon: RefreshCcw,
-                  label: 'Easy Returns',
-                  desc: '30-Day Money Back',
-                },
-              ].map((item, i) => (
-                <Grid.Col span={4} key={i}>
-                  <Paper withBorder p="sm" radius="md" ta="center" bg="gray.0">
-                    <item.icon
-                      size={22}
-                      className="text-blue-600 mb-1 mx-auto"
-                    />
-                    <Text size="xs" fw={800}>
-                      {item.label}
+                    <ActionIcon
+                      variant="transparent"
+                      size={48}
+                      onClick={() => handleQuantityChange(currentQuantity - 1)}
+                      disabled={currentQuantity <= 1}
+                    >
+                      <Minus size={18} />
+                    </ActionIcon>
+                    <Text fw={800} w={40} ta="center">
+                      {currentQuantity}
                     </Text>
-                    <Text size="10px" c="dimmed">
-                      {item.desc}
+                    <ActionIcon
+                      variant="transparent"
+                      size={48}
+                      onClick={() => handleQuantityChange(currentQuantity + 1)}
+                      disabled={product.stock <= currentQuantity}
+                    >
+                      <Plus size={18} />
+                    </ActionIcon>
+                  </Group>
+                </Stack>
+
+                <Button
+                  size="xl"
+                  radius="md"
+                  flex={1}
+                  leftSection={!cartItem && <ShoppingCart size={22} />}
+                  onClick={handleAddToCart}
+                  disabled={product.stock <= 0}
+                  color="blue.8"
+                >
+                  {product.stock <= 0
+                    ? 'Out of Stock'
+                    : cartItem
+                      ? 'View in Cart'
+                      : 'Add to Cart'}
+                </Button>
+
+                <ActionIcon size={60} variant="light" color="red" radius="md">
+                  <Heart size={26} />
+                </ActionIcon>
+              </Group>
+            </Stack>
+
+            {/* TRUST AREA */}
+            <Paper p="lg" radius="md" withBorder bg="gray.0">
+              <Grid>
+                <Grid.Col span={4}>
+                  <Stack align="center" gap={4}>
+                    <Truck size={24} className="text-blue-600" />
+                    <Text fz="xs" fw={700}>
+                      Fast Shipping
                     </Text>
-                  </Paper>
+                  </Stack>
                 </Grid.Col>
-              ))}
-            </Grid>
+                <Grid.Col span={4}>
+                  <Stack align="center" gap={4}>
+                    <ShieldCheck size={24} className="text-blue-600" />
+                    <Text fz="xs" fw={700}>
+                      Secure Pay
+                    </Text>
+                  </Stack>
+                </Grid.Col>
+                <Grid.Col span={4}>
+                  <Stack align="center" gap={4}>
+                    <RefreshCcw size={24} className="text-blue-600" />
+                    <Text fz="xs" fw={700}>
+                      Easy Returns
+                    </Text>
+                  </Stack>
+                </Grid.Col>
+              </Grid>
+            </Paper>
           </Stack>
         </Grid.Col>
       </Grid>
 
-      {/* TABS FOR DETAILS */}
-      <Tabs defaultValue="description" mt={60} variant="outline">
-        <Tabs.List>
-          <Tabs.Tab value="description" fz="md" fw={700} px="xl">
-            Description
+      {/* TABS SECTION */}
+      <Tabs defaultValue="description" mt={80} variant="pills" radius="md">
+        <Tabs.List grow>
+          <Tabs.Tab value="description" fz="md" fw={700} py="sm">
+            Product Description
           </Tabs.Tab>
-          <Tabs.Tab value="specifications" fz="md" fw={700} px="xl">
-            Specifications
+          <Tabs.Tab value="specifications" fz="md" fw={700} py="sm">
+            Technical Details
           </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="description" pt="xl">
-          <Text
-            size="lg"
-            c="gray.8"
-            lh={1.8}
-            style={{ whiteSpace: 'pre-line' }}
-          >
-            {product.description}
-          </Text>
+          <Paper withBorder p="xl" radius="lg">
+            <Text
+              size="lg"
+              c="gray.8"
+              lh={1.8}
+              style={{ whiteSpace: 'pre-line' }}
+            >
+              {product.description}
+            </Text>
+          </Paper>
         </Tabs.Panel>
 
         <Tabs.Panel value="specifications" pt="xl">
-          <Table withTableBorder withColumnBorders verticalSpacing="md">
+          <Table withTableBorder withColumnBorders verticalSpacing="md" fz="md">
             <Table.Tbody>
-              fProduct Name
+              <Table.Tr>
+                <Table.Th bg="gray.0" w={300}>
+                  Product Identity
+                </Table.Th>
+                <Table.Td>{product.name}</Table.Td>
+              </Table.Tr>
               {product.specifications?.map((spec, i) => (
                 <Table.Tr key={i}>
-                  <Table.Th bg="gray.0" w={250}>
-                    {spec.label}
-                  </Table.Th>
+                  <Table.Th bg="gray.0">{spec.label}</Table.Th>
                   <Table.Td>{spec.value}</Table.Td>
                 </Table.Tr>
               ))}
               <Table.Tr>
                 <Table.Th bg="gray.0">Category</Table.Th>
                 <Table.Td>
-                  {product?.category && isPopulatedCategory(product.category)
+                  {isPopulatedCategory(product.category)
                     ? product.category.name
-                    : 'General'}
+                    : 'General Retail'}
                 </Table.Td>
               </Table.Tr>
             </Table.Tbody>

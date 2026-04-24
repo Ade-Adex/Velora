@@ -25,8 +25,6 @@ export async function getProducts(limit: number) {
 // Add this for your dynamic [slug] pages
 export async function getProductBySlug(slug: string) {
   await connectDB()
-
-  const _forceRegister = Category.modelName
   
   return await Product.findOne({ slug, isPublished: true })
     .populate('category')
