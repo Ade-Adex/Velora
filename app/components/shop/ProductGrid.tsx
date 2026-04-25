@@ -42,7 +42,7 @@ export default function ProductGrid({
             className="group relative bg-white rounded-2xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1"
           >
             {/* 1. IMAGE CONTAINER */}
-            <div className="relative aspect-[4/5] bg-[#F3F4F6] rounded-2xl mb-3 overflow-hidden flex items-center justify-center p-6">
+            <div className="relative aspect-4/5 bg-[#124dc3] rounded-2xl mb-3 overflow-hidden flex items-center justify-center">
               <Image
                 src={
                   typeof product.mainImage === 'string'
@@ -51,12 +51,12 @@ export default function ProductGrid({
                 }
                 alt={product.name}
                 fill
-                className="object-contain p-4 group-hover:scale-105 transition-transform duration-700"
+                className="object-fill  group-hover:scale-105 transition-transform duration-700"
               />
 
               {/* SALE BADGE */}
               {discountPercentage && (
-                <div className="absolute top-3 left-3 z-10 bg-black text-white text-[9px] font-black px-2 py-1 rounded-sm uppercase tracking-widest">
+                <div className="absolute top-2 left-3 z-10 bg-black text-white text-[9px] font-black px-2 py-1 rounded-sm uppercase tracking-widest">
                   {discountPercentage}% Off
                 </div>
               )}

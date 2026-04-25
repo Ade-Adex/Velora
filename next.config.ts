@@ -1,12 +1,21 @@
 // next.config.ts
 
-// next.config.ts
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'www.cnet.com', 
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cellmart.pk', 
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'img-1.kwcdn.com',
