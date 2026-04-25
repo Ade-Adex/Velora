@@ -213,7 +213,7 @@ export default function ProductDetailsClient({
 
               <Title
                 order={1}
-                fz={{ base: 24, md: 32 }}
+                fz={{ base: 24, md: 35 }}
                 fw={900}
                 lh={1.1}
                 mt="sm"
@@ -223,24 +223,24 @@ export default function ProductDetailsClient({
 
               <Group gap="xs" mt="xs">
                 <Rating value={product.ratings?.average || 0} readOnly />
-                <Text size="sm" c="dimmed" fw={600}>
+                <Text size="xs" c="dimmed" fw={600}>
                   ({product.ratings?.count || 0} customer reviews)
                 </Text>
               </Group>
             </Stack>
 
             <Group align="flex-end" gap="sm">
-              <Text fz={48} fw={900} c="blue.9">
+              <Text fz={32} fw={900} c="blue.9">
                 ${currentPrice.toLocaleString()}
               </Text>
               {hasDiscount && (
-                <Text fz="xl" c="dimmed" td="line-through" mb={12}>
+                <Text fz="lg" c="dimmed" td="line-through" mb={12}>
                   ${product.basePrice.toLocaleString()}
                 </Text>
               )}
             </Group>
 
-            <Text size="lg" c="gray.7" lh={1.7} fw={400}>
+            <Text size="md" c="gray.7" lh={1.7} fw={400}>
               {product.shortDescription ||
                 product.description.substring(0, 200) + '...'}
             </Text>
@@ -260,7 +260,7 @@ export default function ProductDetailsClient({
                   >
                     <ActionIcon
                       variant="transparent"
-                      size={48}
+                      size={36}
                       onClick={() => handleQuantityChange(currentQuantity - 1)}
                       disabled={currentQuantity <= 1}
                     >
@@ -271,7 +271,7 @@ export default function ProductDetailsClient({
                     </Text>
                     <ActionIcon
                       variant="transparent"
-                      size={48}
+                      size={36}
                       onClick={() => handleQuantityChange(currentQuantity + 1)}
                       disabled={product.stock <= currentQuantity}
                     >
@@ -281,13 +281,14 @@ export default function ProductDetailsClient({
                 </Stack>
 
                 <Button
-                  size="xl"
+                  size="md"
                   radius="md"
                   flex={1}
                   leftSection={!cartItem && <ShoppingCart size={22} />}
                   onClick={handleAddToCart}
                   disabled={product.stock <= 0}
                   color="blue.8"
+                  className="text-xs! md:text-sm!"
                 >
                   {product.stock <= 0
                     ? 'Out of Stock'
@@ -296,8 +297,8 @@ export default function ProductDetailsClient({
                       : 'Add to Cart'}
                 </Button>
 
-                <ActionIcon size={60} variant="light" color="red" radius="md">
-                  <Heart size={26} />
+                <ActionIcon size={48} variant="light" color="red" radius="md">
+                  <Heart size={20} />
                 </ActionIcon>
               </Group>
             </Stack>
@@ -349,7 +350,7 @@ export default function ProductDetailsClient({
         <Tabs.Panel value="description" pt="xl">
           <Paper withBorder p="xl" radius="lg">
             <Text
-              size="lg"
+              size="sm"
               c="gray.8"
               lh={1.8}
               style={{ whiteSpace: 'pre-line' }}
@@ -363,20 +364,28 @@ export default function ProductDetailsClient({
           <Table withTableBorder withColumnBorders verticalSpacing="md" fz="md">
             <Table.Tbody>
               <Table.Tr>
-                <Table.Th bg="gray.0" w={300}>
+                <Table.Th bg="gray.0" w={300} className="text-xs! md:text-sm!">
                   Product Identity
                 </Table.Th>
-                <Table.Td>{product.name}</Table.Td>
+                <Table.Td className="text-xs! md:text-sm!">
+                  {product.name}
+                </Table.Td>
               </Table.Tr>
               {product.specifications?.map((spec, i) => (
                 <Table.Tr key={i}>
-                  <Table.Th bg="gray.0">{spec.label}</Table.Th>
-                  <Table.Td>{spec.value}</Table.Td>
+                  <Table.Th bg="gray.0" className="text-xs! md:text-sm!">
+                    {spec.label}
+                  </Table.Th>
+                  <Table.Td className="text-xs! md:text-sm!">
+                    {spec.value}
+                  </Table.Td>
                 </Table.Tr>
               ))}
               <Table.Tr>
-                <Table.Th bg="gray.0">Category</Table.Th>
-                <Table.Td>
+                <Table.Th bg="gray.0" className="text-xs! md:text-sm!">
+                  Category
+                </Table.Th>
+                <Table.Td className="text-xs! md:text-sm!">
                   {isPopulatedCategory(product.category)
                     ? product.category.name
                     : 'General Retail'}
