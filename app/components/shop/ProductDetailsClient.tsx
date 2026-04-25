@@ -335,7 +335,7 @@ export default function ProductDetailsClient({
               </Group>
             </Stack>
 
-            
+
             {/* TRUST AREA */}
             <Paper p="lg" radius="md" withBorder bg="gray.0">
               <Grid>
@@ -397,7 +397,7 @@ export default function ProductDetailsClient({
           <Table withTableBorder withColumnBorders verticalSpacing="md" fz="md">
             <Table.Tbody>
               <Table.Tr>
-                <Table.Th bg="gray.0" w={300} className="text-xs! md:text-sm!">
+                <Table.Th bg="gray.0" w={200} className="text-xs! md:text-sm!">
                   Product Identity
                 </Table.Th>
                 <Table.Td className="text-xs! md:text-sm!">
