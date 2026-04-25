@@ -255,7 +255,7 @@ export default function ProductDetailsClient({
                 wrap="wrap"
                 className="flex-col sm:flex-row"
               >
-                {/* QUANTITY SELECTOR */}
+                {/* QUANTITY SELECTOR - Full width on mobile */}
                 <Stack gap={5} className="w-full sm:w-auto">
                   <Text size="xs" fw={800} tt="uppercase" c="dimmed">
                     Quantity
@@ -265,57 +265,55 @@ export default function ProductDetailsClient({
                     style={{
                       border: '1px solid #e0e0e0',
                       borderRadius: '8px',
-                      overflow: 'hidden', // Ensures the button backgrounds don't bleed over the corners
+                      overflow: 'hidden', // Keeps the button backgrounds inside the rounded corners
                     }}
+                    grow
                     className="w-full sm:w-auto"
                   >
                     <ActionIcon
                       variant="filled"
-                      color="gray.0" // Very light gray background
-                      size={40}
+                      color="gray.1" // Different background for Minus
+                      size={36}
                       onClick={() => handleQuantityChange(currentQuantity - 1)}
                       disabled={currentQuantity <= 1}
-                      style={{
-                        color: 'var(--mantine-color-black)',
-                        borderRight: '1px solid #e0e0e0',
-                        borderRadius: 0,
-                      }}
+                      style={{ borderRadius: 0, color: '#000' }} // Square corners for the segment look
                     >
-                      <Minus size={16} />
+                      <Minus size={18} />
                     </ActionIcon>
 
-                    <Text fw={800} w={45} ta="center" size="sm">
+                    <Text
+                      fw={800}
+                      w={40}
+                      ta="center"
+                      style={{ backgroundColor: '#fff' }}
+                    >
                       {currentQuantity}
                     </Text>
 
                     <ActionIcon
                       variant="filled"
-                      color="gray.0"
-                      size={40}
+                      color="gray.1" // Different background for Plus
+                      size={36}
                       onClick={() => handleQuantityChange(currentQuantity + 1)}
                       disabled={product.stock <= currentQuantity}
-                      style={{
-                        color: 'var(--mantine-color-black)',
-                        borderLeft: '1px solid #e0e0e0',
-                        borderRadius: 0,
-                      }}
+                      style={{ borderRadius: 0, color: '#000' }} // Square corners for the segment look
                     >
-                      <Plus size={16} />
+                      <Plus size={18} />
                     </ActionIcon>
                   </Group>
                 </Stack>
 
-                {/* BUTTONS GROUP */}
+                {/* BUTTONS GROUP - Stays side-by-side on mobile and desktop */}
                 <Group gap="md" flex={1} className="w-full sm:w-auto">
                   <Button
-                    size="lg" // Increased size for a more premium feel
+                    size="md"
                     radius="md"
                     flex={1}
-                    leftSection={!cartItem && <ShoppingCart size={20} />}
+                    leftSection={!cartItem && <ShoppingCart size={22} />}
                     onClick={handleAddToCart}
                     disabled={product.stock <= 0}
                     color="blue.8"
-                    className="h-[40px] text-xs! md:text-sm!"
+                    className="text-xs! md:text-sm!"
                   >
                     {product.stock <= 0
                       ? 'Out of Stock'
@@ -325,7 +323,7 @@ export default function ProductDetailsClient({
                   </Button>
 
                   <ActionIcon
-                    size={40}
+                    size={48}
                     variant="light"
                     color="red"
                     radius="md"
@@ -337,6 +335,7 @@ export default function ProductDetailsClient({
               </Group>
             </Stack>
 
+            
             {/* TRUST AREA */}
             <Paper p="lg" radius="md" withBorder bg="gray.0">
               <Grid>
