@@ -249,14 +249,24 @@ export default function ProductDetailsClient({
 
             {/* ACTION SECTION */}
             <Stack gap="md">
-              <Group align="flex-end" gap="lg">
-                <Stack gap={5}>
+              <Group
+                align="flex-end"
+                gap="lg"
+                // On mobile (below sm), we use a vertical stack. On desktop, it stays a horizontal Group.
+                wrap="wrap"
+                className="flex-col sm:flex-row"
+              >
+                {/* QUANTITY SELECTOR - Full width on mobile */}
+                <Stack gap={5} className="w-full sm:w-auto">
                   <Text size="xs" fw={800} tt="uppercase" c="dimmed">
                     Quantity
                   </Text>
                   <Group
                     gap={0}
                     style={{ border: '1px solid #e0e0e0', borderRadius: '8px' }}
+                    // grow makes it take full width of the parent stack on mobile
+                    grow
+                    className="w-full sm:w-auto"
                   >
                     <ActionIcon
                       variant="transparent"
@@ -280,26 +290,35 @@ export default function ProductDetailsClient({
                   </Group>
                 </Stack>
 
-                <Button
-                  size="md"
-                  radius="md"
-                  flex={1}
-                  leftSection={!cartItem && <ShoppingCart size={22} />}
-                  onClick={handleAddToCart}
-                  disabled={product.stock <= 0}
-                  color="blue.8"
-                  className="text-xs! md:text-sm!"
-                >
-                  {product.stock <= 0
-                    ? 'Out of Stock'
-                    : cartItem
-                      ? 'View in Cart'
-                      : 'Add to Cart'}
-                </Button>
+                {/* BUTTONS GROUP - Stays side-by-side on mobile and desktop */}
+                <Group gap="md" flex={1} className="w-full sm:w-auto">
+                  <Button
+                    size="md"
+                    radius="md"
+                    flex={1}
+                    leftSection={!cartItem && <ShoppingCart size={22} />}
+                    onClick={handleAddToCart}
+                    disabled={product.stock <= 0}
+                    color="blue.8"
+                    className="text-xs! md:text-sm!"
+                  >
+                    {product.stock <= 0
+                      ? 'Out of Stock'
+                      : cartItem
+                        ? 'View in Cart'
+                        : 'Add to Cart'}
+                  </Button>
 
-                <ActionIcon size={48} variant="light" color="red" radius="md">
-                  <Heart size={20} />
-                </ActionIcon>
+                  <ActionIcon
+                    size={48}
+                    variant="light"
+                    color="red"
+                    radius="md"
+                    className="shrink-0"
+                  >
+                    <Heart size={20} />
+                  </ActionIcon>
+                </Group>
               </Group>
             </Stack>
 
