@@ -252,55 +252,70 @@ export default function ProductDetailsClient({
               <Group
                 align="flex-end"
                 gap="lg"
-                // On mobile (below sm), we use a vertical stack. On desktop, it stays a horizontal Group.
                 wrap="wrap"
                 className="flex-col sm:flex-row"
               >
-                {/* QUANTITY SELECTOR - Full width on mobile */}
+                {/* QUANTITY SELECTOR */}
                 <Stack gap={5} className="w-full sm:w-auto">
                   <Text size="xs" fw={800} tt="uppercase" c="dimmed">
                     Quantity
                   </Text>
                   <Group
                     gap={0}
-                    style={{ border: '1px solid #e0e0e0', borderRadius: '8px' }}
-                    // grow makes it take full width of the parent stack on mobile
-                    grow
+                    style={{
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '8px',
+                      overflow: 'hidden', // Ensures the button backgrounds don't bleed over the corners
+                    }}
                     className="w-full sm:w-auto"
                   >
                     <ActionIcon
-                      variant="transparent"
-                      size={36}
+                      variant="filled"
+                      color="gray.0" // Very light gray background
+                      size={40}
                       onClick={() => handleQuantityChange(currentQuantity - 1)}
                       disabled={currentQuantity <= 1}
+                      style={{
+                        color: 'var(--mantine-color-black)',
+                        borderRight: '1px solid #e0e0e0',
+                        borderRadius: 0,
+                      }}
                     >
-                      <Minus size={18} />
+                      <Minus size={16} />
                     </ActionIcon>
-                    <Text fw={800} w={40} ta="center">
+
+                    <Text fw={800} w={45} ta="center" size="sm">
                       {currentQuantity}
                     </Text>
+
                     <ActionIcon
-                      variant="transparent"
-                      size={36}
+                      variant="filled"
+                      color="gray.0"
+                      size={40}
                       onClick={() => handleQuantityChange(currentQuantity + 1)}
                       disabled={product.stock <= currentQuantity}
+                      style={{
+                        color: 'var(--mantine-color-black)',
+                        borderLeft: '1px solid #e0e0e0',
+                        borderRadius: 0,
+                      }}
                     >
-                      <Plus size={18} />
+                      <Plus size={16} />
                     </ActionIcon>
                   </Group>
                 </Stack>
 
-                {/* BUTTONS GROUP - Stays side-by-side on mobile and desktop */}
+                {/* BUTTONS GROUP */}
                 <Group gap="md" flex={1} className="w-full sm:w-auto">
                   <Button
-                    size="md"
+                    size="lg" // Increased size for a more premium feel
                     radius="md"
                     flex={1}
-                    leftSection={!cartItem && <ShoppingCart size={22} />}
+                    leftSection={!cartItem && <ShoppingCart size={20} />}
                     onClick={handleAddToCart}
                     disabled={product.stock <= 0}
                     color="blue.8"
-                    className="text-xs! md:text-sm!"
+                    className="h-[40px] text-xs! md:text-sm!"
                   >
                     {product.stock <= 0
                       ? 'Out of Stock'
@@ -310,7 +325,7 @@ export default function ProductDetailsClient({
                   </Button>
 
                   <ActionIcon
-                    size={48}
+                    size={40}
                     variant="light"
                     color="red"
                     radius="md"
