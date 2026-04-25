@@ -265,7 +265,7 @@ export default function ProductDetailsClient({
                     style={{
                       border: '1px solid #e0e0e0',
                       borderRadius: '8px',
-                      overflow: 'hidden', // Keeps the button backgrounds inside the rounded corners
+                      overflow: 'hidden', 
                     }}
                     grow
                     className="w-full sm:w-auto"
@@ -276,7 +276,7 @@ export default function ProductDetailsClient({
                       size={36}
                       onClick={() => handleQuantityChange(currentQuantity - 1)}
                       disabled={currentQuantity <= 1}
-                      style={{ borderRadius: 0, color: '#000' }} // Square corners for the segment look
+                      style={{ borderRadius: 0, color: '#000' }} 
                     >
                       <Minus size={18} />
                     </ActionIcon>

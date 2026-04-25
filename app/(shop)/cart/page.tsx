@@ -235,7 +235,7 @@ export default function CartPage() {
                         >
                           <Minus size={14} />
                         </ActionIcon>
-                        <Text fw={700} w={30} ta="center">
+                        <Text fw={700} w={30} ta="center" className='bg-white! hover:bg-gray-200 transition-colors' >
                           {item.quantity}
                         </Text>
                         <ActionIcon
