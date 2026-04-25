@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'cdn.mos.cms.futurecdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'img-1.kwcdn.com',
         pathname: '/**',
       },
