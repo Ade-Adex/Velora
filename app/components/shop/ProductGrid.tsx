@@ -40,7 +40,7 @@ export default function ProductGrid({
           <Link
             key={product.slug}
             href={`/product/${product.slug}`}
-            className="group relative bg-white rounded-3xl p-3 flex flex-col transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 border border-transparent hover:border-gray-100"
+            className="group relative bg-white rounded-3xl p-2 md:p-3 flex flex-col transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 border border-transparent hover:border-gray-100"
           >
             {/* 1. IMAGE CONTAINER - Removed p-2, changed to object-cover */}
             <div className="relative aspect-square bg-[#F3F4F6] rounded-2xl mb-4 overflow-hidden shadow-inner">
