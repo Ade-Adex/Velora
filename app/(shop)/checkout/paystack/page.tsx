@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Container, Stack, Title, Text, Loader, Center } from '@mantine/core'
 import { useUserStore } from '@/app/store/useUserStore'
@@ -44,7 +44,7 @@ declare global {
   }
 }
 
-export default function PaystackCheckout() {
+function PaystackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const orderId = searchParams.get('id')
@@ -59,7 +59,6 @@ export default function PaystackCheckout() {
         const res = await fetch(`/api/orders/${orderId}`)
         if (!res.ok) throw new Error('Order not found')
 
-        // Explicitly typing the JSON response
         const orderData: OrderData = await res.json()
 
         if (
@@ -71,7 +70,6 @@ export default function PaystackCheckout() {
           script.src = 'https://js.paystack.co/v1/inline.js'
           script.async = true
           document.body.appendChild(script)
-
           script.onload = () => setupPaystack(orderData)
         } else {
           setupPaystack(orderData)
@@ -88,8 +86,6 @@ export default function PaystackCheckout() {
       const handler = window.PaystackPop.setup({
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
         email: user.email,
-        // Amount in kobo (NGN * 100).
-        // Note: 1600 is a placeholder for your USD to NGN rate.
         amount: Math.round(orderData.totals.grandTotal * 100 * 1600),
         currency: 'NGN',
         ref: orderData.orderNumber,
@@ -112,18 +108,36 @@ export default function PaystackCheckout() {
   }, [orderId, user, router])
 
   return (
+    <Center>
+      <Stack align="center">
+        <Loader size="xl" variant="bars" color="blue.8" />
+        <Title order={3}>
+          {loading ? 'Securing Payment Gateway...' : 'Gateway Ready'}
+        </Title>
+        <Text c="dimmed" size="sm">
+          Please do not refresh or close this window.
+        </Text>
+      </Stack>
+    </Center>
+  )
+}
+
+// Final exported component with Suspense wrapper
+export default function PaystackCheckout() {
+  return (
     <Container size="sm" py={100}>
-      <Center>
-        <Stack align="center">
-          <Loader size="xl" variant="bars" color="blue.8" />
-          <Title order={3}>
-            {loading ? 'Securing Payment Gateway...' : 'Gateway Ready'}
-          </Title>
-          <Text c="dimmed" size="sm">
-            Please do not refresh or close this window.
-          </Text>
-        </Stack>
-      </Center>
+      <Suspense
+        fallback={
+          <Center>
+            <Stack align="center">
+              <Loader size="xl" variant="bars" color="gray.4" />
+              <Text c="dimmed">Loading payment engine...</Text>
+            </Stack>
+          </Center>
+        }
+      >
+        <PaystackContent />
+      </Suspense>
     </Container>
   )
 }
