@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Container, Paper, Title, Text, Button, Stack, Alert, List, Group } from '@mantine/core'
+import { Container, Paper, Title, Text, Button, Stack, Alert, List, Group, Flex } from '@mantine/core'
 import { CheckCircle, Copy, Building2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
@@ -57,14 +57,26 @@ export default function OrderSuccessPage() {
             </Alert>
           )}
 
-          <Group grow w="100%" mt="xl">
-            <Button variant="light" component={Link} href="/profile?tab=orders">
+          <Flex
+            mt="xl"
+            gap="md"
+            direction={{ base: 'column', sm: 'row' }}
+            w="100%"
+          >
+            <Button
+              variant="light"
+              component={Link}
+              href="/profile?tab=orders"
+              fullWidth
+              size="sm"
+            >
               View My Orders
             </Button>
-            <Button color="blue" component={Link} href="/">
+
+            <Button color="blue" component={Link} href="/" fullWidth size="sm">
               Continue Shopping
             </Button>
-          </Group>
+          </Flex>
         </Stack>
       </Paper>
     </Container>
