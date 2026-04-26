@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Container,
   Grid,
@@ -18,6 +18,10 @@ import {
   Badge,
   ActionIcon,
   Modal,
+  Table,
+  Tooltip,
+  ScrollArea,
+  Loader,
 } from '@mantine/core'
 import {
   User as UserIcon,
@@ -27,17 +31,30 @@ import {
   Camera,
   Plus,
   Trash2,
+  Eye,
+  Calendar,
+  Clock,
 } from 'lucide-react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { enqueueSnackbar } from 'notistack'
 import Link from 'next/link'
-import { IAddress, IUser } from '@/app/types'
+import { IAddress, IOrder, IUser, Serialized } from '@/app/types'
+import { useSearchParams } from 'next/navigation'
 
 export default function ProfilePage() {
+  const searchParams = useSearchParams()
+  const queryTab = searchParams.get('tab')
+
   const user = useUserStore((state) => state.user)
   const setUser = useUserStore((state) => state.setUser)
-  const [activeTab, setActiveTab] = useState<string | null>('details')
+
+  const [activeTab, setActiveTab] = useState<string | null>(
+    queryTab || 'details',
+  )
   const [loading, setLoading] = useState(false)
+
+  const [orders, setOrders] = useState<Serialized<IOrder>[]>([])
+  const [fetchingOrders, setFetchingOrders] = useState(false)
 
   const [opened, setOpened] = useState(false)
   const [newAddr, setNewAddr] = useState<IAddress>({
@@ -57,6 +74,31 @@ export default function ProfilePage() {
       ? new Date(user.birthday).toISOString().split('T')[0]
       : '',
   })
+
+  if (queryTab && queryTab !== activeTab) {
+    setActiveTab(queryTab)
+  }
+
+  useEffect(() => {
+    const fetchUserOrders = async () => {
+      if (activeTab !== 'orders') return
+
+      setFetchingOrders(true)
+      try {
+        const res = await fetch('/api/user/orders')
+        const data = await res.json()
+        if (data.success) {
+          setOrders(data.orders)
+        }
+      } catch (err) {
+        enqueueSnackbar('Failed to load orders', { variant: 'error' })
+      } finally {
+        setFetchingOrders(false)
+      }
+    }
+
+    fetchUserOrders()
+  }, [activeTab])
 
   if (!user) return null
 
@@ -329,31 +371,108 @@ export default function ProfilePage() {
 
               {activeTab === 'orders' && (
                 <Stack gap="lg">
-                  <Text size="lg" fw={700}>
-                    Order History
-                  </Text>
-                  {/* If orders exist, map them here. Otherwise show empty state */}
-                  <Stack align="center" py={40} gap="md">
-                    <Package
-                      size={48}
-                      className="text-gray-200"
-                      strokeWidth={1}
-                    />
-                    <div className="text-center">
-                      <Text fw={600}>Nothing ordered yet</Text>
+                  <Group justify="space-between">
+                    <Text size="lg" fw={700}>
+                      Order History
+                    </Text>
+                    {orders.length > 0 && (
+                      <Badge variant="light" color="blue">
+                        {orders.length} Total
+                      </Badge>
+                    )}
+                  </Group>
+                  <Divider />
+
+                  {fetchingOrders ? (
+                    <Stack align="center" py={40}>
+                      <Loader size="sm" />
                       <Text size="xs" c="dimmed">
-                        Once you buy something, it&apos;ll show up here.
+                        Fetching your orders...
                       </Text>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      component={Link}
-                      href="/"
-                    >
-                      Explore Products
-                    </Button>
-                  </Stack>
+                    </Stack>
+                  ) : orders.length > 0 ? (
+                    <ScrollArea>
+                      <Table verticalSpacing="md">
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Th>Order #</Table.Th>
+                            <Table.Th>Status</Table.Th>
+                            <Table.Th>Date</Table.Th>
+                            <Table.Th>Total</Table.Th>
+                            <Table.Th ta="right">Action</Table.Th>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {orders.map((order) => (
+                            <Table.Tr key={order._id}>
+                              <Table.Td>
+                                <Text fw={700} size="sm">
+                                  {order.orderNumber.replace('Velora-', '')}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Badge
+                                  variant="light"
+                                  color={
+                                    order.paymentStatus === 'paid'
+                                      ? 'green'
+                                      : 'orange'
+                                  }
+                                  size="sm"
+                                >
+                                  {order.paymentStatus}
+                                </Badge>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text size="xs">
+                                  {new Date(
+                                    order.createdAt,
+                                  ).toLocaleDateString()}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text fw={700} size="sm">
+                                  ₦{order.totals.grandTotal.toLocaleString()}
+                                </Text>
+                              </Table.Td>
+                              <Table.Td ta="right">
+                                <Button
+                                  variant="subtle"
+                                  size="compact-xs"
+                                  component={Link}
+                                  href={`/orders/success?id=${order._id}`}
+                                >
+                                  View
+                                </Button>
+                              </Table.Td>
+                            </Table.Tr>
+                          ))}
+                        </Table.Tbody>
+                      </Table>
+                    </ScrollArea>
+                  ) : (
+                    <Stack align="center" py={40} gap="md">
+                      <Package
+                        size={48}
+                        className="text-gray-200"
+                        strokeWidth={1}
+                      />
+                      <div className="text-center">
+                        <Text fw={600}>Nothing ordered yet</Text>
+                        <Text size="xs" c="dimmed">
+                          Once you buy something, it&apos;ll show up here.
+                        </Text>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        component={Link}
+                        href="/"
+                      >
+                        Explore Products
+                      </Button>
+                    </Stack>
+                  )}
                 </Stack>
               )}
             </Paper>

@@ -127,3 +127,13 @@ export interface CartItem {
   brand?: string
   stock?: number // To prevent adding more than available
 }
+
+
+// Add this helper to the bottom of /app/types/index.ts
+export type Serialized<T> = {
+  [K in keyof T]: T[K] extends Types.ObjectId | Types.ObjectId[] | Date | undefined
+    ? string
+    : T[K] extends object
+    ? Serialized<T[K]>
+    : T[K];
+} & { _id: string }; // Ensure _id is always a string
