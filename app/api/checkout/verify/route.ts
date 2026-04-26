@@ -1,0 +1,98 @@
+import { NextResponse } from 'next/server'
+import connectDB from '@/app/lib/mongodb'
+import { Order } from '@/app/models/Order'
+
+// --- STRICT INTERFACES ---
+interface PaystackVerifyResponse {
+  status: boolean
+  message: string
+  data: {
+    status: string
+    reference: string
+    amount: number
+    // Add other fields you might need
+  }
+}
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const reference = searchParams.get('reference')
+  const orderId = searchParams.get('orderId')
+
+  // 1. Validate Input
+  if (!reference || !orderId) {
+    return NextResponse.redirect(new URL('/cart?error=missing_params', req.url))
+  }
+
+  const secretKey = process.env.PAYSTACK_SECRET_KEY
+
+  if (!secretKey) {
+    console.error('PAYSTACK_SECRET_KEY is not defined in environment variables')
+    return NextResponse.redirect(new URL('/cart?error=config_error', req.url))
+  }
+
+  try {
+    // 2. Verify with Paystack Server
+    const response = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+
+    if (!response.ok) {
+      throw new Error(`Paystack API responded with status: ${response.status}`)
+    }
+
+    const data: PaystackVerifyResponse = await response.json()
+
+    // 3. Check Success Status
+    if (data.status && data.data.status === 'success') {
+      await connectDB()
+
+      // Update Order Status
+      const updatedOrder = await Order.findByIdAndUpdate(
+        orderId,
+        {
+          paymentStatus: 'paid',
+          paymentReference: reference,
+          orderStatus: 'confirmed',
+        },
+        { new: true }, // Returns the updated document
+      )
+
+      if (!updatedOrder) {
+        console.error(`Order ${orderId} not found during verification update`)
+        return NextResponse.redirect(
+          new URL('/cart?error=order_not_found', req.url),
+        )
+      }
+
+      // 4. Redirect to Success Page
+      return NextResponse.redirect(
+        new URL(`/orders/success?id=${orderId}&method=card`, req.url),
+      )
+    } else {
+      // Payment was not successful according to Paystack
+      console.warn(
+        `Payment verification failed for ref: ${reference}. Status: ${data.data.status}`,
+      )
+      return NextResponse.redirect(
+        new URL(`/orders/failed?id=${orderId}`, req.url),
+      )
+    }
+  } catch (error) {
+    console.error(
+      'Verification Error:',
+      error instanceof Error ? error.message : error,
+    )
+    // Avoid infinite redirect loops by ensuring the URL is correct
+    return NextResponse.redirect(
+      new URL('/cart?error=verification_failed', req.url),
+    )
+  }
+}
