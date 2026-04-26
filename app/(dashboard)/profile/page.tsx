@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import {
   Container,
   Grid,
@@ -41,7 +41,7 @@ import Link from 'next/link'
 import { IAddress, IOrder, IUser, Serialized } from '@/app/types'
 import { useSearchParams } from 'next/navigation'
 
-export default function ProfilePage() {
+function ProfileContent() {
   const searchParams = useSearchParams()
   const queryTab = searchParams.get('tab')
 
@@ -531,5 +531,24 @@ export default function ProfilePage() {
         </Stack>
       </Modal>
     </Container>
+  )
+}
+
+
+
+
+// MAIN EXPORT: This fixes the prerender error
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <Container size="lg" py="xl">
+        <Stack align="center" py={100}>
+          <Loader size="xl" />
+          <Text c="dimmed">Loading your profile...</Text>
+        </Stack>
+      </Container>
+    }>
+      <ProfileContent />
+    </Suspense>
   )
 }
