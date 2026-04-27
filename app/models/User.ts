@@ -13,13 +13,14 @@ const UserSchema = new Schema<IUser>(
       trim: true,
     },
     fullName: { type: String, required: true },
+    image: { type: String },
     phone: { type: String },
-    birthday: { type: Date }, 
+    birthday: { type: Date },
     gender: {
       type: String,
       enum: ['male', 'female', 'other', 'unspecified'],
       default: 'unspecified',
-    }, 
+    },
     role: {
       type: String,
       enum: ['customer', 'admin', 'editor'],
