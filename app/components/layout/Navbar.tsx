@@ -51,9 +51,23 @@ export default function Navbar() {
     { name: 'Home', href: '/category/home' },
   ]
 
-  const handleLogout = () => {
-    logout() // Clears state and localStorage
-    close()
+  // Inside your Navbar component
+  const handleLogout = async () => {
+    try {
+      // 1. Call the API to destroy the server cookie
+      await fetch('/api/auth/logout', { method: 'POST' })
+
+      // 2. Clear the Zustand store (local storage)
+      logout()
+
+      // 3. Close the mobile drawer if open
+      close()
+
+      // 4. Force a refresh or redirect to home to ensure all states are reset
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Logout failed', error)
+    }
   }
 
   return (
@@ -187,7 +201,7 @@ export default function Navbar() {
           >
             <ShoppingCart size={22} />
             {cartCount > 0 && (
-              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border-2 border-white">
                 {cartCount}
               </span>
             )}

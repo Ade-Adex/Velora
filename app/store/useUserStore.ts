@@ -17,7 +17,6 @@ export const useUserStore = create<UserState>()(
       setUser: (user) => set({ user }),
       logout: () => {
         set({ user: null })
-        // Optional: Call your API to clear the server-side cookie
         fetch('/api/auth/logout', { method: 'POST' })
       },
     }),

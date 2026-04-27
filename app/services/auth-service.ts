@@ -4,8 +4,6 @@ import crypto from 'crypto'
 import { User } from '@/app/models/User'
 import connectDB from '@/app/lib/mongodb'
 
-// /app/services/auth-service.ts
-
 export async function generateMagicToken(email: string) {
   await connectDB()
   const token = crypto.randomBytes(32).toString('hex')
