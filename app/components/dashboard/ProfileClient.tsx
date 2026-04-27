@@ -76,17 +76,27 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     router.push(`/profile?tab=${value}`, { scroll: false })
   }
 
-  const handleUpdate = async (payload: Partial<IUser>, msg: string) => {
-    startTransition(async () => {
-      const result = await updateUserProfile(payload)
-      if (result.success && result.user) {
-        setUser(result.user)
-        enqueueSnackbar(msg, { variant: 'success' })
-      } else {
-        enqueueSnackbar(result.error || 'Update failed', { variant: 'error' })
-      }
-    })
-  }
+ const handleUpdate = async (payload: Partial<IUser>, msg: string) => {
+   // 1. Capture the current state before the update
+   const previousUser = useUserStore.getState().user
+
+   startTransition(async () => {
+     const result = await updateUserProfile(payload)
+
+     if (result.success && result.user) {
+       // 2. Server succeeded: Update store with the official data from DB
+       // (This replaces the Base64 string with the Cloudinary URL)
+       setUser(result.user)
+       enqueueSnackbar(msg, { variant: 'success' })
+     } else {
+       // 3. Server failed: Revert the store to the previous state
+       if (previousUser) {
+         setUser(previousUser)
+       }
+       enqueueSnackbar(result.error || 'Update failed', { variant: 'error' })
+     }
+   })
+ }
 
   const saveProfileInfo = () => {
     const finalPayload: Partial<IUser> = {
