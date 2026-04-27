@@ -6,16 +6,22 @@ import FeaturedCategories from '@/app/components/shop/FeaturedCategories'
 import ProductGrid from '@/app/components/shop/ProductGrid'
 import PromotionalBanner from '@/app/components/shop/PromotionalBanner'
 import QuickNav from '@/app/components/shop/QuickNav'
-import { getProducts } from '@/app/services/product-service'
+import {
+  getProducts,
+  getFeaturedCategories,
+} from '@/app/services/product-service'
 import ProductHydrator from '@/app/components/shop/ProductHydrator'
 
 export default async function Home() {
- const allProducts = await getProducts(15)
- const serializedProducts = JSON.parse(JSON.stringify(allProducts))
+  const allProducts = await getProducts(15)
+  const featuredCategories = await getFeaturedCategories()
+
+  // Serialize for client components
+  const serializedProducts = JSON.parse(JSON.stringify(allProducts))
+  const serializedCategories = JSON.parse(JSON.stringify(featuredCategories))
 
   return (
     <main className="flex flex-col w-full min-h-screen bg-[#F4F7FA]">
-
       <ProductHydrator products={serializedProducts} />
 
       <Hero />
@@ -24,7 +30,7 @@ export default async function Home() {
         <QuickNav />
       </div>
 
-      <FeaturedCategories />
+      <FeaturedCategories categories={serializedCategories} />
 
       <section className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">

@@ -1,63 +1,98 @@
 // /app/components/shop/FeaturedCategories.tsx
-
 import Image from 'next/image'
-import electronicImage from '@/public/Images/electronic.jpg'
-import womenImage from '@/public/Images/women.png'
-import menImage from '@/public/Images/men.png'
-import homeImage from '@/public/Images/homekitchen.webp'
-import beautyImage from '@/public/Images/bandh.png'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react' // Added for the "See All" icon
 
-const categories = [
-  { name: 'Electronics', color: 'bg-[#0052CC]', image: electronicImage },
-  { name: "Women's Fashion", color: 'bg-[#FF8A00]', image: womenImage },
-  { name: "Men's Fashion", color: 'bg-[#0052CC]', image: menImage },
-  { name: 'Home & Kitchen', color: 'bg-[#FF8A00]', image: homeImage },
-  { name: 'Beauty & Health', color: 'bg-[#0052CC]', image: beautyImage },
-]
+interface CategoryData {
+  _id: string
+  name: string
+  slug: string
+  image: string
+}
 
-export default function FeaturedCategories() {
+export default function FeaturedCategories({
+  categories,
+}: {
+  categories: CategoryData[]
+}) {
+  const colors = ['bg-[#0052CC]', 'bg-[#FF8A00]']
+
+  // Decide if we show the "See All" card
+  const displayCategories = categories.slice(0, 6)
+  console.log('Featured Categories:', categories) 
+  const hasMore = categories.length > 6
+
   return (
     <section className="container mx-auto px-4 py-12">
-      <h2 className="text-2xl font-bold text-gray-800 mb-8">
-        Featured Categories
-      </h2>
+      <div className="flex justify-between items-end mb-8">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Featured Categories
+        </h2>
+        {hasMore && (
+          <Link
+            href="/categories"
+            className="text-[#0052CC] font-bold text-sm hover:underline flex items-center gap-1"
+          >
+            View All Categories <ArrowRight size={16} />
+          </Link>
+        )}
+      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 lg:gap-6">
-        {categories.map((cat, i) => {
-          // Check if the source is an AVIF file to handle Turbopack limitations
-          const isAvif =
-            typeof cat.image === 'object' && 'src' in cat.image
-              ? cat.image.src.endsWith('.avif')
-              : String(cat.image).endsWith('.avif')
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 lg:gap-6">
+        {displayCategories.map((cat, i) => {
+          const bgColor = colors[i % colors.length]
+
+          // If it's the 5th item and there are more than 5 total, show the "View More" card
+          if (i === 5 && hasMore) {
+            return (
+              <Link
+                key="view-all-card"
+                href="/categories"
+                className="relative aspect-[3/4] rounded-[2rem] bg-gray-900 overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 block"
+              >
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <ArrowRight className="text-white" size={32} />
+                  </div>
+                  <h3 className="text-white font-bold text-lg leading-tight">
+                    +{categories.length - 5} More <br /> Categories
+                  </h3>
+                  <p className="text-gray-400 text-xs mt-2 font-medium uppercase tracking-wider">
+                    Browse All
+                  </p>
+                </div>
+              </Link>
+            )
+          }
 
           return (
-            <div
-              key={i}
-              className={`relative aspect-[3/4] rounded-[2rem] ${cat.color} overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300`}
+            <Link
+              key={cat._id}
+              href={`/category/${cat.slug}`}
+              className={`relative aspect-[3/4] rounded-[2rem] ${bgColor} overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 block`}
             >
-              <div className="absolute inset-0 flex flex-col items-center pt-8">
-                <div className="w-24 h-24 md:w-48 md:h-48 rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-white/20 shadow-inner">
+              <div className="absolute inset-0 flex flex-col items-center pt-6">
+                <div className="w-24 h-24 md:w-40 md:h-40 rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-white/20 shadow-inner">
                   <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
                     <Image
-                      src={cat.image}
+                      src={cat.image || '/Images/placeholder.png'}
                       alt={cat.name}
                       fill
+                      sizes="(max-width: 768px) 100px, 200px"
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      // This prevents Turbopack from trying to re-encode the AVIF files
-                      unoptimized={isAvif}
                     />
                   </div>
                 </div>
               </div>
 
               <div className="absolute bottom-0 w-full p-4 lg:p-6 text-center">
-                <h3 className="text-white font-bold text-sm md:text-base leading-tight drop-shadow-sm">
+                <h3 className="text-white font-bold text-xs md:text-sm leading-tight drop-shadow-sm">
                   {cat.name}
                 </h3>
               </div>
 
               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-            </div>
+            </Link>
           )
         })}
       </div>

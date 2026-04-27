@@ -8,17 +8,37 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'www.cnet.com', 
+        hostname: 'www.cnet.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'cellmart.pk', 
+        hostname: 'cellmart.pk',
         pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'cdn.mos.cms.futurecdn.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn1.gstatic.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.stelrad.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.mgkente.com',
         pathname: '/**',
       },
       {
@@ -38,7 +58,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'encrypted-tbn0.gstatic.com',
+        hostname: 'i.ebayimg.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 's3.amazonaws.com',
         pathname: '/**',
       },
       {
