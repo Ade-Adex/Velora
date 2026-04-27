@@ -48,7 +48,7 @@ export async function updateUserProfile(payload: Partial<IUser>) {
     const updatedUser = await User.findByIdAndUpdate(
       decoded.id,
       { $set: updateData },
-      { new: true, runValidators: true },
+      { returnDocument: 'after', runValidators: true },
     )
       .select('-magicToken -tokenExpiry')
       .lean()

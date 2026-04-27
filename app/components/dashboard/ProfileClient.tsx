@@ -38,6 +38,8 @@ import { enqueueSnackbar } from 'notistack'
 import { IAddress, IOrder, IUser, Serialized } from '@/app/types'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { updateUserProfile } from '@/app/services/user-actions'
+// import Image from 'next/image'
+import NextImage from 'next/image'
 
 interface ProfileFormData {
   fullName: string
@@ -102,7 +104,7 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
 
     const reader = new FileReader()
     reader.onload = (event) => {
-      const img = new Image()
+      const img = new window.Image()
       img.src = event.target?.result as string
 
       img.onload = () => {
@@ -148,18 +150,25 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
       <Stack gap="xl">
         <Paper p="xl" radius="md" withBorder className="bg-gray-50/50">
           <Group gap="xl">
-            <Box className="relative group overflow-hidden rounded-full w-[120px] h-[120px]">
-              <Avatar
-                size={120}
-                radius={100}
-                src={user.image}
-                color="blue"
-                variant="filled"
-              >
-                {user.fullName?.charAt(0).toUpperCase()}
-              </Avatar>
+            <Box className="relative group overflow-hidden rounded-full w-[120px] h-[120px] border border-gray-200">
+              {user.image ? (
+                <NextImage
+                  src={user.image}
+                  alt={user.fullName || 'User'}
+                  fill
+                  sizes="120px"
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <Avatar size={120} radius={100} color="blue" variant="filled">
+                  {user.fullName?.charAt(0).toUpperCase()}
+                </Avatar>
+              )}
+
+              {/* Upload Overlay */}
               <div
-                className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Camera size={24} color="white" />
@@ -167,6 +176,7 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
                   Change
                 </Text>
               </div>
+
               <input
                 type="file"
                 ref={fileInputRef}
@@ -175,6 +185,7 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
                 onChange={handleImageUpload}
               />
             </Box>
+
             <Stack gap={4}>
               <Group gap="xs">
                 <Text size="xl" fw={900}>
