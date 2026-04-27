@@ -19,7 +19,7 @@ export default function FeaturedCategories({
 
   // Decide if we show the "See All" card
   const displayCategories = categories.slice(0, 6)
-  console.log('Featured Categories:', categories) 
+  // console.log('Featured Categories:', categories) 
   const hasMore = categories.length > 6
 
   return (

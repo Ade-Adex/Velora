@@ -3,6 +3,8 @@
 import crypto from 'crypto'
 import { User } from '@/app/models/User'
 import connectDB from '@/app/lib/mongodb'
+import { cookies } from 'next/headers'
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 export async function generateMagicToken(email: string) {
   await connectDB()
@@ -44,4 +46,34 @@ export async function verifyMagicToken(token: string) {
   await user.save()
 
   return user
+}
+
+
+
+interface UserPayload extends JwtPayload {
+  id: string;
+  email: string;
+  role: string;
+}
+
+export async function getCurrentUser() {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('session')?.value
+
+    if (!token) return null
+
+    const decoded = jwt.verify(
+      token, 
+      process.env.JWT_SECRET as string
+    ) as UserPayload
+
+    await connectDB()
+    const user = await User.findById(decoded.id).select('-magicToken -tokenExpiry')
+    
+    // Convert Mongoose document to plain object for Server Component serialization
+    return user ? JSON.parse(JSON.stringify(user)) : null
+  } catch (error) {
+    return null
+  }
 }

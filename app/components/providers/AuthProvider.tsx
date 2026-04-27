@@ -4,32 +4,20 @@
 import { useEffect } from 'react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { SessionProvider } from 'next-auth/react' // Add this import
+import { IUser } from '@/app/types'
 
 export default function AuthProvider({
   children,
+  initialUser,
 }: {
-  children: React.ReactNode
+    children: React.ReactNode
+    initialUser: IUser | null
 }) {
   const setUser = useUserStore((state) => state.setUser)
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch('/api/auth/me')
-        const data = await res.json()
-        if (data.user) {
-          setUser(data.user)
-        } else {
-          setUser(null)
-        }
-      } catch (err) {
-        console.error('Auth sync failed', err)
-      }
-    }
+    setUser(initialUser)
+  }, [initialUser, setUser])
 
-    checkAuth()
-  }, [setUser])
-
-  // Wrap children with SessionProvider
   return <SessionProvider>{children}</SessionProvider>
 }

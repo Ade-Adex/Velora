@@ -14,6 +14,12 @@ const UserSchema = new Schema<IUser>(
     },
     fullName: { type: String, required: true },
     phone: { type: String },
+    birthday: { type: Date }, 
+    gender: {
+      type: String,
+      enum: ['male', 'female', 'other', 'unspecified'],
+      default: 'unspecified',
+    }, 
     role: {
       type: String,
       enum: ['customer', 'admin', 'editor'],

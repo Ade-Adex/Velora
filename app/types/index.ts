@@ -23,6 +23,7 @@ export interface IUser extends Document {
   phone?: string
   image?: string
   birthday?: Date
+  gender: 'male' | 'female' | 'other' | 'unspecified'
   role: 'customer' | 'admin' | 'editor'
   magicToken?: string
   tokenExpiry?: Date
@@ -30,6 +31,10 @@ export interface IUser extends Document {
   addresses: IAddress[]
   wishlist: Types.ObjectId[] | string[]
   isActive: boolean
+  preferences?: {
+    newsletter: boolean
+    notifications: boolean
+  }
   createdAt: Date
   updatedAt: Date
 }
