@@ -101,9 +101,27 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     if (!file) return
 
     const reader = new FileReader()
-    reader.onloadend = () => {
-      const base64String = reader.result as string
-      handleUpdate({ image: base64String }, 'Profile picture updated!')
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target?.result as string
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const MAX_WIDTH = 800 // High enough quality for profile icons
+        const scaleSize = MAX_WIDTH / img.width
+
+        canvas.width = MAX_WIDTH
+        canvas.height = img.height * scaleSize
+
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+        // Convert to compressed JPEG (0.7 quality is the sweet spot)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+        handleUpdate({ image: compressedBase64 }, 'Profile picture updated!')
+      }
     }
     reader.readAsDataURL(file)
   }

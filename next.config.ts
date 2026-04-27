@@ -3,14 +3,26 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb', // Allows larger image uploads up to 10MB
+    },
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
+      // Add Cloudinary to allow profile pictures to load
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'www.cnet.com',
         pathname: '/**',
       },
+      // ... keep your other existing patterns below
       {
         protocol: 'https',
         hostname: 'cellmart.pk',
@@ -63,11 +75,6 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'i.ebayimg.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 's3.amazonaws.com',
         pathname: '/**',
       },
@@ -79,6 +86,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'cdn.thewirecutter.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cloudinary-res.cloudinary.com',
         pathname: '/**',
       },
     ],
