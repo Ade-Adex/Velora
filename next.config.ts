@@ -48,6 +48,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'www.kokoroyale.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'i.ebayimg.com',
         pathname: '/**',
       },
