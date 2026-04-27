@@ -108,43 +108,40 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     handleUpdate(finalPayload, 'Profile updated!')
   }
 
- const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
-   const file = e.target.files?.[0]
-   if (!file) return
+const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (!file) return
 
-   const reader = new FileReader()
-   reader.onload = (event) => {
-     const img = new window.Image()
-     img.src = event.target?.result as string
+  const reader = new FileReader()
+  reader.onload = (event) => {
+    const img = new window.Image()
+    img.src = event.target?.result as string
 
-     img.onload = () => {
-       const canvas = document.createElement('canvas')
-       const MAX_WIDTH = 800
-       const scaleSize = MAX_WIDTH / img.width
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const MAX_WIDTH = 800
+      const scaleSize = MAX_WIDTH / img.width
 
-       canvas.width = MAX_WIDTH
-       canvas.height = img.height * scaleSize
+      canvas.width = MAX_WIDTH
+      canvas.height = img.height * scaleSize
 
-       const ctx = canvas.getContext('2d')
-       if (!ctx) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
 
-       ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
-       // 1. Generate the compressed string
-       const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
 
-       // 2. OPTIMISTIC UPDATE: Update the local store immediately
-       // This ensures the Avatar changes the moment the user selects a file
-       if (user) {
-         setUser({ ...user, image: compressedBase64 })
-       }
+      if (user) {
+        // Use Type Assertion to satisfy the store's type requirement
+        setUser({ ...user, image: compressedBase64 } as Serialized<IUser>)
+      }
 
-       // 3. Trigger the actual server sync
-       handleUpdate({ image: compressedBase64 }, 'Profile picture updated!')
-     }
-   }
-   reader.readAsDataURL(file)
- }
+      handleUpdate({ image: compressedBase64 }, 'Profile picture updated!')
+    }
+  }
+  reader.readAsDataURL(file)
+}
 
   const openAddressModal = () => {
     modals.open({
