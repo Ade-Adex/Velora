@@ -234,7 +234,7 @@ export default function ProductDetailsClient({
                 ${currentPrice.toLocaleString()}
               </Text>
               {hasDiscount && (
-                <Text fz="lg" c="dimmed" td="line-through" mb={12}>
+                <Text fz="lg" c="dimmed" td="line-through" mb={9}>
                   ${product.basePrice.toLocaleString()}
                 </Text>
               )}

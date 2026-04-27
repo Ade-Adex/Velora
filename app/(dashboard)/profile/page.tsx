@@ -19,7 +19,6 @@ import {
   ActionIcon,
   Modal,
   Table,
-  Tooltip,
   ScrollArea,
   Loader,
 } from '@mantine/core'
@@ -28,12 +27,8 @@ import {
   Package,
   MapPin,
   ShieldCheck,
-  Camera,
   Plus,
   Trash2,
-  Eye,
-  Calendar,
-  Clock,
 } from 'lucide-react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { enqueueSnackbar } from 'notistack'
@@ -67,7 +62,7 @@ function ProfileContent() {
     isDefault: false,
   })
 
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     phone: user?.phone || '',
     birthday: user?.birthday
@@ -75,8 +70,15 @@ function ProfileContent() {
       : '',
   })
 
-  if (queryTab && queryTab !== activeTab) {
-    setActiveTab(queryTab)
+  // if (queryTab && queryTab !== activeTab) {
+  //   setActiveTab(queryTab)
+  // }
+
+  const [prevQueryTab, setPrevQueryTab] = useState(queryTab)
+
+  if (queryTab !== prevQueryTab) {
+    setPrevQueryTab(queryTab)
+    setActiveTab(queryTab || 'details')
   }
 
   useEffect(() => {
@@ -131,7 +133,6 @@ function ProfileContent() {
   }
 
   const removeAddress = (index: number) => {
-    // TypeScript now knows 'user.addresses' follows 'IAddress[]'
     if (!user.addresses) return
 
     const updatedAddresses = user.addresses.filter(

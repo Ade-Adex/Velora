@@ -4,20 +4,27 @@ import crypto from 'crypto'
 import { User } from '@/app/models/User'
 import connectDB from '@/app/lib/mongodb'
 
+// /app/services/auth-service.ts
+
 export async function generateMagicToken(email: string) {
   await connectDB()
   const token = crypto.randomBytes(32).toString('hex')
   const expiry = new Date(Date.now() + 15 * 60 * 1000) 
 
-  // Find user or create if they don't exist
+  const defaultName = email.split('@')[0]
+    .replace(/[._-]/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
   const user = await User.findOneAndUpdate(
     { email: email.toLowerCase() },
     {
       magicToken: token,
       tokenExpiry: expiry,
-      $set: { fullName: email.split('@')[0] }, 
+      $setOnInsert: { fullName: defaultName } 
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   )
 
   return token
