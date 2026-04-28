@@ -448,7 +448,7 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
                           <ActionIcon
                             color="red"
                             variant="subtle"
-                            className="absolute top-2 right-2"
+                            className="absolute top-1 left-8"
                             onClick={() =>
                               handleUpdate(
                                 {
