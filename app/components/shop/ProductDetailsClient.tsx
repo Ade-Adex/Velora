@@ -83,14 +83,16 @@ export default function ProductDetailsClient({
     return cat && (cat as ICategory).name !== undefined
   }
 
-  const handleQuantityChange = (newQty: number) => {
-    const val = Math.max(1, Math.min(newQty, product.stock || 99))
-    if (cartItem) {
-      updateQuantity(productId, val)
-    } else {
-      setLocalQuantity(val)
-    }
+ const handleQuantityChange = (newQty: number) => {
+  const maxStock = product.stock || 0
+  const val = Math.max(1, Math.min(newQty, maxStock))
+  
+  if (cartItem) {
+    updateQuantity(productId, val)
+  } else {
+    setLocalQuantity(val)
   }
+}
 
   const handleSubmitReview = async () => {
     if (!comment.trim()) return
@@ -272,6 +274,20 @@ export default function ProductDetailsClient({
               </Group>
             </Stack>
 
+            {product.stock > 0 && product.stock <= 5 && (
+              <Text
+                size="xs"
+                fw={700}
+                c="orange.8"
+                bg="orange.0"
+                px={8}
+                py={2}
+                style={{ borderRadius: '4px', width: 'fit-content' }}
+              >
+                Only {product.stock} units left in stock!
+              </Text>
+            )}
+
             <Group align="flex-end" gap="sm">
               <Text fz={28} fw={900} c="blue.9">
                 ${currentPrice.toLocaleString()}
@@ -303,6 +319,16 @@ export default function ProductDetailsClient({
                   <Text size="xs" fw={800} tt="uppercase" c="dimmed">
                     Quantity
                   </Text>
+                  {product.stock > 0 && product.stock <= 10 && (
+                    <Badge
+                      color="red.6"
+                      variant="dot"
+                      size="sm"
+                      styles={{ label: { textTransform: 'none' } }}
+                    >
+                      Only {product.stock} left
+                    </Badge>
+                  )}
                   <Group
                     gap={0}
                     style={{
