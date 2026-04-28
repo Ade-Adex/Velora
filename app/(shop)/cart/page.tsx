@@ -217,7 +217,7 @@ export default function CartPage() {
                         SKU: {item.id.slice(-6).toUpperCase()}
                       </Text>
                       <Text fw={800} c="blue" size="xl">
-                        ${item.price.toLocaleString()}
+                        ₦{item.price.toLocaleString()}
                       </Text>
                     </Stack>
                   </Grid.Col>
@@ -295,12 +295,12 @@ export default function CartPage() {
               <Stack gap="xs">
                 <Group justify="space-between">
                   <Text c="dimmed">Subtotal</Text>
-                  <Text fw={600}>${subtotal.toLocaleString()}</Text>
+                  <Text fw={600}>₦{subtotal.toLocaleString()}</Text>
                 </Group>
                 <Group justify="space-between">
                   <Text c="dimmed">Shipping</Text>
                   <Text fw={600} c={shipping === 0 ? 'green' : 'black'}>
-                    {shipping === 0 ? 'FREE' : `$${shipping}`}
+                    {shipping === 0 ? 'FREE' : `₦${shipping}`}
                   </Text>
                 </Group>
 
@@ -323,7 +323,7 @@ export default function CartPage() {
                     Total
                   </Text>
                   <Text fw={900} size="xl" c="blue">
-                    ${total.toLocaleString()}
+                    ₦{total.toLocaleString()}
                   </Text>
                 </Group>
               </Stack>
