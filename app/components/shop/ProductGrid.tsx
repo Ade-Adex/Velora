@@ -188,10 +188,10 @@ export default function ProductGrid({
               {/* PROFESSIONAL SALE BADGE STACK */}
               {discountPercentage && (
                 <div className="absolute top-2 left-2 right-2 z-10 flex flex-row justify-between items-center gap-2">
-                  <div className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg  uppercase tracking-wider">
+                  <div className="bg-red-600 text-white text-[8px] md:text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg  uppercase tracking-wider">
                     Sale
                   </div>
-                  <div className="bg-white/90 backdrop-blur-sm text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full shadow-md border border-red-100">
+                  <div className="bg-white/90 backdrop-blur-sm text-red-600 text-[8px] md:text-[10px] font-black px-2 py-0.5 rounded-full shadow-md border border-red-100">
                     -{discountPercentage}%
                   </div>
                 </div>
@@ -220,12 +220,12 @@ export default function ProductGrid({
             {/* 2. PRODUCT CONTENT */}
             <div className="p-2 md:p-3 flex flex-col grow">
               <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[10px]! font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-wide">
+                <span className="text-[8px]! md:text-[10px]! font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-wide">
                   {product.brand}
                 </span>
                 <div className="flex items-center gap-1">
                   <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs! font-bold text-gray-500">
+                  <span className="text-[10px]! md:text-xs! font-bold text-gray-500">
                     {product.ratings?.average
                       ? Number(product.ratings.average).toFixed(1)
                       : '0.0'}
@@ -233,13 +233,13 @@ export default function ProductGrid({
                 </div>
               </div>
 
-              <h4 className="font-bold text-sm! text-gray-800 line-clamp-2 leading-snug mb-3 min-h-10 group-hover:text-blue-700 transition-colors">
+              <h4 className="font-bold text-xs! md:text-sm! text-gray-800 line-clamp-2 leading-snug mb-3 min-h-10 group-hover:text-blue-700 transition-colors">
                 {product.name}
               </h4>
 
               {/* PRICE SECTION */}
               <div className="mt-auto flex items-end gap-2">
-                <span className="text-gray-950 font-black text-base md:text-lg tracking-tighter">
+                <span className="text-[#1864AB] text-gray-950! font-black text-base md:text-lg tracking-tighter">
                   ₦{currentPrice.toLocaleString()}
                 </span>
                 {hasDiscount && (

@@ -283,7 +283,7 @@ export default function ProductDetailsClient({
                 </Badge>
                 <Group gap="xs">
                   {product.stock === 0 ? (
-                    <Badge color="gray" variant="outline" radius="sm">
+                    <Badge color="gray" variant="outline" radius="sm" >
                       OUT OF STOCK
                     </Badge>
                   ) : (
@@ -376,7 +376,7 @@ export default function ProductDetailsClient({
                 />
 
                 <Text
-                  size="sm"
+                  size="xs"
                   fw={700}
                   c={product.stock > 0 ? 'green.9' : 'red.9'}
                 >
