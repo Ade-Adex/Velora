@@ -200,7 +200,7 @@ export default function ProductGrid({
               {/* STOCK BADGE */}
               {product.stock <= 0 && (
                 <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center z-20">
-                  <span className="text-gray-900 font-black text-[10px]! uppercase tracking-[0.2em] border-2 border-gray-900 px-3 py-1">
+                  <span className="text-gray-900 font-black text-[8px] md:text-[10px] uppercase tracking-[0.2em] border-2 border-gray-900 px-3 py-1">
                     Sold Out
                   </span>
                 </div>
