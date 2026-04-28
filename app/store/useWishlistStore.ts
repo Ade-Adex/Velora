@@ -5,6 +5,7 @@ import { IProduct } from '@/app/types'
 
 interface WishlistState {
   wishlist: IProduct[]
+  setWishlist: (products: IProduct[]) => void
   toggleWishlist: (product: IProduct) => void
   isInWishlist: (productId: string | undefined) => boolean
   clearWishlist: () => void
@@ -14,6 +15,7 @@ export const useWishlistStore = create<WishlistState>()(
   persist(
     (set, get) => ({
       wishlist: [],
+      setWishlist: (products) => set({ wishlist: products }),
       toggleWishlist: (product) => {
         const current = get().wishlist
         // Fix: Convert both IDs to strings for comparison

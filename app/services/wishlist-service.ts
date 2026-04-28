@@ -5,6 +5,31 @@ import connectDB from '@/app/lib/mongodb'
 import { User } from '@/app/models/User'
 import { revalidatePath } from 'next/cache'
 
+
+
+export async function getUserWishlistAction(userId: string) {
+  try {
+    await connectDB()
+    const user = await User.findById(userId)
+      .populate('wishlist')
+      .lean()
+
+    if (!user) return { success: false, data: [] }
+    
+    // Serialize for Client Component
+    return { 
+      success: true, 
+      data: JSON.parse(JSON.stringify(user.wishlist)) 
+    }
+  } catch (error) {
+    console.error('Fetch Wishlist Error:', error)
+    return { success: false, data: [] }
+  }
+}
+
+
+
+
 export async function syncWishlistAction(userId: string, productIds: string[]) {
   try {
     await connectDB()

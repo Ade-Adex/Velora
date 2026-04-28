@@ -1,7 +1,7 @@
-//  /app/(dashboard)/wishlist/page.tsx
-
+// /app/(dashboard)/wishlist/page.tsx
 'use client'
 
+import { useEffect, useState } from 'react'
 import {
   Container,
   Title,
@@ -13,15 +13,59 @@ import {
   Group,
   Stack,
   Center,
+  Loader,
 } from '@mantine/core'
 import { useWishlistStore } from '@/app/store/useWishlistStore'
 import { useCartStore } from '@/app/store/useCartStore'
+import { useUserStore } from '@/app/store/useUserStore'
+import {
+  getUserWishlistAction,
+  syncWishlistAction,
+} from '@/app/services/wishlist-service'
 import { ShoppingCart, Trash2, HeartOff } from 'lucide-react'
 import Link from 'next/link'
 
 export default function WishlistPage() {
-  const { wishlist, toggleWishlist } = useWishlistStore()
+  const { wishlist, toggleWishlist, setWishlist } = useWishlistStore()
   const { addToCart } = useCartStore()
+  const { user } = useUserStore()
+  const [loading, setLoading] = useState(true)
+
+  // 1. Sync from DB on Mount
+  useEffect(() => {
+    const fetchDBWishlist = async () => {
+      if (user?._id) {
+        const result = await getUserWishlistAction(user._id.toString())
+        if (result.success) {
+          setWishlist(result.data)
+        }
+      }
+      setLoading(false)
+    }
+    fetchDBWishlist()
+  }, [user?._id, setWishlist])
+
+  // 2. Handle Removal and Sync
+  const handleRemove = async (product: IProduct) => {
+    toggleWishlist(product) // Local update
+
+    if (user?._id) {
+      // Get state after toggle
+      const currentWishlist = useWishlistStore.getState().wishlist
+      const ids = currentWishlist.map((p) => p._id!.toString())
+      await syncWishlistAction(user._id.toString(), ids)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Container size="md" py={100}>
+        <Center>
+          <Loader color="blue" />
+        </Center>
+      </Container>
+    )
+  }
 
   if (wishlist.length === 0) {
     return (
@@ -30,8 +74,10 @@ export default function WishlistPage() {
           <Stack align="center" gap="md">
             <HeartOff size={80} strokeWidth={1} color="gray" />
             <Title order={2}>Your wishlist is empty</Title>
-            <Text c="dimmed">Save items you like to see them here.</Text>
-            <Button component={Link} href="/" variant="light">
+            <Text c="dimmed">
+              Items synced to your account will appear here.
+            </Text>
+            <Button component={Link} href="/shop" variant="light">
               Go Shopping
             </Button>
           </Stack>
@@ -45,7 +91,6 @@ export default function WishlistPage() {
       <Title order={1} mb="xl">
         My Wishlist ({wishlist.length})
       </Title>
-
       <Grid gap="md">
         {wishlist.map((product) => (
           <Grid.Col
@@ -78,9 +123,8 @@ export default function WishlistPage() {
                 <Group gap="xs" grow mt="sm">
                   <Button
                     variant="light"
-                    color="blue"
                     leftSection={<ShoppingCart size={16} />}
-                    onClick={() => {
+                    onClick={() =>
                       addToCart({
                         id: product._id!.toString(),
                         name: product.name,
@@ -91,14 +135,14 @@ export default function WishlistPage() {
                         brand: product.brand,
                         stock: product.stock,
                       })
-                    }}
+                    }
                   >
                     Add
                   </Button>
                   <Button
                     variant="subtle"
                     color="red"
-                    onClick={() => toggleWishlist(product)}
+                    onClick={() => handleRemove(product)}
                   >
                     <Trash2 size={16} />
                   </Button>
