@@ -33,7 +33,10 @@ const UserSchema = new Schema<IUser>(
       {
         isDefault: { type: Boolean, default: false },
         label: String,
-        street: String,
+        fullName: String, 
+        phone: String, 
+        addressLine1: String,
+        // street: String,
         city: String,
         state: String,
         zipCode: String,

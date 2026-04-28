@@ -10,11 +10,14 @@ export type ImageSource = string | StaticImageData
 export interface IAddress {
   isDefault: boolean
   label: string
-  street: string
+  // street: string
   city: string
   state: string
   zipCode: string
   country: string
+  fullName: string 
+  phone: string 
+  addressLine1: string
 }
 
 export interface IUser extends Document {

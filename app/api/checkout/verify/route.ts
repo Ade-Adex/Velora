@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import connectDB from '@/app/lib/mongodb'
 import { Order } from '@/app/models/Order'
+import { Product } from '@/app/models/Product'
+import { IOrderItem } from '@/app/types'
 
 // --- STRICT INTERFACES ---
 interface PaystackVerifyResponse {
@@ -70,6 +72,19 @@ export async function GET(req: Request) {
         return NextResponse.redirect(
           new URL('/cart?error=order_not_found', req.url),
         )
+      }
+
+      try {
+        const stockUpdates = updatedOrder.items.map((item: IOrderItem) => {
+          return Product.findByIdAndUpdate(item.product, {
+            $inc: { stock: -item.quantity }, 
+          })
+        })
+
+        await Promise.all(stockUpdates)
+      } catch (stockError) {
+        // We log this but don't stop the redirect, as the user has already paid
+        console.error('Failed to update stock levels:', stockError)
       }
 
       // 4. Redirect to Success Page

@@ -2,6 +2,19 @@
 
 import { Schema, model, models } from 'mongoose'
 
+const AddressSchema = new Schema(
+  {
+    fullName: String,
+    phone: String,
+    addressLine1: String,
+    city: String,
+    state: String,
+    zipCode: String,
+    country: String,
+  },
+  { _id: false },
+)
+
 const OrderSchema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -22,7 +35,7 @@ const OrderSchema = new Schema(
       discount: { type: Number, default: 0 },
       grandTotal: Number,
     },
-    shippingAddress: Object,
+    shippingAddress: AddressSchema,
     paymentStatus: {
       type: String,
       enum: ['unpaid', 'processing', 'paid', 'failed', 'refunded'],

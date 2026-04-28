@@ -20,7 +20,7 @@ export async function getProducts(limit: number) {
   const products = await Product.find({ isPublished: true })
     .populate({
       path: 'category',
-      model: Category, // Explicitly tell Mongoose which model to use
+      model: Category, 
       select: 'name slug',
     })
     .sort({ createdAt: -1 })

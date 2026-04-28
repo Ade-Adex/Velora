@@ -21,6 +21,7 @@ import {
   ScrollArea,
   Select,
   Box,
+  Checkbox,
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import {
@@ -354,12 +355,29 @@ const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
                           radius="md"
                           className="relative"
                         >
-                          <Text fw={700} size="sm">
-                            {addr.label}
+                          <Group justify="space-between" mb={4}>
+                            <Text fw={700} size="sm" c="blue">
+                              {addr.label}
+                            </Text>
+                            {addr.isDefault && <Badge size="xs">Default</Badge>}
+                          </Group>
+
+                          <Text fw={600} size="sm">
+                            {addr.fullName}
                           </Text>
+
                           <Text size="xs" c="dimmed">
-                            {addr.street}, {addr.city}
+                            {addr.addressLine1}, {addr.city}
                           </Text>
+
+                          <Text size="xs" c="dimmed">
+                            {addr.state}, {addr.country}
+                          </Text>
+
+                          <Text size="xs" mt={4} fw={500}>
+                            {addr.phone}
+                          </Text>
+
                           <ActionIcon
                             color="red"
                             variant="subtle"
@@ -429,28 +447,87 @@ function AddressForm({
 }) {
   const [val, setVal] = useState<IAddress>({
     label: '',
-    street: '',
+    fullName: '',
+    phone: '',
+    addressLine1: '',
     city: '',
     state: '',
     zipCode: '',
     country: 'Nigeria',
     isDefault: false,
   })
+
   return (
-    <Stack>
+    <Stack gap="sm">
       <TextInput
-        label="Label"
+        label="Address Label (e.g. Home, Office)"
+        placeholder="Home"
         required
         value={val.label}
         onChange={(e) => setVal({ ...val, label: e.target.value })}
       />
+      <Group grow>
+        <TextInput
+          label="Full Name"
+          placeholder="John Doe"
+          required
+          value={val.fullName}
+          onChange={(e) => setVal({ ...val, fullName: e.target.value })}
+        />
+        <TextInput
+          label="Phone Number"
+          placeholder="08012345678"
+          required
+          value={val.phone}
+          onChange={(e) => setVal({ ...val, phone: e.target.value })}
+        />
+      </Group>
       <TextInput
-        label="Street"
+        label="Street Address"
+        placeholder="123 Church Street"
         required
-        value={val.street}
-        onChange={(e) => setVal({ ...val, street: e.target.value })}
+        value={val.addressLine1}
+        onChange={(e) => setVal({ ...val, addressLine1: e.target.value })}
       />
-      <Button fullWidth onClick={() => onSave(val)} loading={loading}>
+      <Group grow>
+        <TextInput
+          label="City"
+          required
+          value={val.city}
+          onChange={(e) => setVal({ ...val, city: e.target.value })}
+        />
+        <TextInput
+          label="State"
+          required
+          value={val.state}
+          onChange={(e) => setVal({ ...val, state: e.target.value })}
+        />
+      </Group>
+
+      {/* Added ZipCode and Country Row */}
+      <Group grow>
+        <TextInput
+          label="Zip Code"
+          placeholder="optional"
+          value={val.zipCode}
+          onChange={(e) => setVal({ ...val, zipCode: e.target.value })}
+        />
+        <Select
+          label="Country"
+          data={['Nigeria', 'Ghana', 'United Kingdom', 'United States']}
+          value={val.country}
+          onChange={(v) => setVal({ ...val, country: v || 'Nigeria' })}
+        />
+      </Group>
+
+      {/* Added Default Toggle */}
+      <Checkbox
+        label="Set as default shipping address"
+        checked={val.isDefault}
+        onChange={(e) => setVal({ ...val, isDefault: e.currentTarget.checked })}
+      />
+
+      <Button fullWidth mt="md" onClick={() => onSave(val)} loading={loading}>
         Save Address
       </Button>
     </Stack>
