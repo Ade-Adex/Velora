@@ -233,8 +233,8 @@ function OrderSuccessContent() {
 
         {/* NAVIGATION ACTIONS */}
         <Flex
-          mt="xl"
-          gap="md"
+          mt={{ base: 40, sm: 'xl' }}
+          gap={{ base: 'lg', sm: 'md' }}
           direction={{ base: 'column', sm: 'row' }}
           w="100%"
         >
@@ -246,10 +246,16 @@ function OrderSuccessContent() {
             leftSection={<Package size={18} />}
             flex={1}
             size="md"
+            py={10}
             radius="md"
+            styles={{
+              root: { height: 'auto' }, // Allows padding to dictate the height
+              inner: { fontSize: '16px' }, // Ensures text remains legible
+            }}
           >
             Order History
           </Button>
+
           <Button
             variant="light"
             color="gray"
@@ -257,7 +263,12 @@ function OrderSuccessContent() {
             href="/"
             flex={1}
             size="md"
+            py={10}
             radius="md"
+            styles={{
+              root: { height: 'auto' },
+              inner: { fontSize: '16px' },
+            }}
           >
             Back to Home
           </Button>
