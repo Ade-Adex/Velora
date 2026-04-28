@@ -1,36 +1,36 @@
 'use client'
 
-import Link from 'next/link'
-import {
-  Search,
-  ShoppingCart,
-  User as UserIcon,
-  Heart,
-  LogOut,
-  Package,
-  Settings,
-  ChevronDown,
-  LayoutGrid,
-} from 'lucide-react'
 import { useApp } from '@/app/context/AppContext'
 import { useCartStore } from '@/app/store/useCartStore'
 import { useUserStore } from '@/app/store/useUserStore'
-import { useDisclosure } from '@mantine/hooks'
 import {
-  Menu,
-  Button,
-  Text,
   Avatar,
-  Group,
-  UnstyledButton,
-  rem,
+  Burger,
+  Button,
+  Center,
   Divider,
   Drawer,
-  Burger,
-  ScrollArea,
+  Group,
+  Menu,
   NavLink,
-  Center,
+  ScrollArea,
+  Text,
+  UnstyledButton,
+  rem,
 } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import {
+  ChevronDown,
+  Heart,
+  LayoutGrid,
+  LogOut,
+  Package,
+  Search,
+  Settings,
+  ShoppingCart,
+  User as UserIcon,
+} from 'lucide-react'
+import Link from 'next/link'
 
 export default function Navbar() {
   const [opened, { toggle, close }] = useDisclosure(false)
@@ -128,12 +128,13 @@ export default function Navbar() {
                     </Avatar>
                     <div className="hidden lg:block text-left">
                       <Text
-                        size="xs"
+                        // size="xs"
                         c="dimmed"
                         fw={700}
                         tt="uppercase"
                         lts="0.5px"
                         style={{ lineHeight: 1 }}
+                        className="text-[8px]!"
                       >
                         Welcome
                       </Text>
@@ -163,7 +164,7 @@ export default function Navbar() {
                 <Menu.Item
                   leftSection={<Package size={16} />}
                   component={Link}
-                  href="/orders"
+                  href="/profile?tab=orders"
                 >
                   My Orders
                 </Menu.Item>
@@ -310,7 +311,7 @@ export default function Navbar() {
                 />
                 <NavLink
                   component={Link}
-                  href="/orders"
+                  href="/profile?tab=orders"
                   label="Track Orders"
                   leftSection={<Package size={18} />}
                   onClick={close}

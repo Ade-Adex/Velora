@@ -196,12 +196,12 @@ export default function ProductDetailsClient({
           <Stack gap="xl">
             <Stack gap={5}>
               <Group justify="space-between" align="center">
-                <Badge variant="filled" color="blue" size="md" radius="sm">
+                <Badge variant="filled" color="blue" size="sm" radius="sm">
                   {product.brand}
                 </Badge>
                 <Group gap="xs">
                   {product.onSale && (
-                    <Badge color="red" variant="light">
+                    <Badge color="red" variant="light" size="sm">
                       SALE
                     </Badge>
                   )}
@@ -213,7 +213,7 @@ export default function ProductDetailsClient({
 
               <Title
                 order={1}
-                fz={{ base: 24, md: 35 }}
+                fz={{ base: 20, md: 35 }}
                 fw={900}
                 lh={1.1}
                 mt="sm"
@@ -230,17 +230,17 @@ export default function ProductDetailsClient({
             </Stack>
 
             <Group align="flex-end" gap="sm">
-              <Text fz={32} fw={900} c="blue.9">
+              <Text fz={28} fw={900} c="blue.9">
                 ${currentPrice.toLocaleString()}
               </Text>
               {hasDiscount && (
-                <Text fz="lg" c="dimmed" td="line-through" mb={9}>
+                <Text fz="md" c="dimmed" td="line-through" mb={9}>
                   ${product.basePrice.toLocaleString()}
                 </Text>
               )}
             </Group>
 
-            <Text size="md" c="gray.7" lh={1.7} fw={400}>
+            <Text size="sm" c="gray.7" lh={1.7} fw={400}>
               {product.shortDescription ||
                 product.description.substring(0, 200) + '...'}
             </Text>
@@ -265,7 +265,7 @@ export default function ProductDetailsClient({
                     style={{
                       border: '1px solid #e0e0e0',
                       borderRadius: '8px',
-                      overflow: 'hidden', 
+                      overflow: 'hidden',
                     }}
                     grow
                     className="w-full sm:w-auto"
@@ -276,7 +276,7 @@ export default function ProductDetailsClient({
                       size={36}
                       onClick={() => handleQuantityChange(currentQuantity - 1)}
                       disabled={currentQuantity <= 1}
-                      style={{ borderRadius: 0, color: '#000' }} 
+                      style={{ borderRadius: 0, color: '#000' }}
                     >
                       <Minus size={18} />
                     </ActionIcon>
@@ -334,7 +334,6 @@ export default function ProductDetailsClient({
                 </Group>
               </Group>
             </Stack>
-
 
             {/* TRUST AREA */}
             <Paper p="lg" radius="md" withBorder bg="gray.0">
