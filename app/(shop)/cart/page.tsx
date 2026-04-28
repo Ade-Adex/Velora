@@ -235,7 +235,12 @@ export default function CartPage() {
                         >
                           <Minus size={14} />
                         </ActionIcon>
-                        <Text fw={700} w={30} ta="center" className='bg-white! hover:bg-gray-200 transition-colors' >
+                        <Text
+                          fw={700}
+                          w={30}
+                          ta="center"
+                          className="bg-white! hover:bg-gray-200 transition-colors"
+                        >
                           {item.quantity}
                         </Text>
                         <ActionIcon
@@ -244,6 +249,7 @@ export default function CartPage() {
                           onClick={() =>
                             updateQuantity(item.id, item.quantity + 1)
                           }
+                          disabled={item.quantity >= (item.stock || 0)}
                         >
                           <Plus size={14} />
                         </ActionIcon>

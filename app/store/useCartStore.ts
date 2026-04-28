@@ -43,9 +43,15 @@ export const useCartStore = create<CartState>()(
 
       updateQuantity: (id, qty) =>
         set((state) => ({
-          cart: state.cart.map((item) =>
-            item.id === id ? { ...item, quantity: Math.max(1, qty) } : item,
-          ),
+          cart: state.cart.map((item) => {
+            if (item.id === id) {
+              // Limit quantity between 1 and the available stock
+              const maxStock = item.stock || 0
+              const validQty = Math.max(1, Math.min(qty, maxStock))
+              return { ...item, quantity: validQty }
+            }
+            return item
+          }),
         })),
 
       clearCart: () => set({ cart: [] }),
