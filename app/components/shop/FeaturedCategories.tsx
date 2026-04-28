@@ -25,15 +25,15 @@ export default function FeaturedCategories({
   return (
     <section className="container mx-auto px-4 py-12">
       <div className="flex justify-between items-end mb-8">
-        <h2 className="text-2xl font-bold text-gray-800">
+        <h2 className="text-xs md:text-xl font-bold text-gray-800">
           Featured Categories
         </h2>
         {hasMore && (
           <Link
             href="/categories"
-            className="text-[#0052CC] font-bold text-sm hover:underline flex items-center gap-1"
+            className="text-[#0052CC] font-bold text-xs md:text-sm hover:underline flex items-center gap-1"
           >
-            View All Categories <ArrowRight size={16} />
+            View All <span className='hidden md:inline'>Categories</span> <ArrowRight size={16} />
           </Link>
         )}
       </div>

@@ -40,6 +40,8 @@ import { addProductReview } from '@/app/services/product-service'
 import { useUserStore } from '@/app/store/useUserStore'
 import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
+import { useWishlistStore } from '@/app/store/useWishlistStore'
+import { syncWishlistAction } from '@/app/services/wishlist-service'
 
 export default function ProductDetailsClient({
   product,
@@ -87,6 +89,9 @@ export default function ProductDetailsClient({
   const [rating, setRating] = useState<number>(5)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+    const { toggleWishlist, isInWishlist } = useWishlistStore()
+  const isFavorite = isInWishlist(product._id?.toString())
 
   // Helper to extract string URL from ImageSource
   const getImageUrl = (src: ImageSource): string => {
@@ -182,17 +187,44 @@ export default function ProductDetailsClient({
     }
   }
 
+
+  const handleWishlistToggle = async () => {
+    // 1. Update Local UI immediately (Zustand)
+    toggleWishlist(product)
+
+    // 2. Sync to Database if user is logged in
+    if (user?._id) {
+      // We get the updated state immediately from Zustand
+      const updatedWishlist = useWishlistStore.getState().wishlist
+      const productIds = updatedWishlist.map((p) => p._id!.toString())
+
+      const result = await syncWishlistAction(user._id.toString(), productIds)
+
+      if (result.success) {
+        enqueueSnackbar(
+          isFavorite ? 'Removed from wishlist' : 'Added to wishlist',
+          {
+            variant: 'success',
+          },
+        )
+      }
+    } else {
+      // If not logged in, it stays in local storage only
+      enqueueSnackbar('Saved to local wishlist', { variant: 'info' })
+    }
+  }
+
   // Combine main image and gallery for the thumbnails
   const allImages = [product.mainImage, ...(product.gallery || [])]
 
   return (
-    <Container size="lg" py="xl">
+    <Container size="lg" py="lg">
       <Button
         variant="subtle"
         color="gray"
         leftSection={<ArrowLeft size={16} />}
         onClick={() => router.back()}
-        mb="xl"
+        mb="lg"
       >
         Back to shopping
       </Button>
@@ -283,7 +315,7 @@ export default function ProductDetailsClient({
                 </Badge>
                 <Group gap="xs">
                   {product.stock === 0 ? (
-                    <Badge color="gray" variant="outline" radius="sm" >
+                    <Badge color="gray" variant="outline" radius="sm">
                       OUT OF STOCK
                     </Badge>
                   ) : (
@@ -383,25 +415,25 @@ export default function ProductDetailsClient({
                   {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
                 </Text>
 
-                {product.stock > 0 && product.stock <= 10 && (
-                  <Text
-                    fz={10}
-                    c="orange.9"
-                    fw={700}
-                    bg="orange.0"
-                    px={5} 
-                    py={1} 
-                    style={{
-                      borderRadius: 3,
-                      letterSpacing: '0.3px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {product.stock} {product.stock > 1 ? 'units' : 'unit'} left
-                  </Text>
-                )}
+                {/* {product.stock > 0 && product.stock <= 10 && ( */}
+                <Text
+                  fz={10}
+                  c="orange.9"
+                  fw={700}
+                  bg="orange.0"
+                  px={5}
+                  py={1}
+                  style={{
+                    borderRadius: 3,
+                    letterSpacing: '0.3px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {product.stock} {product.stock > 1 ? 'units' : 'unit'} left
+                </Text>
+                {/* )} */}
               </Group>
             </Stack>
 
@@ -500,23 +532,27 @@ export default function ProductDetailsClient({
 
                   <ActionIcon
                     size={48}
-                    variant="light"
+                    variant={isFavorite ? 'filled' : 'light'}
                     color="red"
                     radius="md"
                     className="shrink-0"
+                    onClick={handleWishlistToggle}
                   >
-                    <Heart size={20} />
+                    <Heart
+                      size={20}
+                      fill={isFavorite ? 'white' : 'transparent'}
+                    />
                   </ActionIcon>
                 </Group>
               </Group>
             </Stack>
 
             {/* TRUST AREA */}
-            <Paper p="lg" radius="md" withBorder bg="gray.0">
+            <Paper p="sm" radius="md" withBorder bg="gray.0">
               <Grid>
                 <Grid.Col span={4}>
                   <Stack align="center" gap={4}>
-                    <Truck size={24} className="text-blue-600" />
+                    <Truck size={20} className="text-blue-600" />
                     <Text fz="xs" fw={700}>
                       Fast Shipping
                     </Text>
@@ -524,7 +560,7 @@ export default function ProductDetailsClient({
                 </Grid.Col>
                 <Grid.Col span={4}>
                   <Stack align="center" gap={4}>
-                    <ShieldCheck size={24} className="text-blue-600" />
+                    <ShieldCheck size={20} className="text-blue-600" />
                     <Text fz="xs" fw={700}>
                       Secure Pay
                     </Text>
@@ -532,7 +568,7 @@ export default function ProductDetailsClient({
                 </Grid.Col>
                 <Grid.Col span={4}>
                   <Stack align="center" gap={4}>
-                    <RefreshCcw size={24} className="text-blue-600" />
+                    <RefreshCcw size={20} className="text-blue-600" />
                     <Text fz="xs" fw={700}>
                       Easy Returns
                     </Text>

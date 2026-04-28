@@ -34,10 +34,10 @@ export default async function Home() {
 
       <section className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-xs md:text-xl font-bold text-gray-800">
             Today&apos;s Deals
           </h2>
-          <button className="text-blue-600 font-semibold hover:underline">
+          <button className="text-blue-600 text-xs! md:text-sm! font-bold! hover:underline">
             See All
           </button>
         </div>
@@ -46,7 +46,7 @@ export default async function Home() {
       </section>
 
       <section className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        <h2 className="text-xs md:text-xl font-bold text-gray-800 mb-6">
           Top Categories
         </h2>
         {/* Pass the products prop here! */}
