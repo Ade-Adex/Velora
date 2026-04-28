@@ -88,33 +88,39 @@ export default function WishlistPage() {
   }
 
   return (
-    <Container size="lg" py="xl">
-      <Title order={1} mb="xl">
+    <Container size="lg" py="lg">
+      <Title order={3} fw={700} c="blue.9" ta="center" mb="lg">
         My Wishlist ({wishlist.length})
       </Title>
       <Grid gap="md">
         {wishlist.map((product) => (
           <Grid.Col
             key={product._id?.toString()}
-            span={{ base: 12, sm: 6, md: 4 }}
+            span={{ base: 12, sm: 6, md: 3 }}
           >
             <Card withBorder radius="md" p="md">
-              <Card.Section component={Link} href={`/product/${product.slug}`}>
+              <Card.Section
+                component={Link}
+                href={`/product/${product.slug}`}
+                bg="gray.0"
+              >
                 <Image
                   src={
                     typeof product.mainImage === 'string'
                       ? product.mainImage
                       : product.mainImage.src
                   }
-                  height={200}
+                  height={140}
                   alt={product.name}
                   fit="contain"
-                  p="md"
+                  w="auto" 
+                  mx="auto" 
+                  p="lg" 
                 />
               </Card.Section>
 
               <Stack gap="xs" mt="md">
-                <Text fw={700} fz="lg" lineClamp={1}>
+                <Text fw={700} fz="sm" lineClamp={1}>
                   {product.name}
                 </Text>
                 <Text fw={900} c="blue.9">
