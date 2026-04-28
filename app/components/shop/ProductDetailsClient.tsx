@@ -39,6 +39,8 @@ import { useProductStore } from '@/app/store/useProductStore'
 import { addProductReview } from '@/app/services/product-service'
 import { useUserStore } from '@/app/store/useUserStore'
 import { useSnackbar } from 'notistack'
+import dayjs from 'dayjs' 
+
 
 export default function ProductDetailsClient({
   product,
@@ -60,9 +62,24 @@ export default function ProductDetailsClient({
 
   const [activeImg, setActiveImg] = useState<ImageSource>(product.mainImage)
 
-  const currentPrice = product.discountPrice || product.basePrice
+  const isActuallyOnSale =
+    product.onSale &&
+    !!product.discountPrice &&
+    (!product.saleEndsAt || dayjs().isBefore(dayjs(product.saleEndsAt)))
+
+  const currentPrice = isActuallyOnSale
+    ? product.discountPrice!
+    : product.basePrice
   const hasDiscount =
-    !!product.discountPrice && product.discountPrice < product.basePrice
+    isActuallyOnSale && product.discountPrice! < product.basePrice
+
+  const discountPercentage = hasDiscount
+    ? Math.round(
+        ((product.basePrice - product.discountPrice!) / product.basePrice) *
+          100,
+      )
+    : null
+  
   const productId = product._id ? product._id.toString() : ''
   const cartItem = cart.find((item) => item.id === productId)
   const [localQuantity, setLocalQuantity] = useState(1)
@@ -142,6 +159,27 @@ export default function ProductDetailsClient({
         stock: product.stock,
       }
       addToCart(itemToAdd)
+    }
+  }
+
+  const handleShare = async () => {
+    const shareData = {
+      title: product.name,
+      text: `Check out this ${product.name} on our shop!`,
+      url: window.location.href, // Automatically gets the current product URL
+    }
+
+    try {
+      if (navigator.share) {
+        // triggers mobile share sheet
+        await navigator.share(shareData)
+      } else {
+        // Fallback: Copy to clipboard for desktop users
+        await navigator.clipboard.writeText(window.location.href)
+        enqueueSnackbar('Link copied to clipboard!', { variant: 'info' })
+      }
+    } catch (error) {
+      console.error('Error sharing:', error)
     }
   }
 
@@ -245,12 +283,46 @@ export default function ProductDetailsClient({
                   {product.brand}
                 </Badge>
                 <Group gap="xs">
-                  {product.onSale && (
-                    <Badge color="red" variant="light" size="sm">
-                      SALE
+                  {product.stock === 0 ? (
+                    <Badge color="gray" variant="outline" radius="sm">
+                      OUT OF STOCK
                     </Badge>
+                  ) : (
+                    isActuallyOnSale && (
+                      <Group gap={4}>
+                        {/* SALE LABEL */}
+                        <Badge
+                          color="red"
+                          variant="filled"
+                          size="sm"
+                          radius="sm"
+                          styles={{ label: { fontWeight: 900 } }}
+                        >
+                          SALE
+                        </Badge>
+
+                        {/* PERCENTAGE LABEL */}
+                        <Badge
+                          color="red.1"
+                          c="red.9"
+                          variant="filled"
+                          size="sm"
+                          radius="sm"
+                          styles={{ label: { fontWeight: 900 } }}
+                        >
+                          -{discountPercentage}%
+                        </Badge>
+                      </Group>
+                    )
                   )}
-                  <ActionIcon variant="subtle" color="gray" radius="xl">
+
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    radius="xl"
+                    onClick={handleShare}
+                    title="Share product"
+                  >
                     <Share2 size={18} />
                   </ActionIcon>
                 </Group>

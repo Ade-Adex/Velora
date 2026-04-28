@@ -22,6 +22,7 @@ import {
   Select,
   Box,
   Checkbox,
+  Tooltip,
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import {
@@ -33,6 +34,7 @@ import {
   Trash2,
   Calendar,
   Camera,
+  Eye,
 } from 'lucide-react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { enqueueSnackbar } from 'notistack'
@@ -41,6 +43,11 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { updateUserProfile } from '@/app/services/user-actions'
 // import Image from 'next/image'
 import NextImage from 'next/image'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import Link from 'next/link'
+
+dayjs.extend(relativeTime)
 
 interface ProfileFormData {
   fullName: string
@@ -77,27 +84,27 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     router.push(`/profile?tab=${value}`, { scroll: false })
   }
 
- const handleUpdate = async (payload: Partial<IUser>, msg: string) => {
-   // 1. Capture the current state before the update
-   const previousUser = useUserStore.getState().user
+  const handleUpdate = async (payload: Partial<IUser>, msg: string) => {
+    // 1. Capture the current state before the update
+    const previousUser = useUserStore.getState().user
 
-   startTransition(async () => {
-     const result = await updateUserProfile(payload)
+    startTransition(async () => {
+      const result = await updateUserProfile(payload)
 
-     if (result.success && result.user) {
-       // 2. Server succeeded: Update store with the official data from DB
-       // (This replaces the Base64 string with the Cloudinary URL)
-       setUser(result.user)
-       enqueueSnackbar(msg, { variant: 'success' })
-     } else {
-       // 3. Server failed: Revert the store to the previous state
-       if (previousUser) {
-         setUser(previousUser)
-       }
-       enqueueSnackbar(result.error || 'Update failed', { variant: 'error' })
-     }
-   })
- }
+      if (result.success && result.user) {
+        // 2. Server succeeded: Update store with the official data from DB
+        // (This replaces the Base64 string with the Cloudinary URL)
+        setUser(result.user)
+        enqueueSnackbar(msg, { variant: 'success' })
+      } else {
+        // 3. Server failed: Revert the store to the previous state
+        if (previousUser) {
+          setUser(previousUser)
+        }
+        enqueueSnackbar(result.error || 'Update failed', { variant: 'error' })
+      }
+    })
+  }
 
   const saveProfileInfo = () => {
     const finalPayload: Partial<IUser> = {
@@ -109,39 +116,39 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     handleUpdate(finalPayload, 'Profile updated!')
   }
 
-const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0]
-  if (!file) return
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    const img = new window.Image()
-    img.src = event.target?.result as string
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new window.Image()
+      img.src = event.target?.result as string
 
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const MAX_WIDTH = 800
-      const scaleSize = MAX_WIDTH / img.width
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const MAX_WIDTH = 800
+        const scaleSize = MAX_WIDTH / img.width
 
-      canvas.width = MAX_WIDTH
-      canvas.height = img.height * scaleSize
+        canvas.width = MAX_WIDTH
+        canvas.height = img.height * scaleSize
 
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
 
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
-      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
 
-      if (user) {
-        setUser({ ...user, image: compressedBase64 })
+        if (user) {
+          setUser({ ...user, image: compressedBase64 })
+        }
+
+        handleUpdate({ image: compressedBase64 }, 'Profile picture updated!')
       }
-
-      handleUpdate({ image: compressedBase64 }, 'Profile picture updated!')
     }
+    reader.readAsDataURL(file)
   }
-  reader.readAsDataURL(file)
-}
 
   const openAddressModal = () => {
     modals.open({
@@ -537,39 +544,108 @@ function AddressForm({
 function OrderTable({ orders }: { orders: Serialized<IOrder>[] }) {
   if (orders.length === 0)
     return (
-      <Text py="xl" ta="center">
-        No orders found.
-      </Text>
+      <Stack align="center" py={50} gap="xs">
+        <Package size={40} strokeWidth={1.5} color="gray" />
+        <Text c="dimmed">No orders found yet.</Text>
+        <Button variant="subtle" component={Link} href="/">
+          Start Shopping
+        </Button>
+      </Stack>
     )
+
   return (
     <ScrollArea>
-      <Table verticalSpacing="md">
+      <Table verticalSpacing="md" highlightOnHover>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Order #</Table.Th>
-            <Table.Th>Status</Table.Th>
+            <Table.Th>Order Info</Table.Th>
+            <Table.Th>Items</Table.Th>
+            <Table.Th>Payment</Table.Th>
+            <Table.Th>Delivery</Table.Th>
             <Table.Th>Total</Table.Th>
+            <Table.Th></Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {orders.map((order) => (
             <Table.Tr key={order._id}>
+              {/* ORDER NUMBER & DATE */}
               <Table.Td>
-                <Text fw={700} size="sm">
-                  {order.orderNumber.split('-').pop()}
-                </Text>
+                <Stack gap={0}>
+                  <Text fw={700} size="sm">
+                    #{order.orderNumber.split('-').pop()?.toUpperCase()}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {dayjs(order.createdAt).format('MMM DD, YYYY')}
+                  </Text>
+                  <Text size="10px" c="blue.4">
+                    {dayjs(order.createdAt).fromNow()}
+                  </Text>
+                </Stack>
               </Table.Td>
+
+              {/* ITEMS SUMMARY */}
+              <Table.Td>
+                <Tooltip label={order.items.map((i) => i.name).join(', ')}>
+                  {/* Fixed maxW to maw for Mantine v7 */}
+                  <Box>
+                    <Text size="sm" truncate="end" maw={150}>
+                      {order.items[0]?.name}
+                      {order.items.length > 1 &&
+                        ` +${order.items.length - 1} more`}
+                    </Text>
+                  </Box>
+                </Tooltip>
+              </Table.Td>
+
+              {/* PAYMENT STATUS */}
               <Table.Td>
                 <Badge
+                  size="sm"
+                  variant="dot"
                   color={order.paymentStatus === 'paid' ? 'green' : 'orange'}
                 >
-                  {order.paymentStatus}
+                  {order.paymentStatus.toUpperCase()}
                 </Badge>
               </Table.Td>
+
+              {/* DELIVERY STATUS */}
               <Table.Td>
-                <Text fw={700} size="sm">
+                <Badge
+                  size="sm"
+                  variant="light"
+                  color={
+                    order.orderStatus === 'delivered'
+                      ? 'blue'
+                      : order.orderStatus === 'shipped'
+                        ? 'cyan'
+                        : 'gray'
+                  }
+                >
+                  {order.orderStatus || 'PENDING'}
+                </Badge>
+              </Table.Td>
+
+              {/* GRAND TOTAL */}
+              <Table.Td>
+                <Text fw={800} size="sm">
                   ₦{order.totals.grandTotal.toLocaleString()}
                 </Text>
+              </Table.Td>
+
+              {/* ACTIONS */}
+              <Table.Td>
+                <Group gap="xs" justify="flex-end">
+                  <Button
+                    variant="subtle"
+                    size="xs"
+                    leftSection={<Eye size={14} />}
+                    component={Link}
+                    href={`/orders/success?id=${order._id}`}
+                  >
+                    Details
+                  </Button>
+                </Group>
               </Table.Td>
             </Table.Tr>
           ))}

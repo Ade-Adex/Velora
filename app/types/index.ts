@@ -53,11 +53,11 @@ export interface ICategory extends Document {
 
 export interface IVariant {
   sku: string
-  name?: string // e.g. "Midnight Blue / XL"
-  attributes: Record<string, string> // Record is cleaner than Map for JSON responses
-  price?: number // Specific price for this variant
+  name?: string
+  attributes: Map<string, string> | Record<string, string>
+  price?: number
   stock: number
-  images?: string[] // Variant specific images
+  images?: string[]
 }
 
 
@@ -97,6 +97,7 @@ export interface IProduct extends Document {
   isPublished: boolean
   isFeatured: boolean // For homepage highlights
   onSale: boolean
+  saleEndsAt?: Date
   createdAt: Date
   updatedAt: Date
 }

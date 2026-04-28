@@ -73,6 +73,7 @@ const ProductSchema = new Schema<IProduct>(
     isPublished: { type: Boolean, default: false },
     isFeatured: { type: Boolean, default: false },
     onSale: { type: Boolean, default: false },
+    saleEndsAt: { type: Date },
   },
   { timestamps: true },
 )
