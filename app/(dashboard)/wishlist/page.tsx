@@ -14,6 +14,7 @@ import {
   Stack,
   Center,
   Loader,
+  Box,
 } from '@mantine/core'
 import { useWishlistStore } from '@/app/store/useWishlistStore'
 import { useCartStore } from '@/app/store/useCartStore'
@@ -92,13 +93,21 @@ export default function WishlistPage() {
       <Title order={3} fw={700} c="blue.9" ta="center" mb="lg">
         My Wishlist ({wishlist.length})
       </Title>
+
       <Grid gap="md">
         {wishlist.map((product) => (
           <Grid.Col
             key={product._id?.toString()}
             span={{ base: 12, sm: 6, md: 3 }}
           >
-            <Card withBorder radius="md" p="md">
+            {/* Set a fixed height and flex layout for the Card */}
+            <Card
+              withBorder
+              radius="md"
+              p="xs"
+              h="100%" // Makes sure cards in the same row align
+              style={{ display: 'flex', flexDirection: 'column' }}
+            >
               <Card.Section
                 component={Link}
                 href={`/product/${product.slug}`}
@@ -110,27 +119,36 @@ export default function WishlistPage() {
                       ? product.mainImage
                       : product.mainImage.src
                   }
-                  height={140}
+                  height={140} 
                   alt={product.name}
                   fit="contain"
-                  w="auto" 
-                  mx="auto" 
-                  p="lg" 
+                  w="auto"
+                  mx="auto"
+                  p="lg"
                 />
               </Card.Section>
 
-              <Stack gap="xs" mt="md">
-                <Text fw={700} fz="sm" lineClamp={1}>
-                  {product.name}
-                </Text>
-                <Text fw={900} c="blue.9">
-                  ₦{product.basePrice.toLocaleString()}
-                </Text>
+              {/* flex: 1 pushes the content apart, justify="space-between" keeps buttons at bottom */}
+              <Stack
+                gap="xs"
+                mt="md"
+                style={{ flex: 1 }}
+                justify="space-between"
+              >
+                <Box>
+                  <Text fw={700} fz="sm" lineClamp={2} mb={4}>
+                    {product.name}
+                  </Text>
+                  <Text fw={900} c="blue.9" fz="md">
+                    ₦{product.basePrice.toLocaleString()}
+                  </Text>
+                </Box>
 
                 <Group gap="xs" grow mt="sm">
                   <Button
                     variant="light"
-                    leftSection={<ShoppingCart size={16} />}
+                    size="xs" // Smaller size fits 4-column layout better
+                    leftSection={<ShoppingCart size={14} />}
                     onClick={() =>
                       addToCart({
                         id: product._id!.toString(),
@@ -149,9 +167,10 @@ export default function WishlistPage() {
                   <Button
                     variant="subtle"
                     color="red"
+                    size="xs"
                     onClick={() => handleRemove(product)}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </Button>
                 </Group>
               </Stack>
