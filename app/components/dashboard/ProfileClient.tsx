@@ -133,8 +133,7 @@ const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
       const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7)
 
       if (user) {
-        // Use Type Assertion to satisfy the store's type requirement
-        setUser({ ...user, image: compressedBase64 } as Serialized<IUser>)
+        setUser({ ...user, image: compressedBase64 })
       }
 
       handleUpdate({ image: compressedBase64 }, 'Profile picture updated!')

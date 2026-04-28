@@ -141,4 +141,4 @@ export type Serialized<T> = {
     : T[K] extends object
     ? Serialized<T[K]>
     : T[K];
-} & { _id: string }; // Ensure _id is always a string
+} & { _id: string }; 

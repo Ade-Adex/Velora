@@ -1,17 +1,16 @@
 // /app/components/providers/AuthProvider.tsx
-
 'use client'
 import { useEffect } from 'react'
 import { useUserStore } from '@/app/store/useUserStore'
-import { SessionProvider } from 'next-auth/react' // Add this import
-import { IUser } from '@/app/types'
+import { SessionProvider } from 'next-auth/react'
+import { IUser, Serialized } from '@/app/types' // Import Serialized
 
 export default function AuthProvider({
   children,
   initialUser,
 }: {
-    children: React.ReactNode
-    initialUser: IUser | null
+  children: React.ReactNode
+  initialUser: Serialized<IUser> | null 
 }) {
   const setUser = useUserStore((state) => state.setUser)
 

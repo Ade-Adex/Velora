@@ -6,7 +6,7 @@ import Navbar from './Navbar'
 import { MantineProvider, createTheme } from '@mantine/core'
 import AuthProvider from '@/app/components/providers/AuthProvider' // Add this import
 import '@mantine/core/styles.css'
-import { IUser } from '@/app/types'
+import { IUser, Serialized } from '@/app/types'
 import { ModalsProvider } from '@mantine/modals'
 
 const theme = createTheme({
@@ -15,7 +15,7 @@ const theme = createTheme({
 
 interface AppWrapperProps {
   children: React.ReactNode
-  initialUser: IUser | null
+  initialUser: Serialized<IUser> | null
 }
 
 export default function AppWrapper({ children, initialUser }: AppWrapperProps) {

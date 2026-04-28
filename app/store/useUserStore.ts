@@ -1,12 +1,12 @@
-//  /app/store/useUserStore.ts
-
+// /app/store/useUserStore.ts
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { IUser } from '@/app/types'
+import { IUser, Serialized } from '@/app/types' // Import Serialized
 
 interface UserState {
-  user: IUser | null
-  setUser: (user: IUser | null) => void
+  // Change IUser to Serialized<IUser>
+  user: Serialized<IUser> | null
+  setUser: (user: Serialized<IUser> | null) => void
   logout: () => void
 }
 
@@ -18,10 +18,14 @@ export const useUserStore = create<UserState>()(
       logout: () => {
         set({ user: null })
         fetch('/api/auth/logout', { method: 'POST' })
+          .then((res) => {
+            if (!res.ok) {
+              console.error('Failed to log out')
+            }
+          })
+          .catch((err) => console.error('Logout error:', err))
       },
     }),
-    {
-      name: 'velora-user-storage', // key in localStorage
-    },
+    { name: 'velora-user-storage' },
   ),
 )
