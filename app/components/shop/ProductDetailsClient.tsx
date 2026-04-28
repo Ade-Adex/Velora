@@ -531,7 +531,7 @@ export default function ProductDetailsClient({
                   </Button>
 
                   <ActionIcon
-                    size={48}
+                    size={40}
                     variant={isFavorite ? 'filled' : 'light'}
                     color="red"
                     radius="md"
@@ -539,7 +539,7 @@ export default function ProductDetailsClient({
                     onClick={handleWishlistToggle}
                   >
                     <Heart
-                      size={20}
+                      size={16}
                       fill={isFavorite ? 'white' : 'transparent'}
                     />
                   </ActionIcon>
