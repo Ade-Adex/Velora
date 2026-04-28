@@ -36,6 +36,9 @@ import { useCartStore } from '@/app/store/useCartStore'
 import { IProduct, ICategory, CartItem, ImageSource } from '@/app/types'
 import { Types } from 'mongoose'
 import { useProductStore } from '@/app/store/useProductStore'
+import { addProductReview } from '@/app/services/product-service'
+import { useUserStore } from '@/app/store/useUserStore'
+import { useSnackbar } from 'notistack'
 
 export default function ProductDetailsClient({
   product,
@@ -46,6 +49,9 @@ export default function ProductDetailsClient({
   const { cart, addToCart, updateQuantity } = useCartStore()
 
   const allProductsInStore = useProductStore((state) => state.products)
+  const user = useUserStore((state) => state.user)
+
+  const { enqueueSnackbar } = useSnackbar()
 
   // Example: Get products from the same brand (excluding the current one)
   const relatedByBrand = allProductsInStore
@@ -61,6 +67,10 @@ export default function ProductDetailsClient({
   const cartItem = cart.find((item) => item.id === productId)
   const [localQuantity, setLocalQuantity] = useState(1)
   const currentQuantity = cartItem ? cartItem.quantity : localQuantity
+
+  const [rating, setRating] = useState<number>(5)
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   // Helper to extract string URL from ImageSource
   const getImageUrl = (src: ImageSource): string => {
@@ -79,6 +89,39 @@ export default function ProductDetailsClient({
       updateQuantity(productId, val)
     } else {
       setLocalQuantity(val)
+    }
+  }
+
+  const handleSubmitReview = async () => {
+    if (!comment.trim()) return
+
+    if (!user) {
+      enqueueSnackbar('You must be logged in to leave a review', {
+        variant: 'error',
+      })
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await addProductReview(productId, {
+        userId: user._id.toString(),
+        name: user.fullName,
+        rating,
+        comment,
+      })
+
+      setComment('')
+      setRating(5)
+      enqueueSnackbar('Review submitted successfully!', { variant: 'success' })
+      router.refresh() // Refreshes the server data to show the new review
+    } catch (error) {
+      enqueueSnackbar('Failed to submit review. Please try again.', {
+        variant: 'error',
+      })
+      console.error('Review Error:', error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -372,11 +415,12 @@ export default function ProductDetailsClient({
       <Tabs defaultValue="description" mt={80} variant="pills" radius="md">
         <Tabs.List grow>
           <Tabs.Tab value="description" fz="md" fw={700} py="sm">
-            Product Description
+            Description
           </Tabs.Tab>
           <Tabs.Tab value="specifications" fz="md" fw={700} py="sm">
-            Technical Details
+            Specs
           </Tabs.Tab>
+          <Tabs.Tab value="reviews">Reviews ({product.ratings.count})</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="description" pt="xl">
@@ -425,6 +469,64 @@ export default function ProductDetailsClient({
               </Table.Tr>
             </Table.Tbody>
           </Table>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="reviews" pt="xl">
+          <Grid gap="xl">
+            {/* List Reviews */}
+            <Grid.Col span={{ base: 12, md: 7 }}>
+              <Stack gap="lg">
+                {product.reviews?.length > 0 ? (
+                  product.reviews.map((rev, i) => (
+                    <Paper key={i} withBorder p="md" radius="md">
+                      <Group justify="space-between" mb="xs">
+                        <Text fw={700} size="sm">
+                          {rev.name}
+                        </Text>
+                        <Rating value={rev.rating} readOnly size="xs" />
+                      </Group>
+                      <Text size="sm" c="gray.7">
+                        {rev.comment}
+                      </Text>
+                      <Text size="xs" c="dimmed" mt="xs">
+                        {new Date(rev.createdAt).toLocaleDateString()}
+                      </Text>
+                    </Paper>
+                  ))
+                ) : (
+                  <Text c="dimmed" ta="center" py="xl">
+                    No reviews yet. Be the first!
+                  </Text>
+                )}
+              </Stack>
+            </Grid.Col>
+
+            <Grid.Col span={{ base: 12, md: 5 }}>
+              <Paper withBorder p="xl" radius="md" bg="gray.0">
+                <Title order={4} mb="md">
+                  Write a Review
+                </Title>
+                <Stack gap="sm">
+                  <Rating value={rating} onChange={setRating} size="lg" />
+                  <textarea
+                    placeholder="Share your experience..."
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    className="w-full p-3 rounded-md border border-gray-300 min-h-[100px] text-sm"
+                  />
+                  <Button
+                    color="blue"
+                    fullWidth
+                    loading={submitting}
+                    onClick={handleSubmitReview}
+                    disabled={!comment.trim()}
+                  >
+                    Submit Review
+                  </Button>
+                </Stack>
+              </Paper>
+            </Grid.Col>
+          </Grid>
         </Tabs.Panel>
       </Tabs>
     </Container>

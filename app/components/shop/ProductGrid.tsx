@@ -92,7 +92,9 @@ export default function ProductGrid({
                 <div className="flex items-center gap-1">
                   <Star size={12} className="fill-yellow-400 text-yellow-400" />
                   <span className="text-xs! font-bold text-gray-500">
-                    {product.ratings?.average || 0}
+                    {product.ratings?.average
+                      ? Number(product.ratings.average).toFixed(1)
+                      : '0.0'}
                   </span>
                 </div>
               </div>

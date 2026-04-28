@@ -57,6 +57,14 @@ export interface IVariant {
   images?: string[] // Variant specific images
 }
 
+
+export interface IReview {
+  user: Types.ObjectId | string | IUser 
+  name: string 
+  rating: number
+  comment: string
+  createdAt: Date
+}
 export interface IProduct extends Document {
   name: string
   brand: string // Added for professional branding
@@ -73,6 +81,7 @@ export interface IProduct extends Document {
   stock: number // Global stock fallback
   variants: IVariant[]
   specifications: { label: string; value: string }[] // Technical details
+  reviews: IReview[]
   ratings: {
     average: number
     count: number
