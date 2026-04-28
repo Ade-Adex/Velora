@@ -24,6 +24,7 @@ import {
 } from '@/app/services/wishlist-service'
 import { ShoppingCart, Trash2, HeartOff } from 'lucide-react'
 import Link from 'next/link'
+import { IProduct } from '@/app/types'
 
 export default function WishlistPage() {
   const { wishlist, toggleWishlist, setWishlist } = useWishlistStore()
@@ -47,7 +48,7 @@ export default function WishlistPage() {
 
   // 2. Handle Removal and Sync
   const handleRemove = async (product: IProduct) => {
-    toggleWishlist(product) // Local update
+    toggleWishlist(product) 
 
     if (user?._id) {
       // Get state after toggle
