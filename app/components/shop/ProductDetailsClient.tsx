@@ -385,12 +385,12 @@ export default function ProductDetailsClient({
 
                 {product.stock > 0 && product.stock <= 10 && (
                   <Text
-                    fz={10} // Micro size
+                    fz={10}
                     c="orange.9"
                     fw={700}
                     bg="orange.0"
-                    px={5} // Tightened padding
-                    py={1} // Tightened padding
+                    px={5} 
+                    py={1} 
                     style={{
                       borderRadius: 3,
                       letterSpacing: '0.3px',
