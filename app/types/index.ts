@@ -10,7 +10,6 @@ export type ImageSource = string | StaticImageData
 export interface IAddress {
   isDefault: boolean
   label: string
-  // street: string
   city: string
   state: string
   zipCode: string

@@ -150,6 +150,25 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     reader.readAsDataURL(file)
   }
 
+  // const openAddressModal = () => {
+  //   modals.open({
+  //     title: 'Add New Address',
+  //     centered: true,
+  //     children: (
+  //       <AddressForm
+  //         onSave={(newAddr) => {
+  //           const updated = [...(user.addresses || []), newAddr]
+  //           handleUpdate({ addresses: updated }, 'Address added!')
+  //           modals.closeAll()
+  //         }}
+  //         loading={isPending}
+  //       />
+  //     ),
+  //   })
+  // }
+
+  // Inside ProfileClient.tsx
+
   const openAddressModal = () => {
     modals.open({
       title: 'Add New Address',
@@ -157,7 +176,21 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
       children: (
         <AddressForm
           onSave={(newAddr) => {
-            const updated = [...(user.addresses || []), newAddr]
+            let updated
+
+            if (newAddr.isDefault) {
+              // If the new address is default, strip default status from all others
+              updated = [
+                ...(user.addresses || []).map((a) => ({
+                  ...a,
+                  isDefault: false,
+                })),
+                newAddr,
+              ]
+            } else {
+              updated = [...(user.addresses || []), newAddr]
+            }
+
             handleUpdate({ addresses: updated }, 'Address added!')
             modals.closeAll()
           }}
@@ -385,6 +418,33 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
                             {addr.phone}
                           </Text>
 
+                          {/* --- NEW SECTION: SET DEFAULT ACTION --- */}
+                          {!addr.isDefault && (
+                            <>
+                              <Divider my="sm" variant="dashed" />
+                              <Button
+                                variant="subtle"
+                                size="compact-xs"
+                                color="blue"
+                                onClick={() => {
+                                  const updated = user.addresses?.map(
+                                    (a, idx) => ({
+                                      ...a,
+                                      isDefault: idx === i,
+                                    }),
+                                  )
+                                  handleUpdate(
+                                    { addresses: updated },
+                                    'Default address updated',
+                                  )
+                                }}
+                              >
+                                Set as Default
+                              </Button>
+                            </>
+                          )}
+                          {/* --------------------------------------- */}
+
                           <ActionIcon
                             color="red"
                             variant="subtle"
@@ -552,10 +612,17 @@ function OrderTable({ orders }: { orders: Serialized<IOrder>[] }) {
     return 'gray'
   }
 
-  if (orders.length === 0) {
-    /* ... keep existing empty state ... */
-  }
-
+   if (orders.length === 0)
+     return (
+       <Stack align="center" py={50} gap="xs">
+         <Package size={40} strokeWidth={1.5} color="gray" />
+         <Text c="dimmed">No orders found yet.</Text>
+         <Button variant="subtle" component={Link} href="/">
+           Start Shopping
+         </Button>
+       </Stack>
+    )
+  
   return (
     <ScrollArea>
       <Table verticalSpacing="lg" highlightOnHover>

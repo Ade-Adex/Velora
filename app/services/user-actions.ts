@@ -36,6 +36,24 @@ export async function updateUserProfile(payload: Partial<IUser>) {
 
     await connectDB()
 
+    // LOGIC: Handle Default Address resetting
+    if (updateData.addresses && Array.isArray(updateData.addresses)) {
+      const hasNewDefault = updateData.addresses.some((addr) => addr.isDefault)
+
+      if (hasNewDefault) {
+        // Find the index of the last item marked as default (usually the one just added/updated)
+        const defaultIndex = updateData.addresses.findLastIndex(
+          (addr) => addr.isDefault,
+        )
+
+        // Ensure only that one is true, others are false
+        updateData.addresses = updateData.addresses.map((addr, idx) => ({
+          ...addr,
+          isDefault: idx === defaultIndex,
+        }))
+      }
+    }
+
     // Handle Cloudinary Upload if image is a base64 string
     if (updateData.image && updateData.image.startsWith('data:image')) {
       const uploadRes = await cloudinary.uploader.upload(updateData.image, {

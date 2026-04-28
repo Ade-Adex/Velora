@@ -36,7 +36,6 @@ const UserSchema = new Schema<IUser>(
         fullName: String, 
         phone: String, 
         addressLine1: String,
-        // street: String,
         city: String,
         state: String,
         zipCode: String,
