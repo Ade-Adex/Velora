@@ -147,7 +147,7 @@ export default function WishlistPage() {
                 <Group gap="xs" grow mt="sm">
                   <Button
                     variant="light"
-                    size="xs" // Smaller size fits 4-column layout better
+                    size="xs" 
                     leftSection={<ShoppingCart size={14} />}
                     onClick={() =>
                       addToCart({
