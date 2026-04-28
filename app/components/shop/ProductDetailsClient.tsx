@@ -39,8 +39,7 @@ import { useProductStore } from '@/app/store/useProductStore'
 import { addProductReview } from '@/app/services/product-service'
 import { useUserStore } from '@/app/store/useUserStore'
 import { useSnackbar } from 'notistack'
-import dayjs from 'dayjs' 
-
+import dayjs from 'dayjs'
 
 export default function ProductDetailsClient({
   product,
@@ -79,7 +78,7 @@ export default function ProductDetailsClient({
           100,
       )
     : null
-  
+
   const productId = product._id ? product._id.toString() : ''
   const cartItem = cart.find((item) => item.id === productId)
   const [localQuantity, setLocalQuantity] = useState(1)
@@ -100,16 +99,16 @@ export default function ProductDetailsClient({
     return cat && (cat as ICategory).name !== undefined
   }
 
- const handleQuantityChange = (newQty: number) => {
-  const maxStock = product.stock || 0
-  const val = Math.max(1, Math.min(newQty, maxStock))
-  
-  if (cartItem) {
-    updateQuantity(productId, val)
-  } else {
-    setLocalQuantity(val)
+  const handleQuantityChange = (newQty: number) => {
+    const maxStock = product.stock || 0
+    const val = Math.max(1, Math.min(newQty, maxStock))
+
+    if (cartItem) {
+      updateQuantity(productId, val)
+    } else {
+      setLocalQuantity(val)
+    }
   }
-}
 
   const handleSubmitReview = async () => {
     if (!comment.trim()) return
@@ -276,7 +275,7 @@ export default function ProductDetailsClient({
 
         {/* RIGHT: INFO SECTION */}
         <Grid.Col span={{ base: 12, md: 6 }}>
-          <Stack gap="xl">
+          <Stack gap="lg">
             <Stack gap={5}>
               <Group justify="space-between" align="center">
                 <Badge variant="filled" color="blue" size="sm" radius="sm">
@@ -299,18 +298,6 @@ export default function ProductDetailsClient({
                           styles={{ label: { fontWeight: 900 } }}
                         >
                           SALE
-                        </Badge>
-
-                        {/* PERCENTAGE LABEL */}
-                        <Badge
-                          color="red.1"
-                          c="red.9"
-                          variant="filled"
-                          size="sm"
-                          radius="sm"
-                          styles={{ label: { fontWeight: 900 } }}
-                        >
-                          -{discountPercentage}%
                         </Badge>
                       </Group>
                     )
@@ -340,36 +327,83 @@ export default function ProductDetailsClient({
 
               <Group gap="xs" mt="xs">
                 <Rating value={product.ratings?.average || 0} readOnly />
-                <Text size="xs" c="dimmed" fw={600}>
+                <Text size="xs" c="blue.7" fw={600}>
                   ({product.ratings?.count || 0} customer reviews)
                 </Text>
               </Group>
             </Stack>
 
-            {product.stock > 0 && product.stock <= 5 && (
-              <Text
-                size="xs"
-                fw={700}
-                c="orange.8"
-                bg="orange.0"
-                px={8}
-                py={2}
-                style={{ borderRadius: '4px', width: 'fit-content' }}
-              >
-                Only {product.stock} units left in stock!
-              </Text>
-            )}
-
-            <Group align="flex-end" gap="sm">
-              <Text fz={28} fw={900} c="blue.9">
-                ${currentPrice.toLocaleString()}
-              </Text>
-              {hasDiscount && (
-                <Text fz="md" c="dimmed" td="line-through" mb={9}>
-                  ${product.basePrice.toLocaleString()}
+            <Stack gap="xs">
+              {/* PRICE GROUP */}
+              <Group align="flex-end" gap="sm">
+                <Text fz={28} fw={900} c="blue.9" style={{ lineHeight: 1 }}>
+                  ₦{currentPrice.toLocaleString()}
                 </Text>
-              )}
-            </Group>
+
+                {hasDiscount && (
+                  <Group gap={6} align="center">
+                    <Text fz="sm" c="dimmed" td="line-through">
+                      ₦{product.basePrice.toLocaleString()}
+                    </Text>
+
+                    <Badge
+                      color="red.1"
+                      c="red.9"
+                      variant="filled"
+                      size="sm"
+                      radius="sm"
+                      styles={{ label: { fontWeight: 900 } }}
+                    >
+                      -{discountPercentage}%
+                    </Badge>
+                  </Group>
+                )}
+              </Group>
+
+              {/* STOCK STATUS GROUP */}
+              <Group gap={8} align="center">
+                <Box
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    backgroundColor: product.stock > 0 ? '#2f9e44' : '#e03131',
+                    boxShadow:
+                      product.stock > 0
+                        ? '0 0 0 3px #ebfbee'
+                        : '0 0 0 3px #fff5f5',
+                  }}
+                />
+
+                <Text
+                  size="sm"
+                  fw={700}
+                  c={product.stock > 0 ? 'green.9' : 'red.9'}
+                >
+                  {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                </Text>
+
+                {product.stock > 0 && product.stock <= 10 && (
+                  <Text
+                    fz={10} // Micro size
+                    c="orange.9"
+                    fw={700}
+                    bg="orange.0"
+                    px={5} // Tightened padding
+                    py={1} // Tightened padding
+                    style={{
+                      borderRadius: 3,
+                      letterSpacing: '0.3px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {product.stock} {product.stock > 1 ? 'units' : 'unit'} left
+                  </Text>
+                )}
+              </Group>
+            </Stack>
 
             <Text size="sm" c="gray.7" lh={1.7} fw={400}>
               {product.shortDescription ||
@@ -393,12 +427,13 @@ export default function ProductDetailsClient({
                   </Text>
                   {product.stock > 0 && product.stock <= 10 && (
                     <Badge
-                      color="red.6"
-                      variant="dot"
-                      size="sm"
-                      styles={{ label: { textTransform: 'none' } }}
+                      variant="light"
+                      color="orange"
+                      size="xs"
+                      radius="sm"
+                      style={{ width: 'fit-content' }}
                     >
-                      Only {product.stock} left
+                      Only {product.stock} units left in stock!
                     </Badge>
                   )}
                   <Group
