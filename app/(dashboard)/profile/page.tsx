@@ -11,7 +11,7 @@ export default async function ProfilePage() {
   const user = await getCurrentUser()
 
   if (!user) {
-    redirect('/auth/login') // Secure the page at the server level
+    redirect('/auth/login')
   }
 
   const ordersResponse = await getUserOrdersAction()

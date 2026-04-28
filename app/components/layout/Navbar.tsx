@@ -116,7 +116,14 @@ export default function Navbar() {
               <Menu.Target>
                 <UnstyledButton className="p-1 pr-2 rounded-xl hover:bg-gray-50 transition-colors hidden md:block border border-transparent hover:border-gray-100">
                   <Group gap={8}>
-                    <Avatar color="blue" radius="xl" size="sm" variant="filled">
+                    <Avatar
+                      src={user.image}
+                      alt={user.fullName}
+                      color="blue"
+                      radius="xl"
+                      size="sm"
+                      variant="filled"
+                    >
                       {user.fullName?.charAt(0).toUpperCase()}
                     </Avatar>
                     <div className="hidden lg:block text-left">
