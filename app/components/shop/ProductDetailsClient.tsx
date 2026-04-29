@@ -399,6 +399,7 @@ export default function ProductDetailsClient({
                     radius="xl"
                     onClick={handleShare}
                     title="Share product"
+                    className='bg-gray-300! p-1!'
                   >
                     <Share2 size={18} />
                   </ActionIcon>
@@ -407,7 +408,7 @@ export default function ProductDetailsClient({
 
               <Title
                 order={1}
-                fz={{ base: 20, md: 35 }}
+                fz={{ base: 18, md: 28 }}
                 fw={900}
                 lh={1.1}
                 mt="sm"
