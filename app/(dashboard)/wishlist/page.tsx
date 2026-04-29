@@ -33,31 +33,42 @@ export default function WishlistPage() {
   const { user } = useUserStore()
   const [loading, setLoading] = useState(true)
 
-  // 1. Sync from DB on Mount
+
   useEffect(() => {
-    const fetchDBWishlist = async () => {
-      if (user?._id) {
+    const syncWithDB = async () => {
+      if (!user?._id) {
+        setLoading(false)
+        return
+      }
+
+      try {
         const result = await getUserWishlistAction(user._id.toString())
         if (result.success) {
+          // OVERWRITE local store with fresh DB data
           setWishlist(result.data)
         }
+      } catch (err) {
+        console.error('Sync error:', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
-    fetchDBWishlist()
+
+    syncWithDB()
   }, [user?._id, setWishlist])
 
   // 2. Handle Removal and Sync
-  const handleRemove = async (product: IProduct) => {
-    toggleWishlist(product) 
+ const handleRemove = async (product: IProduct) => {
+   // 1. Update UI immediately (Zustand)
+   toggleWishlist(product)
 
-    if (user?._id) {
-      // Get state after toggle
-      const currentWishlist = useWishlistStore.getState().wishlist
-      const ids = currentWishlist.map((p) => p._id!.toString())
-      await syncWishlistAction(user._id.toString(), ids)
-    }
-  }
+   // 2. Sync to DB in the background
+   if (user?._id) {
+     const currentWishlist = useWishlistStore.getState().wishlist
+     const ids = currentWishlist.map((p) => p._id!.toString())
+     await syncWishlistAction(user._id.toString(), ids)
+   }
+ }
 
   if (loading) {
     return (
@@ -119,7 +130,7 @@ export default function WishlistPage() {
                       ? product.mainImage
                       : product.mainImage.src
                   }
-                  height={140} 
+                  height={140}
                   alt={product.name}
                   fit="contain"
                   w="auto"
@@ -147,7 +158,7 @@ export default function WishlistPage() {
                 <Group gap="xs" grow mt="sm">
                   <Button
                     variant="light"
-                    size="xs" 
+                    size="xs"
                     leftSection={<ShoppingCart size={14} />}
                     onClick={() =>
                       addToCart({
