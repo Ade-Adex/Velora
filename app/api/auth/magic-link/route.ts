@@ -9,7 +9,8 @@ export async function POST(req: Request) {
     const { email } = await req.json()
     const token = await generateMagicToken(email)
 
-    const rawDomain = process.env.NEXT_PUBLIC_DOMAIN || 'localhost:3000'
+    // const rawDomain = process.env.NEXT_PUBLIC_DOMAIN || 'localhost:3000'
+    const rawDomain = process.env.NEXT_PUBLIC_DOMAIN || 'christbcogbomoso.org'
     const cleanDomain = rawDomain.replace(/^https?:\/\//, '').replace(/\/$/, '')
 
     const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
@@ -18,7 +19,8 @@ export async function POST(req: Request) {
     const magicLink = `${protocol}://${cleanDomain}/auth/verify?token=${token}`
 
     await resend.emails.send({
-      from: 'Velora <onboarding@resend.dev>',
+      // from: 'Velora <onboarding@resend.dev>',
+      from: `Velora <no-reply@christbcogbomoso.org>`,
       to: email,
       subject: 'Your Magic Link for Velora',
       html: `
