@@ -1,7 +1,8 @@
 // /app/components/shop/FeaturedCategories.tsx
+
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react' // Added for the "See All" icon
+import { ArrowRight } from 'lucide-react'
 
 interface CategoryData {
   _id: string
@@ -17,23 +18,22 @@ export default function FeaturedCategories({
 }) {
   const colors = ['bg-[#0052CC]', 'bg-[#FF8A00]']
 
-  // Decide if we show the "See All" card
-  const displayCategories = categories.slice(0, 6)
-  // console.log('Featured Categories:', categories) 
+  // If we have more than 6, we show 5 circles and 1 "View More" card.
+  // This maintains a perfect 6-column row on desktop.
   const hasMore = categories.length > 6
+  const displayCategories = hasMore ? categories.slice(0, 6) : categories
 
   return (
     <section className="container mx-auto px-4 py-12">
       <div className="flex justify-between items-end mb-8">
-        <h2 className="text-xs md:text-xl font-bold text-gray-800">
-          Featured Categories
-        </h2>
+        <h2 className="text-xl font-bold text-gray-800">Featured Categories</h2>
         {hasMore && (
           <Link
             href="/categories"
             className="text-[#0052CC] font-bold text-xs md:text-sm hover:underline flex items-center gap-1"
           >
-            View All <span className='hidden md:inline'>Categories</span> <ArrowRight size={16} />
+            View All <span className="hidden md:inline">Categories</span>{' '}
+            <ArrowRight size={16} />
           </Link>
         )}
       </div>
@@ -42,8 +42,9 @@ export default function FeaturedCategories({
         {displayCategories.map((cat, i) => {
           const bgColor = colors[i % colors.length]
 
-          // If it's the 5th item and there are more than 5 total, show the "View More" card
+          // Handle the "View More" Card (Last slot in the 6-column grid)
           if (i === 5 && hasMore) {
+            const remainingCount = categories.length - 5
             return (
               <Link
                 key="view-all-card"
@@ -55,7 +56,7 @@ export default function FeaturedCategories({
                     <ArrowRight className="text-white" size={32} />
                   </div>
                   <h3 className="text-white font-bold text-lg leading-tight">
-                    +{categories.length - 5} More <br /> Categories
+                    +{remainingCount} More <br /> Categories
                   </h3>
                   <p className="text-gray-400 text-xs mt-2 font-medium uppercase tracking-wider">
                     Browse All
@@ -65,6 +66,7 @@ export default function FeaturedCategories({
             )
           }
 
+          // Handle Standard Category Circles
           return (
             <Link
               key={cat._id}
@@ -91,6 +93,7 @@ export default function FeaturedCategories({
                 </h3>
               </div>
 
+              {/* Gradient Overlay for Text Readability */}
               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/20 to-transparent pointer-events-none" />
             </Link>
           )

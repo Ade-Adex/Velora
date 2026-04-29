@@ -3,11 +3,11 @@
 'use server'
 
 import connectDB from '@/app/lib/mongodb'
+import { Category } from '@/app/models/Category'
 import { Product } from '@/app/models/Product'
 import { ICategory, IProduct, IReview } from '@/app/types'
-import { Category } from '@/app/models/Category'
+import { SortOrder, Types } from 'mongoose'
 import '../models/Category'
-import { Types } from 'mongoose'
 
 export type CreateProductInput = Omit<
   IProduct,
@@ -21,7 +21,7 @@ export async function getProducts(limit: number) {
   const products = await Product.find({ isPublished: true })
     .populate({
       path: 'category',
-      model: Category, 
+      model: Category,
       select: 'name slug',
     })
     .sort({ createdAt: -1 })
@@ -130,6 +130,39 @@ export async function getAllCategories() {
   return JSON.parse(JSON.stringify(categoriesWithCount))
 }
 
+export async function getProductsByCollection(type: string) {
+  await connectDB()
+
+  /**
+   * We use a flexible Record type for the query.
+   * This avoids the Mongoose 'FilterQuery' import error entirely
+   * while still allowing us to add properties dynamically.
+   */
+  const query: Record<string, unknown> = { isPublished: true }
+
+  // Use Record<string, SortOrder> to allow nested keys like 'ratings.average'
+  let sort: Record<string, SortOrder> = { createdAt: -1 }
+
+  if (type === 'flash-sales') {
+    query.onSale = true
+  } else if (type === 'best-sellers') {
+    sort = { 'ratings.average': -1, 'ratings.count': -1 }
+  } else if (type === 'new-arrivals') {
+    sort = { createdAt: -1 }
+  }
+
+  const products = await Product.find(query)
+    .populate({
+      path: 'category',
+      model: Category,
+      select: 'name slug',
+    })
+    .sort(sort)
+    .limit(20)
+    .lean()
+
+  return JSON.parse(JSON.stringify(products))
+}
 export async function createProduct(data: CreateProductInput) {
   await connectDB()
 
@@ -168,18 +201,20 @@ export async function addProductReview(
 
   product.reviews.push(newReview)
 
- const reviewCount = product.reviews.length
- product.ratings.count = reviewCount
+  const reviewCount = product.reviews.length
+  product.ratings.count = reviewCount
 
- // FIX: Calculate the raw average then round to 2 decimal places
- const rawAverage =
-   product.reviews.reduce((acc: number, item: IReview) => item.rating + acc, 0) /
-   reviewCount
+  // FIX: Calculate the raw average then round to 2 decimal places
+  const rawAverage =
+    product.reviews.reduce(
+      (acc: number, item: IReview) => item.rating + acc,
+      0,
+    ) / reviewCount
 
- // Math.round(val * 100) / 100 gives you two decimal places (e.g., 3.33)
- product.ratings.average = Math.round(rawAverage * 100) / 100
+  // Math.round(val * 100) / 100 gives you two decimal places (e.g., 3.33)
+  product.ratings.average = Math.round(rawAverage * 100) / 100
 
- await product.save()
+  await product.save()
 
- return JSON.parse(JSON.stringify(product))
+  return JSON.parse(JSON.stringify(product))
 }
