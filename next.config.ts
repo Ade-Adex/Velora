@@ -110,6 +110,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'article.images.consumerreports.org',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.very.co.uk',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: '4.imimg.com',
         pathname: '/**',
       },
