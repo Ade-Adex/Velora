@@ -279,7 +279,7 @@ export default function ProductDetailsClient({
               key={index}
               c={index === breadcrumbs.length - 1 ? 'dimmed' : 'blue'}
               underline="hover"
-              className='text-sm!'
+              className='text-xs! text-sm!'
             >
               {item.title}
             </Anchor>
