@@ -4,21 +4,44 @@
 import { getProductsByCategory } from '@/app/services/product-service'
 import ProductGrid from '@/app/components/shop/ProductGrid'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
 
 interface PageProps {
-  // Update the type to reflect that params is a Promise
   params: Promise<{ slug: string }>
 }
 
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const { category } = await getProductsByCategory(slug)
+
+  if (!category) {
+    return {
+      title: 'Category Not Found',
+    }
+  }
+
+  return {
+    title: `${category.name} | Velora`,
+    description:
+      category.description ||
+      `Browse our latest collection of ${category.name}`,
+    openGraph: {
+      title: category.name,
+      description: category.description,
+      images: [category.image || '/Images/og-default.png'],
+    },
+  }
+}
+
 export default async function CategoryPage({ params }: PageProps) {
-  // 1. Unwrapping the params Promise
   const resolvedParams = await params
   const slug = resolvedParams.slug
 
-  // 2. Now pass the actual string slug to your service
   const { products, category } = await getProductsByCategory(slug)
 
-  console.log('CATEGORY PAGE DATA:', { slug, category, products })
+  // console.log('CATEGORY PAGE DATA:', { slug, category, products })
 
   if (!category) {
     notFound()

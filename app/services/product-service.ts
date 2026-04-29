@@ -50,7 +50,7 @@ export async function getProductBySlug(slug: string) {
 
 export async function getFeaturedCategories() {
   await connectDB()
-  return await Category.find({ isFeatured: true }).limit(7).lean()
+  return await Category.find({ isFeatured: true }).sort({ name: 1 }).lean()
 }
 
 export async function getProductsByCategory(categorySlug: string) {
@@ -106,11 +106,10 @@ export async function getProductsByCategory(categorySlug: string) {
 export async function getAllCategories() {
   await connectDB()
 
-  // Using aggregation to join Category with Product and count matches
   const categoriesWithCount = await Category.aggregate([
     {
       $lookup: {
-        from: 'products', // must match your MongoDB collection name (usually plural)
+        from: 'products',
         localField: '_id',
         foreignField: 'category',
         as: 'productCount',

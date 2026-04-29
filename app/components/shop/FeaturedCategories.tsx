@@ -48,7 +48,7 @@ export default function FeaturedCategories({
               <Link
                 key="view-all-card"
                 href="/categories"
-                className="relative aspect-[3/4] rounded-[2rem] bg-gray-900 overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 block"
+                className="relative aspect-3/4 rounded-4xl bg-gray-900 overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 block"
               >
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                   <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -69,7 +69,7 @@ export default function FeaturedCategories({
             <Link
               key={cat._id}
               href={`/category/${cat.slug}`}
-              className={`relative aspect-[3/4] rounded-[2rem] ${bgColor} overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 block`}
+              className={`relative aspect-3/4 rounded-4xl ${bgColor} overflow-hidden group cursor-pointer shadow-sm hover:shadow-lg transition-all duration-300 block`}
             >
               <div className="absolute inset-0 flex flex-col items-center pt-6">
                 <div className="w-24 h-24 md:w-40 md:h-40 rounded-full bg-white flex items-center justify-center overflow-hidden border-4 border-white/20 shadow-inner">
@@ -91,7 +91,7 @@ export default function FeaturedCategories({
                 </h3>
               </div>
 
-              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/20 to-transparent pointer-events-none" />
             </Link>
           )
         })}
