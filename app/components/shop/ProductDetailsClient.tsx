@@ -20,6 +20,8 @@ import {
   Paper,
   AspectRatio,
   Box,
+  Breadcrumbs,
+  Anchor,
 } from '@mantine/core'
 import {
   ShoppingCart,
@@ -42,7 +44,13 @@ import { useSnackbar } from 'notistack'
 import dayjs from 'dayjs'
 import { useWishlistStore } from '@/app/store/useWishlistStore'
 import { syncWishlistAction } from '@/app/services/wishlist-service'
+import Link from 'next/link'
 
+
+interface BreadcrumbItem {
+  title: string
+  href: string
+}
 export default function ProductDetailsClient({
   product,
 }: {
@@ -90,7 +98,7 @@ export default function ProductDetailsClient({
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-    const { toggleWishlist, isInWishlist } = useWishlistStore()
+  const { toggleWishlist, isInWishlist } = useWishlistStore()
   const isFavorite = isInWishlist(product._id?.toString())
 
   // Helper to extract string URL from ImageSource
@@ -187,7 +195,6 @@ export default function ProductDetailsClient({
     }
   }
 
-
   const handleWishlistToggle = async () => {
     // 1. Update Local UI immediately (Zustand)
     toggleWishlist(product)
@@ -217,17 +224,67 @@ export default function ProductDetailsClient({
   // Combine main image and gallery for the thumbnails
   const allImages = [product.mainImage, ...(product.gallery || [])]
 
+  // 1. Logic to build the trail
+  const getBreadcrumbs = (
+    category: ICategory | Types.ObjectId,
+    items: BreadcrumbItem[] = [],
+  ): BreadcrumbItem[] => {
+    // Type guard: Check if category is populated and not just an ID
+    if (!category || !('name' in category)) return items
+
+    const currentItem: BreadcrumbItem = {
+      title: category.name,
+      href: `/category/${category.slug}`,
+    }
+
+    const updatedItems = [currentItem, ...items]
+
+    // If there's a parent category populated, move up the tree
+    if (category.parent && typeof category.parent === 'object') {
+      return getBreadcrumbs(category.parent as ICategory, updatedItems)
+    }
+
+    return updatedItems
+  }
+
+  // 2. Generate the final list
+  const categoryBreadcrumbs = isPopulatedCategory(product.category)
+    ? getBreadcrumbs(product.category)
+    : []
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Home', href: '/' },
+    ...categoryBreadcrumbs,
+    { title: product.name, href: '#' },
+  ]
+
   return (
     <Container size="lg" py="lg">
-      <Button
-        variant="subtle"
-        color="gray"
-        leftSection={<ArrowLeft size={16} />}
-        onClick={() => router.back()}
-        mb="lg"
-      >
-        Back to shopping
-      </Button>
+            <Group justify="space-between" mb="md">
+        <Button
+          variant="subtle"
+          color="gray"
+          leftSection={<ArrowLeft size={16} />}
+          onClick={() => router.back()}
+        >
+          Back to shopping
+        </Button>
+
+        {/* --- BREADCRUMBS PLACEMENT --- */}
+        <Breadcrumbs separator="→" fz="xs">
+          {breadcrumbs.map((item, index) => (
+            <Anchor
+              component={Link}
+              href={item.href}
+              key={index}
+              c={index === breadcrumbs.length - 1 ? 'dimmed' : 'blue'}
+              underline="hover"
+            >
+              {item.title}
+            </Anchor>
+          ))}
+        </Breadcrumbs>
+      </Group>
 
       <Grid gap={60}>
         {/* LEFT: GALLERY SECTION */}

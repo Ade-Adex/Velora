@@ -7,6 +7,12 @@
       slug: { type: String, required: true, unique: true },
       description: { type: String },
       image: { type: String },
+      parent: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        default: null,
+        index: true, 
+      },
       isFeatured: { type: Boolean, default: false },
     },
     { timestamps: true },

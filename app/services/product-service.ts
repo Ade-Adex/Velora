@@ -30,12 +30,20 @@ export async function getProducts(limit: number) {
   return products
 }
 
-// Add this for your dynamic [slug] pages
 export async function getProductBySlug(slug: string) {
   await connectDB()
 
   return await Product.findOne({ slug, isPublished: true })
-    .populate('category')
+    .populate({
+      path: 'category',
+      populate: {
+        path: 'parent',
+        populate: {
+          path: 'parent',
+          populate: { path: 'parent' }, // Allows up to 4-5 levels of breadcrumbs
+        },
+      },
+    })
     .lean()
 }
 

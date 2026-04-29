@@ -93,6 +93,26 @@ const nextConfig: NextConfig = {
         hostname: 'cloudinary-res.cloudinary.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.hoxtonmacs.co.uk',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.backmarket.co.uk',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'c.scdn.gr',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '4.imimg.com',
+        pathname: '/**',
+      },
     ],
   },
 }

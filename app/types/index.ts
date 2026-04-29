@@ -46,6 +46,7 @@ export interface ICategory extends Document {
   name: string
   slug: string
   parentCategory?: Types.ObjectId | ICategory
+  parent?: Types.ObjectId | ICategory | null
   image?: string
   description?: string
 }
