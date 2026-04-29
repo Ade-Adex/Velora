@@ -1,36 +1,10 @@
-import { Timer, ShoppingBag, Crown } from 'lucide-react'
+import { quickNavItems } from '@/app/data/quickNav'
 import Link from 'next/link'
 
 export default function QuickNav() {
- const items = [
-   {
-     title: 'Flash Sales',
-     sub: 'Ending Soon',
-     href: '/collections/flash-sales', 
-     icon: Timer,
-     color: 'text-orange-500',
-     bg: 'bg-orange-50',
-   },
-   {
-     title: 'New Arrivals',
-     sub: 'Just In This Week',
-     href: '/collections/new-arrivals',
-     icon: ShoppingBag,
-     color: 'text-blue-500',
-     bg: 'bg-blue-50',
-   },
-   {
-     title: 'Best Sellers',
-     sub: 'Top Rated Items',
-     href: '/collections/best-sellers',
-     icon: Crown,
-     color: 'text-yellow-500',
-     bg: 'bg-yellow-50',
-   },
- ]
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {items.map((item, i) => (
+      {quickNavItems.map((item, i) => (
         <Link
           key={i}
           href={item.href}
