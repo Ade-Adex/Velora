@@ -4,9 +4,10 @@
 
 import connectDB from '@/app/lib/mongodb'
 import { Product } from '@/app/models/Product'
-import { IProduct, IReview } from '@/app/types'
+import { ICategory, IProduct, IReview } from '@/app/types'
 import { Category } from '@/app/models/Category'
 import '../models/Category'
+import { Types } from 'mongoose'
 
 export type CreateProductInput = Omit<
   IProduct,
@@ -55,14 +56,41 @@ export async function getFeaturedCategories() {
 export async function getProductsByCategory(categorySlug: string) {
   await connectDB()
 
-  // 1. Find the category by slug first
-  const category = await Category.findOne({ slug: categorySlug }).lean()
+  // 1. Find the target category (typed as ICategory or null)
+  const category = (await Category.findOne({
+    slug: categorySlug,
+  }).lean()) as ICategory | null
 
   if (!category) return { products: [], category: null }
 
-  // 2. Find products belonging to that category ID
+  // 2. Helper function with strict Types.ObjectId typing
+  async function getChildCategoryIds(
+    parentId: Types.ObjectId,
+  ): Promise<Types.ObjectId[]> {
+    // We only need the _id field
+    const children = (await Category.find({ parent: parentId })
+      .select('_id')
+      .lean()) as { _id: Types.ObjectId }[]
+
+    let ids = children.map((child) => child._id)
+
+    for (const childId of ids) {
+      const grandChildren = await getChildCategoryIds(childId)
+      ids = ids.concat(grandChildren)
+    }
+    return ids
+  }
+
+  // 3. Get all IDs (Target + Children)
+  // category._id is already a Types.ObjectId from the lean() result
+  const allRelatedCategoryIds: Types.ObjectId[] = [
+    category._id as Types.ObjectId,
+    ...(await getChildCategoryIds(category._id as Types.ObjectId)),
+  ]
+
+  // 4. Find products using the array of ObjectIds
   const products = await Product.find({
-    category: category._id,
+    category: { $in: allRelatedCategoryIds },
     isPublished: true,
   })
     .populate('category')
