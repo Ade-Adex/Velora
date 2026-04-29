@@ -70,7 +70,7 @@ export async function POST(req: Request) {
        * This keeps your church project and shop project emails separate
        * in the eyes of spam filters.
        */
-      from: `Velora <no-reply@shop.christbcogbomoso.org>`,
+      from: 'Velora <no-reply@mail.christbcogbomoso.org>',
       to: email,
       subject: 'Your Magic Link for Velora',
       html: `
