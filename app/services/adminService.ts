@@ -43,7 +43,7 @@ export async function getAdminStaff() {
 export async function updateStaffRole(
   email: string,
   fullName: string,
-  role: 'admin' | 'editor' | 'customer', // Adjusted to match your User model roles
+  role: 'admin' | 'editor' | 'customer', 
 ) {
   try {
     await ensureAdmin()
@@ -51,10 +51,8 @@ export async function updateStaffRole(
 
     const normalizedEmail = email.toLowerCase()
 
-    // 1. Find the user first to check existence and current role
     const existingUser = await User.findOne({ email: normalizedEmail })
 
-    // 2. Prevent update if account doesn't exist
     if (!existingUser) {
       return { 
         success: false, 
@@ -62,7 +60,6 @@ export async function updateStaffRole(
       }
     }
 
-    // 3. Prevent update if they are already an admin or editor
     if (existingUser.role === 'admin' || existingUser.role === 'editor') {
       return { 
         success: false, 
@@ -70,8 +67,7 @@ export async function updateStaffRole(
       }
     }
 
-    // 4. If they exist and are a regular user, update them
-    existingUser.fullName = fullName // Update name if provided
+    existingUser.fullName = fullName 
     existingUser.role = role
     await existingUser.save()
 

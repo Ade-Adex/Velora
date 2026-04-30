@@ -27,13 +27,18 @@ import {
   Badge,
   ActionIcon,
   Tooltip,
+  Select,
 } from '@mantine/core'
 import { useSnackbar } from 'notistack'
 import { IUser } from '@/app/types'
 import { modals } from '@mantine/modals'
 
 export default function TeamClient({ initialStaff }: { initialStaff: IUser[] }) {
-  const [formData, setFormData] = useState({ email: '', fullName: '' })
+  const [formData, setFormData] = useState({
+    email: '',
+    fullName: '',
+    role: 'editor' as 'admin' | 'editor',
+  })
   const [isPending, startTransition] = useTransition() 
   const { enqueueSnackbar } = useSnackbar()
 
@@ -44,7 +49,7 @@ export default function TeamClient({ initialStaff }: { initialStaff: IUser[] }) 
       const result = await updateStaffRole(
         formData.email,
         formData.fullName,
-        'admin',
+        formData.role,
       )
 
       if (result.success) {
@@ -52,7 +57,7 @@ export default function TeamClient({ initialStaff }: { initialStaff: IUser[] }) 
           variant: 'success',
           anchorOrigin: { vertical: 'top', horizontal: 'right' },
         })
-        setFormData({ email: '', fullName: '' })
+        setFormData({ email: '', fullName: '', role: 'editor' })
       } else {
        enqueueSnackbar(result.error, {
          variant: 'error',
@@ -139,14 +144,25 @@ export default function TeamClient({ initialStaff }: { initialStaff: IUser[] }) 
                     setFormData({ ...formData, email: e.target.value })
                   }
                 />
-                <Button
-                  type="submit"
-                  color="black"
-                  fullWidth
-                  loading={isPending}
-                  leftSection={<UserPlus size={18} />}
-                >
-                  Confirm Admin
+                <Select
+                  label="Assign Role"
+                  placeholder="Pick a role"
+                  data={[
+                    { value: 'admin', label: 'Admin (Full Access)' },
+                    { value: 'editor', label: 'Editor (Content Only)' },
+                  ]}
+                  value={formData.role}
+                  onChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      role: value as 'admin' | 'editor',
+                    })
+                  }
+                  required
+                />
+
+                <Button type="submit" loading={isPending}>
+                  Grant Access
                 </Button>
               </Stack>
             </form>
@@ -188,8 +204,12 @@ export default function TeamClient({ initialStaff }: { initialStaff: IUser[] }) 
                     </Table.Td>
                     <Table.Td>
                       <Group justify="flex-end">
-                        <Badge variant="light" color="blue">
-                          Admin
+                        <Badge
+                          variant="light"
+                          color={staff.role === 'admin' ? 'red' : 'blue'}
+                          tt="capitalize"
+                        >
+                          {staff.role}
                         </Badge>
                         <Tooltip label="Revoke Access">
                           <ActionIcon
@@ -198,7 +218,7 @@ export default function TeamClient({ initialStaff }: { initialStaff: IUser[] }) 
                             loading={isPending}
                             onClick={() =>
                               handleRevoke(staff._id.toString(), staff.fullName)
-                            } // Pass the name here
+                            }
                           >
                             <Trash2 size={16} />
                           </ActionIcon>
