@@ -93,6 +93,8 @@ export async function updateProduct(id: string, data: ProductUpdateDTO) {
       runValidators: true,
     })
 
+    console.log('Updated Product:', updatedProduct)
+
     if (!updatedProduct) return { success: false, error: 'Product not found' }
 
     revalidatePath('/admin/products')

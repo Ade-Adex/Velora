@@ -32,7 +32,7 @@ export default async function AdminProductsPage({
   const [products, categories] = await Promise.all([
     Product.find(query)
       .populate('category', 'name')
-      .populate('updatedBy', 'fullName image') // Populate the editor's details
+      .populate('updatedBy', 'fullName image')
       .sort({ createdAt: -1 })
       .lean(),
     Category.find().select('name _id').sort({ name: 1 }).lean(),
