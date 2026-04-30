@@ -35,6 +35,7 @@ import {
   Calendar,
   Camera,
   Eye,
+  ShieldAlert,
 } from 'lucide-react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { enqueueSnackbar } from 'notistack'
@@ -243,21 +244,33 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
 
             <Stack gap={4}>
               <Group gap="xs">
-                <Text size="xl" fw={900}>
-                  {user.fullName}
-                </Text>
-                {/* Dynamic Role Badge */}
-                {user.role === 'admin' ? (
+                {user.isSuperAdmin ? (
+                  <Badge
+                    color="black"
+                    variant="filled"
+                    leftSection={<ShieldCheck size={12} />}
+                    className="shadow-sm"
+                  >
+                    Owner / Super Admin
+                  </Badge>
+                ) : user.role === 'admin' ? (
                   <Badge
                     color="red"
                     variant="filled"
                     leftSection={<ShieldCheck size={12} />}
-                    className="animate-pulse" // Optional: makes the admin badge "pop"
                   >
                     Administrator
                   </Badge>
+                ) : user.role === 'editor' ? (
+                  <Badge
+                    color="blue"
+                    variant="filled"
+                    leftSection={<ShieldAlert size={12} />}
+                  >
+                    Editor
+                  </Badge>
                 ) : (
-                  <Badge color="blue" variant="light">
+                  <Badge color="gray" variant="light">
                     Verified Customer
                   </Badge>
                 )}
