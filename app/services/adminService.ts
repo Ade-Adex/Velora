@@ -6,6 +6,12 @@ import connectDB from '@/app/lib/mongodb'
 import { User } from '@/app/models/User'
 import { getSessionUser } from '@/app/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
+import { IProduct } from '@/app/types'
+import { Product } from '@/app/models/Product'
+
+type ProductUpdatePayload = Partial<
+  Omit<IProduct, keyof import('mongoose').Document>
+>
 
 // Helper to ensure only admins call these functions
 async function ensureAdmin() {
@@ -60,5 +66,30 @@ export async function revokeAdminAccess(userId: string) {
     return { success: true }
   } catch (error: unknown) {
     return { success: false, error: (error as Error).message }
+  }
+}
+
+export async function updateProduct(id: string, data: ProductUpdatePayload) {
+  try {
+    await connectDB()
+
+    // We use $set to ensure only the passed fields are updated
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { $set: data },
+      { new: true, runValidators: true },
+    )
+
+    if (!updatedProduct) return { success: false, error: 'Product not found' }
+
+    revalidatePath('/admin/products')
+    revalidatePath(`/admin/products/edit/${id}`)
+
+    return { success: true, message: 'Product updated successfully' }
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Update failed',
+    }
   }
 }
