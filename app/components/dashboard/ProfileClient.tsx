@@ -246,9 +246,21 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
                 <Text size="xl" fw={900}>
                   {user.fullName}
                 </Text>
-                <Badge color="blue" variant="light">
-                  Verified Account
-                </Badge>
+                {/* Dynamic Role Badge */}
+                {user.role === 'admin' ? (
+                  <Badge
+                    color="red"
+                    variant="filled"
+                    leftSection={<ShieldCheck size={12} />}
+                    className="animate-pulse" // Optional: makes the admin badge "pop"
+                  >
+                    Administrator
+                  </Badge>
+                ) : (
+                  <Badge color="blue" variant="light">
+                    Verified Customer
+                  </Badge>
+                )}
               </Group>
               <Text c="dimmed" size="sm">
                 {user.email}

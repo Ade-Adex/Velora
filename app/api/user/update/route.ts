@@ -1,30 +1,20 @@
 // /app/api/user/update/route.ts
 
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import connectDB from '@/app/lib/mongodb'
 import { User } from '@/app/models/User'
+import { getSessionUser } from '@/app/lib/auth-utils'
 
-interface UserPayload extends JwtPayload {
-  id: string
-  email: string
-  role: string
-}
 
 export async function PUT(req: Request) {
   // try {
-  //   const cookieStore = await cookies()
-  //   const token = cookieStore.get('session')?.value
+  //   // 1. Centralized Auth Check
+  //   const user = await getSessionUser()
 
-  //   if (!token) {
+  //   if (!user) {
   //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   //   }
-
-  //   const decoded = jwt.verify(
-  //     token,
-  //     process.env.JWT_SECRET as string,
-  //   ) as UserPayload
 
   //   const body = await req.json()
 
@@ -32,8 +22,8 @@ export async function PUT(req: Request) {
 
   //   await connectDB()
   //   const updatedUser = await User.findByIdAndUpdate(
-  //     decoded.id,
-  //     { $set: updateData }, 
+  //     user.id,
+  //     { $set: updateData },
   //     { new: true, runValidators: true },
   //   ).select('-magicToken -tokenExpiry')
 

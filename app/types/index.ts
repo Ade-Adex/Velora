@@ -147,11 +147,19 @@ export interface CartItem {
 }
 
 
-// Add this helper to the bottom of /app/types/index.ts
+// export type Serialized<T> = {
+//   [K in keyof T]: T[K] extends Types.ObjectId | Types.ObjectId[] | Date | undefined
+//     ? string
+//     : T[K] extends object
+//     ? Serialized<T[K]>
+//     : T[K];
+// } & { _id: string };
+
+
 export type Serialized<T> = {
   [K in keyof T]: T[K] extends Types.ObjectId | Types.ObjectId[] | Date | undefined
     ? string
     : T[K] extends object
     ? Serialized<T[K]>
     : T[K];
-} & { _id: string }; 
+} & { _id: string; id?: string }; 

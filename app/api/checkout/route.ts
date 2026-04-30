@@ -1,12 +1,12 @@
 //  /api/checkout/route.ts
 
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import jwt, { JwtPayload } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 import connectDB from '@/app/lib/mongodb'
 import { Order } from '@/app/models/Order'
 import mongoose from 'mongoose'
 import { IOrderItem, IAddress } from '@/app/types'
+import { getSessionUser } from '@/app/lib/auth-utils'
 
 interface CheckoutRequestBody {
   items: (Omit<IOrderItem, 'product' | 'image'> & {
@@ -24,28 +24,17 @@ interface CheckoutRequestBody {
   paymentMethod: 'card' | 'transfer'
 }
 
-interface UserPayload extends JwtPayload {
-  id: string
-  email: string
-  role: string
-}
 
 export async function POST(req: Request) {
   try {
     await connectDB()
 
-    // 1. Auth Check
-    const cookieStore = await cookies()
-    const token = cookieStore.get('session')?.value
+    // 1. Centralized Auth Check
+    const user = await getSessionUser()
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string,
-    ) as UserPayload
 
     const body: CheckoutRequestBody = await req.json()
     const { items, totals, shippingAddress, paymentMethod } = body
@@ -67,7 +56,7 @@ export async function POST(req: Request) {
     // 4. Create Order
     try {
       const newOrder = await Order.create({
-        user: new mongoose.Types.ObjectId(decoded.id),
+        user: new mongoose.Types.ObjectId(user.id),
         orderNumber,
         items: sanitizedItems,
         totals,

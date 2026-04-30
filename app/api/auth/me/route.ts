@@ -1,37 +1,25 @@
 //  /app/api/auth/me/route.ts
 
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import connectDB from '@/app/lib/mongodb'
 import { User } from '@/app/models/User'
+import { getSessionUser } from '@/app/lib/auth-utils'
 
-// Define the shape of your JWT payload
-interface UserPayload extends JwtPayload {
-  id: string;
-  email: string;
-  role: string;
-}
 
 export async function GET() {
   // try {
-  //   const cookieStore = await cookies()
-  //   const token = cookieStore.get('session')?.value
+  //   // 1. Centralized Auth Check
+  //   const authUser = await getSessionUser()
 
-  //   if (!token) {
-  //     return NextResponse.json({ user: null }, { status: 200 })
+  //   if (!authUser) {
+  //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   //   }
 
-  //   // Verify and cast to our custom interface
-  //   const decoded = jwt.verify(
-  //     token, 
-  //     process.env.JWT_SECRET as string
-  //   ) as UserPayload
-
   //   await connectDB()
-    
-  //   // Now decoded.id is strictly typed as a string
-  //   const user = await User.findById(decoded.id).select(
+
+  //   // Now authUser.id is strictly typed as a string
+  //   const user = await User.findById(authUser.id).select(
   //     '-magicToken -tokenExpiry',
   //   )
 

@@ -8,6 +8,7 @@ import AuthProvider from '@/app/components/providers/AuthProvider' // Add this i
 import '@mantine/core/styles.css'
 import { IUser, Serialized } from '@/app/types'
 import { ModalsProvider } from '@mantine/modals'
+import { usePathname } from 'next/navigation'
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -19,7 +20,8 @@ interface AppWrapperProps {
 }
 
 export default function AppWrapper({ children, initialUser }: AppWrapperProps) {
-  
+  const pathname = usePathname()
+  const isAdminPage = pathname?.startsWith('/admin')
   return (
     <MantineProvider theme={theme} defaultColorScheme="light">
       <ModalsProvider>
@@ -31,7 +33,8 @@ export default function AppWrapper({ children, initialUser }: AppWrapperProps) {
               autoHideDuration={4000}
             >
               <div className="flex flex-col min-h-screen bg-[#F4F7FA]">
-                <Navbar />
+                {/* <Navbar /> */}
+                {!isAdminPage && <Navbar />}
                 <main className="flex-grow">{children}</main>
               </div>
             </SnackbarProvider>

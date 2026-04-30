@@ -1,13 +1,12 @@
 // /app/services/user-actions.ts
 'use server'
 
-import { cookies } from 'next/headers'
-import jwt, { JwtPayload } from 'jsonwebtoken'
 import connectDB from '@/app/lib/mongodb'
 import { User } from '@/app/models/User'
 import { IUser } from '@/app/types'
 import { v2 as cloudinary } from 'cloudinary'
 import { Order } from '@/app/models/Order'
+import { getSessionUser } from '@/app/lib/auth-utils'
 
 // Configure Cloudinary
 cloudinary.config({
@@ -16,22 +15,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-interface UserPayload extends JwtPayload {
-  id: string
-  email: string
-  role: string
-}
-
 export async function updateUserProfile(payload: Partial<IUser>) {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('session')?.value
-    if (!token) return { success: false, error: 'Unauthorized' }
+    const user = await getSessionUser()
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string,
-    ) as UserPayload
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
     const { role, email, _id, ...updateData } = payload
 
     await connectDB()
@@ -64,7 +55,7 @@ export async function updateUserProfile(payload: Partial<IUser>) {
     }
 
     const updatedUser = await User.findByIdAndUpdate(
-      decoded.id,
+      user.id,
       { $set: updateData },
       { returnDocument: 'after', runValidators: true },
     )
@@ -83,21 +74,22 @@ export async function updateUserProfile(payload: Partial<IUser>) {
   }
 }
 
-
 // Add this to your existing user-actions.ts
 export async function getUserOrdersAction() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session')?.value;
-    if (!token) return { success: false, error: 'Unauthorized' };
+    const user = await getSessionUser()
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as UserPayload;
-    
-    await connectDB();
-    const orders = await Order.find({ user: decoded.id }).sort({ createdAt: -1 }).lean();
-    
-    return { success: true, orders: JSON.parse(JSON.stringify(orders)) };
+    if (!user) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    await connectDB()
+    const orders = await Order.find({ user: user.id })
+      .sort({ createdAt: -1 })
+      .lean()
+
+    return { success: true, orders: JSON.parse(JSON.stringify(orders)) }
   } catch (error) {
-    return { success: false, error: 'Failed to fetch orders' };
+    return { success: false, error: 'Failed to fetch orders' }
   }
 }
