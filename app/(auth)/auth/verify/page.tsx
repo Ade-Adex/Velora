@@ -60,7 +60,7 @@ function VerifyContent() {
        }
      } catch (err) {
        setStatus('error')
-       enqueueSnackbar('Connection error.', { variant: 'error' })
+       enqueueSnackbar(`Connection error. Please try again later. ${err}`, { variant: 'error' })
      }
    }
 
