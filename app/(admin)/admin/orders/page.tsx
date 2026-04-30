@@ -79,7 +79,7 @@ export default async function AdminOrdersPage() {
                   className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                 >
                   <td className="px-4 py-4">
-                    <Text fw={800}  size="sm" c="blue.9">
+                    <Text fw={800} size="sm" c="blue.9">
                       #{order.orderNumber}
                     </Text>
                   </td>
@@ -117,15 +117,19 @@ export default async function AdminOrdersPage() {
                   </td>
 
                   <td className="px-4 py-4 text-right">
-                    <Button
-                      variant="subtle"
-                      color="gray"
-                      size="xs"
-                      component={Link}
+                    <Link
                       href={`/admin/orders/${order._id.toString()}`}
+                      className="no-underline"
                     >
-                      Manage
-                    </Button>
+                      <Button
+                        variant="subtle"
+                        color="gray"
+                        size="xs"
+                        radius="md"
+                      >
+                        Manage
+                      </Button>
+                    </Link>
                   </td>
                 </tr>
               ))}
