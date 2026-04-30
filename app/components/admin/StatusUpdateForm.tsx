@@ -35,7 +35,7 @@ export default function StatusUpdateForm({ orderId, currentStatus }: { orderId: 
   }
 
   return (
-    <Paper p="xl" radius="md" withBorder shadow="xs">
+    <Paper p="sm" radius="md" withBorder shadow="xs">
       <Stack gap="md">
         <Text fw={800} tt="uppercase" size="xs" c="dimmed">Fulfillment</Text>
         <Select
