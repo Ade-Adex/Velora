@@ -151,25 +151,6 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     reader.readAsDataURL(file)
   }
 
-  // const openAddressModal = () => {
-  //   modals.open({
-  //     title: 'Add New Address',
-  //     centered: true,
-  //     children: (
-  //       <AddressForm
-  //         onSave={(newAddr) => {
-  //           const updated = [...(user.addresses || []), newAddr]
-  //           handleUpdate({ addresses: updated }, 'Address added!')
-  //           modals.closeAll()
-  //         }}
-  //         loading={isPending}
-  //       />
-  //     ),
-  //   })
-  // }
-
-  // Inside ProfileClient.tsx
-
   const openAddressModal = () => {
     modals.open({
       title: 'Add New Address',
@@ -200,6 +181,28 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
       ),
     })
   }
+
+
+const getRoleBadge = (): {
+  label: string
+  color: string
+  variant: BadgeVariant
+} => {
+  if (user.isSuperAdmin) {
+    return { label: 'Super Admin', color: 'black', variant: 'filled' }
+  }
+
+  switch (user.role) {
+    case 'admin':
+      return { label: 'Administrator', color: 'red', variant: 'filled' }
+    case 'editor':
+      return { label: 'Content Editor', color: 'indigo', variant: 'light' }
+    default:
+      return { label: 'Verified Customer', color: 'blue', variant: 'light' }
+  }
+}
+
+const badge = getRoleBadge()
 
   return (
     <Container size="lg" py="xl">
@@ -244,37 +247,26 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
 
             <Stack gap={4}>
               <Group gap="xs">
-                {user.isSuperAdmin ? (
-                  <Badge
-                    color="black"
-                    variant="filled"
-                    leftSection={<ShieldCheck size={12} />}
-                    className="shadow-sm"
-                  >
-                    Owner / Super Admin
-                  </Badge>
-                ) : user.role === 'admin' ? (
-                  <Badge
-                    color="red"
-                    variant="filled"
-                    leftSection={<ShieldCheck size={12} />}
-                  >
-                    Administrator
-                  </Badge>
-                ) : user.role === 'editor' ? (
-                  <Badge
-                    color="blue"
-                    variant="filled"
-                    leftSection={<ShieldAlert size={12} />}
-                  >
-                    Editor
-                  </Badge>
-                ) : (
-                  <Badge color="gray" variant="light">
-                    Verified Customer
-                  </Badge>
-                )}
+                <Text size="xl" fw={900}>
+                  {user.fullName}
+                </Text>
+
+                <Badge
+                  color={badge.color}
+                  variant={badge.variant} // No 'as any' needed now!
+                  leftSection={
+                    user.role === 'editor' ? (
+                      <ShieldAlert size={12} />
+                    ) : (
+                      <ShieldCheck size={12} />
+                    )
+                  }
+                  className={user.isSuperAdmin ? 'shadow-sm' : ''}
+                >
+                  {badge.label}
+                </Badge>
               </Group>
+
               <Text c="dimmed" size="sm">
                 {user.email}
               </Text>
