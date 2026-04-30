@@ -211,18 +211,23 @@ export default function TeamClient({ initialStaff }: { initialStaff: IUser[] }) 
                         >
                           {staff.role}
                         </Badge>
-                        <Tooltip label="Revoke Access">
-                          <ActionIcon
-                            variant="subtle"
-                            color="red"
-                            loading={isPending}
-                            onClick={() =>
-                              handleRevoke(staff._id.toString(), staff.fullName)
-                            }
-                          >
-                            <Trash2 size={16} />
-                          </ActionIcon>
-                        </Tooltip>
+                        {!staff.isSuperAdmin && (
+                          <Tooltip label="Revoke Access">
+                            <ActionIcon
+                              variant="subtle"
+                              color="red"
+                              loading={isPending}
+                              onClick={() =>
+                                handleRevoke(
+                                  staff._id.toString(),
+                                  staff.fullName,
+                                )
+                              }
+                            >
+                              <Trash2 size={16} />
+                            </ActionIcon>
+                          </Tooltip>
+                        )}
                       </Group>
                     </Table.Td>
                   </Table.Tr>
