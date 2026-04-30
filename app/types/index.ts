@@ -27,6 +27,7 @@ export interface IUser extends Document {
   birthday?: Date
   gender: 'male' | 'female' | 'other' | 'unspecified'
   role: 'customer' | 'admin' | 'editor'
+  isSuperAdmin: boolean
   magicToken?: string
   tokenExpiry?: Date
   lastLogin?: Date

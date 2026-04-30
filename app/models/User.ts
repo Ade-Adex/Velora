@@ -26,6 +26,11 @@ const UserSchema = new Schema<IUser>(
       enum: ['customer', 'admin', 'editor'],
       default: 'customer',
     },
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
     magicToken: { type: String, index: true },
     tokenExpiry: { type: Date },
     lastLogin: { type: Date },
@@ -33,8 +38,8 @@ const UserSchema = new Schema<IUser>(
       {
         isDefault: { type: Boolean, default: false },
         label: String,
-        fullName: String, 
-        phone: String, 
+        fullName: String,
+        phone: String,
         addressLine1: String,
         city: String,
         state: String,

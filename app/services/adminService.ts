@@ -31,8 +31,9 @@ export async function getAdminStaff() {
   try {
     await ensureAdmin()
     await connectDB()
-    const staff = await User.find({ role: 'admin' })
-      .select('fullName email image role')
+    // Fetch both admins and editors
+    const staff = await User.find({ role: { $in: ['admin', 'editor'] } })
+      .select('fullName email image role isSuperAdmin') 
       .lean()
     return JSON.parse(JSON.stringify(staff))
   } catch (error) {
@@ -43,36 +44,40 @@ export async function getAdminStaff() {
 export async function updateStaffRole(
   email: string,
   fullName: string,
-  role: 'admin' | 'editor' | 'customer', 
+  role: 'admin' | 'editor' | 'customer',
 ) {
   try {
     await ensureAdmin()
     await connectDB()
 
     const normalizedEmail = email.toLowerCase()
-
     const existingUser = await User.findOne({ email: normalizedEmail })
 
     if (!existingUser) {
-      return { 
-        success: false, 
-        error: "User not found. They must create an account before being promoted." 
+      return { success: false, error: 'User not found.' }
+    }
+
+    // PROTECT SUPER ADMIN: Prevent any role changes to a super admin
+    if (existingUser.isSuperAdmin) {
+      return {
+        success: false,
+        error: 'Permission Denied: Super Admin accounts cannot be modified.',
       }
     }
 
     if (existingUser.role === 'admin' || existingUser.role === 'editor') {
-      return { 
-        success: false, 
-        error: `${email} is already an authorized ${existingUser.role}.` 
-      }
+      return { success: false, error: `${email} is already authorized.` }
     }
 
-    existingUser.fullName = fullName 
+    existingUser.fullName = fullName
     existingUser.role = role
     await existingUser.save()
 
     revalidatePath('/admin/team')
-    return { success: true, message: `Successfully promoted ${email} to ${role}` }
+    return {
+      success: true,
+      message: `Successfully promoted ${email} to ${role}`,
+    }
   } catch (error: unknown) {
     return { success: false, error: (error as Error).message }
   }
@@ -80,10 +85,30 @@ export async function updateStaffRole(
 
 export async function revokeAdminAccess(userId: string) {
   try {
-    await ensureAdmin()
+    const currentUser = await ensureAdmin()
     await connectDB()
 
-    await User.findByIdAndUpdate(userId, { role: 'user' })
+    const targetUser = await User.findById(userId)
+
+    if (!targetUser) {
+      return { success: false, error: 'User not found' }
+    }
+
+    // PROTECT SUPER ADMIN: Ensure they cannot be revoked
+    if (targetUser.isSuperAdmin) {
+      return {
+        success: false,
+        error: 'Critical Error: Super Admin access cannot be revoked.',
+      }
+    }
+
+    // Optional: Only allow a Super Admin to revoke other Admins
+    if (!currentUser.isSuperAdmin && targetUser.role === 'admin') {
+      return { success: false, error: 'Only a Super Admin can revoke Admin access.' }
+    }
+
+    targetUser.role = 'customer' 
+    await targetUser.save()
 
     revalidatePath('/admin/team')
     return { success: true }
