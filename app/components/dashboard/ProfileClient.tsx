@@ -23,6 +23,7 @@ import {
   Box,
   Checkbox,
   Tooltip,
+  BadgeVariant,
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import {
