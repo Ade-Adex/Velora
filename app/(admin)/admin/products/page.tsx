@@ -6,6 +6,7 @@ import {
 } from '@mantine/core'
 import {
   Plus, Edit3, Trash2, ExternalLink, Star, AlertCircle,
+  Package,
 } from 'lucide-react'
 import Link from 'next/link'
 import connectDB from '@/app/lib/mongodb'
@@ -15,6 +16,7 @@ import ProductFilters from '@/app/components/admin/ProductFilters'
 import { IProduct, ICategory } from '@/app/types'
 import mongoose from 'mongoose'
 
+
 export default async function AdminProductsPage({
   searchParams,
 }: {
@@ -23,17 +25,10 @@ export default async function AdminProductsPage({
   const { q, category } = await searchParams
   await connectDB()
 
-const query: Record<string, unknown> = {}
+  const query: Record<string, unknown> = {}
+  if (q) query.name = { $regex: q, $options: 'i' }
+  if (category && category !== 'all') query.category = category
 
-if (q) {
-  query.name = { $regex: q, $options: 'i' }
-}
-
-if (category && category !== 'all') {
-  query.category = category
-}
-
-  // 2. Fetch Products and Categories
   const [products, categories] = await Promise.all([
     Product.find(query)
       .populate('category', 'name')
@@ -52,14 +47,13 @@ if (category && category !== 'all') {
               <Text c="dimmed" size="sm">Manage your catalog and stock.</Text>
             </Stack>
             <Link href="/admin/products/new" className="no-underline">
-              <Button leftSection={<Plus size={18} />} radius="md">
+              <Button leftSection={<Plus size={18} />} radius="md" color="black">
                 Add Product
               </Button>
             </Link>
           </Group>
         </header>
 
-        {/* 3. This matches the updated ProductFilters props below */}
         <ProductFilters
           categories={JSON.parse(JSON.stringify(categories))}
           currentQuery={q}
@@ -79,21 +73,23 @@ if (category && category !== 'all') {
             </thead>
             <tbody>
               {products.map((product: IProduct) => {
-                // 4. Type cast the populated category safely
                 const categoryData = product.category as unknown as ICategory;
                 
+                // Professional Pricing Calculation
+                const hasDiscount = product.onSale && product.discountPrice && product.discountPrice < product.basePrice;
+                const displayPrice = hasDiscount ? product.discountPrice : product.basePrice;
+
                 return (
                   <tr key={product._id.toString()} className="border-t border-gray-100">
                     <td className="p-4">
                       <Group gap="sm">
                         <Avatar
-                          // 5. Fixed the Avatar src type error by ensuring it's a string
                           src={typeof product.mainImage === 'string' ? product.mainImage : null}
                           radius="md"
                           size="lg"
                           bg="gray.1"
                         >
-                          <Box size={20} />
+                          <Package size={20} />
                         </Avatar>
                         <div style={{ maxWidth: 200 }}>
                           <Text size="sm" fw={800} truncate="end">{product.name}</Text>
@@ -107,21 +103,52 @@ if (category && category !== 'all') {
                       </Group>
                     </td>
                     <td className="p-4">
-                      <Badge variant="light" color="blue" radius="sm">
-                        {/* 6. Fixed property 'name' does not exist error */}
+                      <Badge variant="light" color="gray" radius="sm">
                         {categoryData?.name || 'Uncategorized'}
                       </Badge>
                     </td>
+                    
+                    {/* PROFESSIONAL PRICING SECTION */}
                     <td className="p-4">
-                      <Text size="sm" fw={800}>₦{product.basePrice?.toLocaleString()}</Text>
+                      <Stack gap={0}>
+                        <Group gap={6} align="center">
+                          <Text size="sm" fw={900}>
+                            ₦{displayPrice?.toLocaleString()}
+                          </Text>
+                          {hasDiscount && (
+                            <Badge color="red" variant="filled" size="xs" radius="xs" px={4}>
+                              SALE
+                            </Badge>
+                          )}
+                        </Group>
+                        {hasDiscount && (
+                          <Text size="xs" c="dimmed" td="line-through" fw={500}>
+                            ₦{product.basePrice?.toLocaleString()}
+                          </Text>
+                        )}
+                      </Stack>
                     </td>
+
                     <td className="p-4">
-                      <Text size="sm" fw={700} c={product.stock <= 5 ? 'red' : 'inherit'}>
-                        {product.stock} in stock
-                      </Text>
+                      <Group gap={6}>
+                        <Box 
+                          w={8} 
+                          h={8} 
+                          style={{ borderRadius: '50%' }} 
+                          bg={product.stock <= 0 ? 'red.6' : product.stock <= 5 ? 'orange.6' : 'green.6'} 
+                        />
+                        <Text size="sm" fw={700} c={product.stock <= 5 ? 'red.7' : 'gray.7'}>
+                          {product.stock} in stock
+                        </Text>
+                      </Group>
                     </td>
                     <td className="p-4">
                       <Group justify="flex-end" gap="xs">
+                        <Tooltip label="View in Store">
+                          <ActionIcon variant="subtle" color="gray" component="a" href={`/product/${product.slug}`} target="_blank">
+                            <ExternalLink size={16} />
+                          </ActionIcon>
+                        </Tooltip>
                         <Link href={`/admin/products/edit/${product._id}`}>
                           <ActionIcon variant="subtle" color="blue"><Edit3 size={16} /></ActionIcon>
                         </Link>
