@@ -10,7 +10,7 @@ function VerifyContent() {
  const router = useRouter()
  const searchParams = useSearchParams()
  const token = searchParams.get('token')
- const callbackUrl = searchParams.get('callbackUrl') // Capture intended destination
+ const callbackUrl = searchParams.get('callbackUrl') 
  const { enqueueSnackbar } = useSnackbar()
 
  const setUser = useUserStore((state) => state.setUser)

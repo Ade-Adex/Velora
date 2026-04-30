@@ -92,7 +92,7 @@ export default function WishlistPage() {
             <Text c="dimmed">
               Items synced to your account will appear here.
             </Text>
-            <Button component={Link} href="/shop" variant="light">
+            <Button component={Link} href="/" variant="light">
               Go Shopping
             </Button>
           </Stack>
