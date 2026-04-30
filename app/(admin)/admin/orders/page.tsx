@@ -9,14 +9,16 @@ import {
   Group,
   Stack,
   ActionIcon,
-  Pagination,
 } from '@mantine/core'
 import Link from 'next/link'
 import connectDB from '@/app/lib/mongodb'
 import { Order } from '@/app/models/Order'
 import { IOrder, IUser } from '@/app/types'
 import { Types } from 'mongoose'
+import { Filter as MongoFilter } from 'mongodb'
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import OrderFilters from '@/app/components/admin/OrderFilters'
+import { ReactNode } from 'react'
 
 type PopulatedOrder = Omit<IOrder, 'user'> & {
   user: Pick<IUser, 'fullName' | 'email'> | null
@@ -24,20 +26,49 @@ type PopulatedOrder = Omit<IOrder, 'user'> & {
 }
 
 interface PageProps {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{
+    page?: string
+    q?: string
+    status?: string
+  }>
 }
 
+interface PaginationLinkProps {
+  page: number
+  disabled: boolean
+  children: ReactNode
+  icon: ReactNode
+  right?: boolean
+  currentQ?: string
+  currentStatus?: string
+}
+
+type OrderQuery = MongoFilter<IOrder>
+
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
-  const { page } = await searchParams
+  const { page, q, status } = await searchParams
   const currentPage = Number(page) || 1
-  const limit = 5 
+  const limit = 10
   const skip = (currentPage - 1) * limit
 
   await connectDB()
 
-  // Fetch data with pagination
+  const query: OrderQuery = {}
+
+  if (q) {
+    query.$or = [
+      { orderNumber: { $regex: q, $options: 'i' } },
+      { 'shippingAddress.fullName': { $regex: q, $options: 'i' } },
+    ]
+  }
+
+  if (status && status !== 'all') {
+    query.orderStatus = status as IOrder['orderStatus']
+  }
+
+  // 2. FETCH DATA
   const [orders, totalOrders] = await Promise.all([
-    Order.find()
+    Order.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -45,7 +76,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         user: Pick<IUser, 'fullName' | 'email'>
       }>('user', 'fullName email')
       .lean<PopulatedOrder[]>(),
-    Order.countDocuments(),
+    Order.countDocuments(query),
   ])
 
   const totalPages = Math.ceil(totalOrders / limit)
@@ -60,34 +91,32 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                 Customer Orders
               </Title>
               <Text c="dimmed" size="sm">
-                Managing {totalOrders} total transactions
+                {q || (status && status !== 'all')
+                  ? `Found ${totalOrders} results for your search`
+                  : `Managing ${totalOrders} total transactions`}
               </Text>
             </Stack>
-
-            {/* Desktop Pagination Status */}
-            <Text size="xs" fw={700} c="dimmed" className="hidden md:block">
-              SHOWING {skip + 1} - {Math.min(skip + limit, totalOrders)} OF{' '}
-              {totalOrders}
-            </Text>
           </Group>
         </header>
 
+        <OrderFilters currentQuery={q} currentStatus={status} />
+
         <Paper radius="md" withBorder shadow="sm" className="overflow-hidden">
-          {/* DESKTOP TABLE - Hidden on Mobile */}
+          {/* Desktop View */}
           <div className="hidden md:block">
             <Table verticalSpacing="md" highlightOnHover>
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500">
+                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500 text-left">
                     Order
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500">
+                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500 text-left">
                     Customer
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500">
+                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500 text-left">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500">
+                  <th className="px-6 py-4 text-xs font-bold uppercase text-gray-500 text-left">
                     Revenue
                   </th>
                   <th className="px-6 py-4 text-right text-xs font-bold uppercase text-gray-500">
@@ -99,7 +128,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                 {orders.map((order) => (
                   <tr
                     key={order._id.toString()}
-                    className="border-t border-gray-100 transition-colors"
+                    className="border-t border-gray-100"
                   >
                     <td className="px-6 py-4">
                       <Text fw={800} size="sm" c="blue.9">
@@ -111,10 +140,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                     </td>
                     <td className="px-6 py-4">
                       <Text size="sm" fw={600}>
-                        {order.user?.fullName ?? 'Guest'}
+                        {order.user?.fullName ?? order.shippingAddress.fullName}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {order.user?.email ?? 'N/A'}
+                        {order.user?.email ?? 'Guest Account'}
                       </Text>
                     </td>
                     <td className="px-6 py-4">
@@ -125,7 +154,6 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                         ₦{order.totals.grandTotal.toLocaleString()}
                       </Text>
                     </td>
-                    {/* Replace the old Button + Link combo with this */}
                     <td className="px-6 py-4 text-right">
                       <Link
                         href={`/admin/orders/${order._id.toString()}`}
@@ -142,90 +170,62 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             </Table>
           </div>
 
-          {/* MOBILE LIST VIEW - Hidden on Desktop */}
+          {/* Mobile View */}
           <div className="md:hidden">
-            <Stack gap={0}>
-              {orders.map((order) => (
-                <div
-                  key={order._id.toString()}
-                  className="p-4 border-b border-gray-100 active:bg-gray-50"
-                >
-                  <Group justify="space-between" mb={4}>
-                    <Text fw={800} size="sm" c="blue.9">
-                      #{order.orderNumber}
-                    </Text>
-                    <StatusBadge status={order.orderStatus} />
-                  </Group>
-                  <Group justify="space-between" align="flex-end">
-                    <Stack gap={0}>
-                      <Text size="sm" fw={600}>
-                        {order.user?.fullName ?? 'Guest'}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        ₦{order.totals.grandTotal.toLocaleString()}
-                      </Text>
-                    </Stack>
-                    <Link href={`/admin/orders/${order._id.toString()}`}>
-                      <ActionIcon variant="light" size="lg" radius="md">
-                        <Eye size={18} />
-                      </ActionIcon>
-                    </Link>
-                  </Group>
-                </div>
-              ))}
-            </Stack>
-          </div>
-
-          {/* EMPTY STATE */}
-          {orders.length === 0 && <EmptyState />}
-
-          {/* PAGINATION FOOTER */}
-          <footer className="p-4 bg-gray-50 border-t border-gray-100">
-            <Group justify="center">
-              <Link
-                href={`?page=${currentPage - 1}`}
-                className={
-                  currentPage <= 1 ? 'pointer-events-none opacity-50' : ''
-                }
+            {orders.map((order) => (
+              <div
+                key={order._id.toString()}
+                className="p-4 border-b border-gray-100"
               >
-                <Button
-                  variant="default"
-                  size="xs"
-                  leftSection={<ChevronLeft size={14} />}
-                >
-                  Prev
-                </Button>
-              </Link>
-
-              <div className="flex gap-2">
-                {[...Array(totalPages)].map((_, i) => (
-                  <Link key={i} href={`?page=${i + 1}`}>
-                    <ActionIcon
-                      variant={currentPage === i + 1 ? 'filled' : 'light'}
-                      size="sm"
-                    >
-                      {i + 1}
+                <Group justify="space-between" mb={4}>
+                  <Text fw={800} size="sm" c="blue.9">
+                    #{order.orderNumber}
+                  </Text>
+                  <StatusBadge status={order.orderStatus} />
+                </Group>
+                <Group justify="space-between" align="flex-end">
+                  <Stack gap={0}>
+                    <Text size="sm" fw={600}>
+                      {order.user?.fullName ?? order.shippingAddress.fullName}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      ₦{order.totals.grandTotal.toLocaleString()}
+                    </Text>
+                  </Stack>
+                  <Link href={`/admin/orders/${order._id.toString()}`}>
+                    <ActionIcon variant="light" size="lg" radius="md">
+                      <Eye size={18} />
                     </ActionIcon>
                   </Link>
-                ))}
+                </Group>
               </div>
+            ))}
+          </div>
 
-              <Link
-                href={`?page=${currentPage + 1}`}
-                className={
-                  currentPage >= totalPages
-                    ? 'pointer-events-none opacity-50'
-                    : ''
-                }
+          {orders.length === 0 && <EmptyState isFiltered={!!(q || status)} />}
+
+          <footer className="p-4 bg-gray-50 border-t border-gray-100">
+            <Group justify="center">
+              <PaginationLink
+                page={currentPage - 1}
+                disabled={currentPage <= 1}
+                icon={<ChevronLeft size={14} />}
+                currentQ={q}
+                currentStatus={status}
               >
-                <Button
-                  variant="default"
-                  size="xs"
-                  rightSection={<ChevronRight size={14} />}
-                >
-                  Next
-                </Button>
-              </Link>
+                Prev
+              </PaginationLink>
+
+              <PaginationLink
+                page={currentPage + 1}
+                disabled={currentPage >= totalPages}
+                icon={<ChevronRight size={14} />}
+                right
+                currentQ={q}
+                currentStatus={status}
+              >
+                Next
+              </PaginationLink>
             </Group>
           </footer>
         </Paper>
@@ -234,7 +234,43 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   )
 }
 
-// Sub-components for cleaner code
+function PaginationLink({
+  page,
+  disabled,
+  children,
+  icon,
+  right,
+  currentQ,
+  currentStatus,
+}: PaginationLinkProps) {
+  return (
+    <Link
+      href={{
+        pathname: '/admin/orders',
+        query: {
+          page: page.toString(),
+          ...(currentQ ? { q: currentQ } : {}),
+          ...(currentStatus ? { status: currentStatus } : {}),
+        },
+      }}
+      style={{
+        pointerEvents: disabled ? 'none' : 'auto',
+        opacity: disabled ? 0.5 : 1,
+        textDecoration: 'none',
+      }}
+    >
+      <Button
+        variant="default"
+        size="xs"
+        leftSection={!right ? icon : undefined}
+        rightSection={right ? icon : undefined}
+      >
+        {children}
+      </Button>
+    </Link>
+  )
+}
+
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     delivered: 'green',
@@ -249,14 +285,14 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-function EmptyState() {
+function EmptyState({ isFiltered }: { isFiltered: boolean }) {
   return (
     <Stack align="center" py={80} gap="xs">
       <Text fw={700} c="dimmed">
-        No orders found
+        {isFiltered ? 'No matching orders' : 'No orders yet'}
       </Text>
-      <Text size="sm" c="dimmed text-center px-4">
-        Transactions will appear here once customers checkout.
+      <Text size="sm" c="dimmed">
+        Try adjusting your filters or checking back later.
       </Text>
     </Stack>
   )
