@@ -70,11 +70,11 @@ const ProductSchema = new Schema<IProduct>(
     },
 
     // Flags
+    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     isPublished: { type: Boolean, default: false },
     isFeatured: { type: Boolean, default: false },
     onSale: { type: Boolean, default: false },
     saleEndsAt: { type: Date },
-    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true },
 )

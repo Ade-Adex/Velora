@@ -8,7 +8,7 @@ import { getSessionUser } from '@/app/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
 import { IProduct } from '@/app/types'
 import { Product } from '@/app/models/Product'
-import { UpdateQuery, Document } from 'mongoose'
+import mongoose, { UpdateQuery, Document } from 'mongoose'
 
 
 export type ProductUpdateDTO = Partial<
@@ -84,7 +84,8 @@ export async function updateProduct(id: string, data: ProductUpdateDTO) {
     const updatePayload: UpdateQuery<IProduct> = {
       $set: {
         ...data,
-        updatedBy: adminUser._id, // Set the ID of the person making changes
+        // updatedBy: adminUser._id,
+        updatedBy: new mongoose.Types.ObjectId(adminUser._id as string),
       },
     }
 
@@ -93,7 +94,7 @@ export async function updateProduct(id: string, data: ProductUpdateDTO) {
       runValidators: true,
     })
 
-    console.log('Updated Product:', updatedProduct)
+    // console.log('Updated Product:', updatedProduct)
 
     if (!updatedProduct) return { success: false, error: 'Product not found' }
 

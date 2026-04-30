@@ -14,7 +14,7 @@ import { Product } from '@/app/models/Product'
 import { Category } from '@/app/models/Category'
 import ProductFilters from '@/app/components/admin/ProductFilters'
 import { IProduct, ICategory, IUser } from '@/app/types'
-import mongoose from 'mongoose'
+import { User } from '@/app/models/User'
 
 
 export default async function AdminProductsPage({
@@ -96,12 +96,10 @@ export default async function AdminProductsPage({
             <tbody>
               {products.map((product: IProduct) => {
                 const categoryData = product.category as unknown as ICategory
-                const editor = product.updatedBy as unknown as IUser
-
-
-                // console.log('Product:', product)
-                // console.log('Category:', categoryData)
-                console.log('Editor:', editor)
+                const editor = product.updatedBy as unknown as IUser | null
+                const displayName = editor?.fullName
+                  ? editor.fullName.split(' ')[0]
+                  : 'System'
 
                 // Professional Pricing Calculation
                 const hasDiscount =
@@ -185,16 +183,18 @@ export default async function AdminProductsPage({
                             src={editor?.image}
                             size="xs"
                             radius="xl"
-                            alt={editor?.fullName}
+                            alt={editor?.fullName || 'System'}
+                            color={!editor ? 'gray' : 'blue'}
                           >
-                            {editor?.fullName?.charAt(0) || 'A'}
+                            {editor?.fullName?.charAt(0) || 'S'}
                           </Avatar>
                         </Tooltip>
                         <Stack gap={0}>
                           <Text size="xs" fw={700}>
-                            {editor?.fullName?.split(' ')[0] || 'Admin'}
+                            {displayName}
                           </Text>
                           <Text size="xs" c="dimmed">
+                            {/* updatedAt is always present via Mongoose timestamps */}
                             {new Date(product.updatedAt).toLocaleDateString()}
                           </Text>
                         </Stack>
