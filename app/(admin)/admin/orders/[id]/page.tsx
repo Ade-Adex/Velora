@@ -42,7 +42,7 @@ export default async function SingleOrderPage({ params }: PageProps) {
         </Text>
       </header>
 
-      <Grid gutter="xl">
+      <Grid gap="xl">
         <Grid.Col span={{ base: 12, md: 8 }}>
           <Paper p="xl" withBorder radius="md" shadow="sm">
             <Text fw={700} mb="md" size="lg">
