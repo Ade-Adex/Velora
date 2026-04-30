@@ -43,20 +43,40 @@ export async function getAdminStaff() {
 export async function updateStaffRole(
   email: string,
   fullName: string,
-  role: 'admin' | 'user',
+  role: 'admin' | 'editor' | 'customer', // Adjusted to match your User model roles
 ) {
   try {
     await ensureAdmin()
     await connectDB()
 
-    const user = await User.findOneAndUpdate(
-      { email: email.toLowerCase() },
-      { fullName, role },
-      { upsert: true, new: true },
-    )
+    const normalizedEmail = email.toLowerCase()
 
-    revalidatePath('/admin/team') // Clears cache so the list updates instantly
-    return { success: true, message: `Successfully set ${email} as ${role}` }
+    // 1. Find the user first to check existence and current role
+    const existingUser = await User.findOne({ email: normalizedEmail })
+
+    // 2. Prevent update if account doesn't exist
+    if (!existingUser) {
+      return { 
+        success: false, 
+        error: "User not found. They must create an account before being promoted." 
+      }
+    }
+
+    // 3. Prevent update if they are already an admin or editor
+    if (existingUser.role === 'admin' || existingUser.role === 'editor') {
+      return { 
+        success: false, 
+        error: `${email} is already an authorized ${existingUser.role}.` 
+      }
+    }
+
+    // 4. If they exist and are a regular user, update them
+    existingUser.fullName = fullName // Update name if provided
+    existingUser.role = role
+    await existingUser.save()
+
+    revalidatePath('/admin/team')
+    return { success: true, message: `Successfully promoted ${email} to ${role}` }
   } catch (error: unknown) {
     return { success: false, error: (error as Error).message }
   }
