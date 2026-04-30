@@ -8,21 +8,28 @@ import { getSessionUser } from '@/app/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
 import { IProduct } from '@/app/types'
 import { Product } from '@/app/models/Product'
+import { UpdateQuery, Document } from 'mongoose'
 
-type ProductUpdatePayload = Partial<
-  Omit<IProduct, keyof import('mongoose').Document>
->
 
-// Helper to ensure only admins call these functions
+export type ProductUpdateDTO = Partial<
+  Omit<IProduct, keyof Document | 'updatedBy' | 'category'>
+> & {
+  category?: string
+}
+
 async function ensureAdmin() {
   const currentUser = await getSessionUser()
-  if (!currentUser || currentUser.role !== 'admin') {
-    throw new Error('Unauthorized: Admins only')
+  const allowedRoles: string[] = ['admin', 'editor']
+
+  if (!currentUser || !allowedRoles.includes(currentUser.role)) {
+    throw new Error('Unauthorized: Admins or Editors only')
   }
+  return currentUser
 }
 
 export async function getAdminStaff() {
   try {
+    await ensureAdmin()
     await connectDB()
     const staff = await User.find({ role: 'admin' })
       .select('fullName email image role')
@@ -69,16 +76,22 @@ export async function revokeAdminAccess(userId: string) {
   }
 }
 
-export async function updateProduct(id: string, data: ProductUpdatePayload) {
+export async function updateProduct(id: string, data: ProductUpdateDTO) {
   try {
+    const adminUser = await ensureAdmin() 
     await connectDB()
 
-    // We use $set to ensure only the passed fields are updated
-    const updatedProduct = await Product.findByIdAndUpdate(
-      id,
-      { $set: data },
-      { new: true, runValidators: true },
-    )
+    const updatePayload: UpdateQuery<IProduct> = {
+      $set: {
+        ...data,
+        updatedBy: adminUser._id, // Set the ID of the person making changes
+      },
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(id, updatePayload, {
+      new: true,
+      runValidators: true,
+    })
 
     if (!updatedProduct) return { success: false, error: 'Product not found' }
 

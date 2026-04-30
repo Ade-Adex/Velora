@@ -98,6 +98,7 @@ export interface IProduct extends Document {
   isFeatured: boolean // For homepage highlights
   onSale: boolean
   saleEndsAt?: Date
+  updatedBy?: Types.ObjectId | IUser // Track who made changes
   createdAt: Date
   updatedAt: Date
 }

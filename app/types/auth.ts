@@ -4,5 +4,5 @@ import { JwtPayload } from 'jsonwebtoken'
 export interface UserPayload extends JwtPayload {
   id: string
   email: string
-  role: 'user' | 'admin' // Better to define the specific roles
+  role: 'customer' | 'admin' | 'editor' 
 }
