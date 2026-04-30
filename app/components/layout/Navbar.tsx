@@ -153,6 +153,24 @@ export default function Navbar() {
                 </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown p="xs">
+                {user?.role === 'admin' && (
+                  <>
+                    <Menu.Label>Management</Menu.Label>
+                    <Menu.Item
+                      leftSection={
+                        <LayoutGrid size={16} className="text-orange-500" />
+                      }
+                      component={Link}
+                      href="/admin"
+                      className="bg-orange-50 hover:bg-orange-100 mb-2"
+                    >
+                      <Text fw={700} c="orange.9">
+                        Admin Dashboard
+                      </Text>
+                    </Menu.Item>
+                    <Divider my="xs" />
+                  </>
+                )}
                 <Menu.Label>My Account</Menu.Label>
                 <Menu.Item
                   leftSection={<UserIcon size={16} />}

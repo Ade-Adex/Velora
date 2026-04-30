@@ -7,58 +7,65 @@ import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { useUserStore } from '@/app/store/useUserStore' // 1. Import the User Store
 
 function VerifyContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
-  const { enqueueSnackbar } = useSnackbar()
+ const router = useRouter()
+ const searchParams = useSearchParams()
+ const token = searchParams.get('token')
+ const callbackUrl = searchParams.get('callbackUrl') // Capture intended destination
+ const { enqueueSnackbar } = useSnackbar()
 
-  // 2. Extract setUser from Zustand instead of useApp
-  const setUser = useUserStore((state) => state.setUser)
-  // const { setIsLoading } = useApp()
+ const setUser = useUserStore((state) => state.setUser)
+ const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
+   'loading',
+ )
+ const hasCalled = useRef(false)
 
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
-    'loading',
-  )
-  const hasCalled = useRef(false)
+ useEffect(() => {
+   if (hasCalled.current) return
+   hasCalled.current = true
 
-  useEffect(() => {
-    if (hasCalled.current) return
-    hasCalled.current = true
+   const verifyToken = async () => {
+     if (!token) {
+       setStatus('error')
+       enqueueSnackbar('Invalid or missing token.', { variant: 'error' })
+       return
+     }
 
-    const verifyToken = async () => {
-      if (!token) {
-        setStatus('error')
-        enqueueSnackbar('Invalid or missing token.', { variant: 'error' })
-        return
-      }
+     try {
+       const res = await fetch(`/api/auth/verify?token=${token}`)
+       const data = await res.json()
 
-      try {
-        const res = await fetch(`/api/auth/verify?token=${token}`)
-        const data = await res.json()
+       if (res.ok) {
+         setStatus('success')
+         setUser(data.user)
+         enqueueSnackbar('Successfully signed in!', { variant: 'success' })
 
-        if (res.ok) {
-          setStatus('success')
-          // 3. This now calls the persistent Zustand store
-          setUser(data.user)
-          enqueueSnackbar('Successfully signed in!', { variant: 'success' })
+         // PROFESSIONAL REDIRECTION LOGIC
+         setTimeout(() => {
+           if (data.user.role === 'admin') {
+             // 1. Admins always go to the dashboard for high-level overview
+             router.push('/admin')
+           } else if (callbackUrl) {
+             // 2. Customers go back to where they were (e.g., checkout or a specific product)
+             router.push(callbackUrl)
+           } else {
+             // 3. Default fallback
+             router.push('/')
+           }
+         }, 2000)
+       } else {
+         setStatus('error')
+         enqueueSnackbar(data.error || 'Link expired or already used.', {
+           variant: 'error',
+         })
+       }
+     } catch (err) {
+       setStatus('error')
+       enqueueSnackbar('Connection error.', { variant: 'error' })
+     }
+   }
 
-          setTimeout(() => {
-            router.push('/')
-          }, 2000)
-        } else {
-          setStatus('error')
-          enqueueSnackbar(data.error || 'Link expired or already used.', {
-            variant: 'error',
-          })
-        }
-      } catch (err) {
-        setStatus('error')
-        enqueueSnackbar('Connection error.', { variant: 'error' })
-      }
-    }
-
-    verifyToken()
-  }, [token, router, enqueueSnackbar, setUser])
+   verifyToken()
+ }, [token, router, enqueueSnackbar, setUser, callbackUrl])
 
   return (
     <div className="w-full max-w-md text-center space-y-6">

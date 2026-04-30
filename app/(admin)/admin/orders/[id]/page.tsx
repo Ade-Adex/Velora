@@ -207,7 +207,7 @@ export default async function SingleOrderPage({ params }: PageProps) {
           <Stack gap="lg">
             {/* Status Update Card */}
             <Paper
-              p="xl"
+              p="md"
               withBorder
               radius="md"
               shadow="sm"
