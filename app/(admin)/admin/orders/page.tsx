@@ -82,7 +82,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const totalPages = Math.ceil(totalOrders / limit)
 
   return (
-    <Container size="xl" py="xl">
+    <div className="md:px-4 py-0">
       <Stack gap="xl">
         <header>
           <Group justify="space-between" align="flex-end">
@@ -230,7 +230,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           </footer>
         </Paper>
       </Stack>
-    </Container>
+    </div>
   )
 }
 

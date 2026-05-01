@@ -78,7 +78,7 @@ export default async function AdminDashboardPage() {
     .lean()
 
   return (
-    <Container size="xl" py="xs">
+    <div className="md:px-4 py-0">
       <Stack gap="xl">
         <header>
           <Title order={2} fw={900} lts="-1px">
@@ -239,6 +239,6 @@ export default async function AdminDashboardPage() {
           </GridCol>
         </Grid>
       </Stack>
-    </Container>
+    </div>
   )
 }

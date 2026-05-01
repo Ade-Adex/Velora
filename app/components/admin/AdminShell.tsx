@@ -22,7 +22,6 @@ export default function AdminShell({
         collapsed: { mobile: !opened },
       }}
       padding="md"
-      // This adds a nice subtle gray background to the main area
       styles={{
         main: { background: '#f8f9fa' },
       }}

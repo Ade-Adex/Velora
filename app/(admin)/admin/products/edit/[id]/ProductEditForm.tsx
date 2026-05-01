@@ -79,7 +79,8 @@ export default function ProductEditForm({
   }
 
   return (
-    <Container size="lg" py="xl">
+          <div className="md:px-4 py-0">
+
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
           <Group justify="space-between" align="flex-end">
@@ -223,6 +224,6 @@ export default function ProductEditForm({
           </Grid>
         </Stack>
       </form>
-    </Container>
+    </div>
   )
 }

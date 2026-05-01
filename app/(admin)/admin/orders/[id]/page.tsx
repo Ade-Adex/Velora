@@ -52,7 +52,7 @@ export default async function SingleOrderPage({ params }: PageProps) {
   }
 
   return (
-    <Container size="xl" py="xl">
+    <div className="md:px-4 py-0">
       {/* 1. TOP NAVIGATION & HEADER */}
       <Stack gap="lg" mb="xl">
         <Link
@@ -264,6 +264,6 @@ export default async function SingleOrderPage({ params }: PageProps) {
           </Stack>
         </GridCol>
       </Grid>
-    </Container>
+    </div>
   )
 }
