@@ -68,16 +68,22 @@ export async function verifyMagicToken(token: string) {
   return user
 }
 
+
 export async function getCurrentUser() {
   try {
-    const authUser = await getSessionUser()
-    if (!authUser) return null // Clean exit
+    const authUser = await getSessionUser();
+    
+    // authUser now contains _id because of our standardization
+    if (!authUser || !authUser._id) return null; 
 
-    await connectDB()
-    const user = await User.findById(authUser.id).select('-magicToken -tokenExpiry')
+    await connectDB();
+    
+    // CHANGE THIS LINE: Use _id instead of id
+    const user = await User.findById(authUser._id).select('-magicToken -tokenExpiry');
 
-    return user ? JSON.parse(JSON.stringify(user)) : null
+    return user ? JSON.parse(JSON.stringify(user)) : null;
   } catch (error) {
-    return null 
+    console.error("Error in getCurrentUser:", error);
+    return null; 
   }
 }
