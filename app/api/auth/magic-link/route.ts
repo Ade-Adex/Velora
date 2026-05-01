@@ -10,13 +10,13 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json()
-    const token = await generateMagicToken(email)
+    const { email, requestedRole } = await req.json()
+    const token = await generateMagicToken(email, requestedRole)
 
     const shopDomain = process.env.NEXT_PUBLIC_DOMAIN || 'localhost:3000'
     const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
     const magicLink = `${protocol}://${shopDomain}/auth/verify?token=${token}`
-
+    
     await resend.emails.send({
       /**
        * PROFESSIONAL MOVE: Use a subdomain for the "From" address.
