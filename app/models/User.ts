@@ -23,8 +23,19 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['customer', 'admin', 'editor'],
+      enum: ['customer', 'admin', 'editor', 'vendor'], // Added 'vendor'
       default: 'customer',
+    },
+    vendorProfile: {
+      shopName: { type: String, unique: true, sparse: true },
+      isVerified: { type: Boolean, default: false },
+      description: String,
+      logo: String,
+      bankDetails: {
+        accountName: String,
+        accountNumber: String,
+        bankName: String,
+      }
     },
     isSuperAdmin: {
       type: Boolean,
