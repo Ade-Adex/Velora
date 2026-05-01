@@ -1,6 +1,7 @@
 // /app/(admin)/admin/page.tsx
+
+
 import {
-  Container,
   Stack,
   Title,
   Grid,
@@ -13,6 +14,7 @@ import {
 import { AdminStats } from '@/app/components/admin/AdminStats'
 import { Order } from '@/app/models/Order'
 import { User } from '@/app/models/User'
+import { Product } from '@/app/models/Product' // Import Product model
 import connectDB from '@/app/lib/mongodb'
 import {
   Banknote,
@@ -22,6 +24,7 @@ import {
   ArrowRight,
   PlusCircle,
   Settings2,
+  AlertTriangle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { IOrder } from '@/app/types'
@@ -29,11 +32,15 @@ import { IOrder } from '@/app/types'
 export default async function AdminDashboardPage() {
   await connectDB()
 
-  // Fetch metrics from MongoDB
-  const [totalOrders, totalUsers, ordersData] = await Promise.all([
+  // Define your low stock threshold
+  const LOW_STOCK_THRESHOLD = 5;
+
+  // Fetch metrics dynamically
+  const [totalOrders, totalUsers, ordersData, lowStockCount] = await Promise.all([
     Order.countDocuments(),
     User.countDocuments({ role: 'customer' }),
     Order.find().select('totals.grandTotal').lean(),
+    Product.countDocuments({ stock: { $lte: LOW_STOCK_THRESHOLD } }), // Dynamic count
   ])
 
   const totalRevenue = ordersData.reduce(
@@ -103,7 +110,7 @@ export default async function AdminDashboardPage() {
                 <Text fw={800} size="sm" className="uppercase tracking-tight">
                   Recent Activity
                 </Text>
-                <Link href="/admin/orders" style={{ textDecoration: 'none' }}>
+                <Link href="/admin/orders" className="no-underline">
                   <Button
                     variant="subtle"
                     size="xs"
@@ -118,15 +125,9 @@ export default async function AdminDashboardPage() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/50">
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">
-                        Order
-                      </th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">
-                        Status
-                      </th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase text-right">
-                        Total
-                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">Order</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">Status</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase text-right">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -136,26 +137,16 @@ export default async function AdminDashboardPage() {
                         className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                       >
                         <td className="p-4">
-                          <Text size="sm" fw={700}>
-                            #{order.orderNumber}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </Text>
+                          <Text size="sm" fw={700}>#{order.orderNumber}</Text>
+                          <Text size="xs" c="dimmed">{new Date(order.createdAt).toLocaleDateString()}</Text>
                         </td>
                         <td className="p-4">
-                          <Text
-                            size="xs"
-                            fw={800}
-                            className="uppercase px-2 py-1 bg-gray-100 rounded-md inline-block"
-                          >
+                          <Text size="xs" fw={800} className="uppercase px-2 py-1 bg-gray-100 rounded-md inline-block">
                             {order.orderStatus}
                           </Text>
                         </td>
                         <td className="p-4 text-right">
-                          <Text size="sm" fw={800}>
-                            ₦{order.totals.grandTotal.toLocaleString()}
-                          </Text>
+                          <Text size="sm" fw={800}>₦{order.totals.grandTotal.toLocaleString()}</Text>
                         </td>
                       </tr>
                     ))}
@@ -169,71 +160,63 @@ export default async function AdminDashboardPage() {
           <GridCol span={{ base: 12, md: 4 }}>
             <Stack gap="md">
               <Paper withBorder p="md" radius="md" shadow="sm">
-                <Text
-                  fw={800}
-                  size="xs"
-                  mb="md"
-                  className="uppercase tracking-widest opacity-60"
-                >
+                <Text fw={800} size="xs" mb="md" className="uppercase tracking-widest opacity-60">
                   Quick Actions
                 </Text>
                 <Stack gap="xs">
-                  {/* Add Product Link */}
                   <Link href="/admin/products/new" className="no-underline">
-                    <Button
-                      variant="light"
-                      fullWidth
-                      justify="flex-start"
-                      leftSection={<PlusCircle size={16} />}
-                    >
+                    <Button variant="light" fullWidth justify="flex-start" leftSection={<PlusCircle size={16} />}>
                       Add Product
                     </Button>
                   </Link>
-
-                  {/* Store Settings Link */}
                   <Link href="/admin/settings" className="no-underline">
-                    <Button
-                      variant="light"
-                      fullWidth
-                      justify="flex-start"
-                      color="gray"
-                      leftSection={<Settings2 size={16} />}
-                    >
+                    <Button variant="light" fullWidth justify="flex-start" color="gray" leftSection={<Settings2 size={16} />}>
                       Store Settings
                     </Button>
                   </Link>
                 </Stack>
               </Paper>
 
+              {/* Professional Dynamic Inventory Sync Card */}
               <Paper
                 withBorder
                 p="md"
                 radius="md"
-                bg="blue.9"
+                bg={lowStockCount > 0 ? "orange.9" : "blue.9"} // Color changes based on urgency
                 c="white"
                 shadow="md"
               >
-                <Text
-                  size="xs"
-                  fw={800}
-                  className="uppercase tracking-widest opacity-70"
-                >
-                  Inventory Sync
-                </Text>
-                <Text size="sm" mt="sm" fw={500} style={{ lineHeight: 1.5 }}>
-                  Low stock levels detected for <b>5 items</b>. Restocking now
-                  ensures you don&apos;t miss out on upcoming sales trends.
-                </Text>
-                <Button
-                  mt="md"
-                  variant="white"
-                  color="blue"
-                  size="xs"
-                  fullWidth
-                  fw={800}
-                >
-                  Restock Now
-                </Button>
+                <Group justify="space-between" align="center" mb="xs">
+                  <Text size="xs" fw={800} className="uppercase tracking-widest opacity-70">
+                    Inventory Sync
+                  </Text>
+                  {lowStockCount > 0 && <AlertTriangle size={16} />}
+                </Group>
+                
+                {lowStockCount > 0 ? (
+                  <>
+                    <Text size="sm" fw={500} style={{ lineHeight: 1.5 }}>
+                      Low stock levels detected for <b>{lowStockCount} {lowStockCount === 1 ? 'item' : 'items'}</b>. 
+                      Restocking ensures continuity during peak sales periods.
+                    </Text>
+                    <Link href="/admin/products?stock=low" className="no-underline">
+                      <Button mt="md" variant="white" color="orange.9" size="xs" fullWidth fw={800}>
+                        Restock Now
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Text size="sm" fw={500} style={{ lineHeight: 1.5 }}>
+                      Your inventory is healthy! All products are currently above the threshold.
+                    </Text>
+                    <Link href="/admin/products" className="no-underline">
+                      <Button mt="md" variant="white" color="blue.9" size="xs" fullWidth fw={800}>
+                        Manage Inventory
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </Paper>
             </Stack>
           </GridCol>
@@ -241,4 +224,4 @@ export default async function AdminDashboardPage() {
       </Stack>
     </div>
   )
-}
+    }
