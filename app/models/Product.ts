@@ -24,6 +24,19 @@ const ProductSchema = new Schema<IProduct>(
       required: true,
     },
     tags: [String],
+    vendor: { 
+      type: Schema.Types.ObjectId, 
+      ref: 'User', 
+      required: true, 
+      index: true 
+    },
+    // Adding Marketplace-specific flags
+    approvalStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending' // Marketplace admins must approve seller products
+    },
+    commissionRate: { type: Number, default: 10 }, // Platform fee percentage
 
     // Assets
     mainImage: { type: String, required: true },
