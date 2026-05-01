@@ -102,50 +102,83 @@ enqueueSnackbar('Verified in another tab! Redirecting...', { variant: 'success' 
   }
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-black italic">
-            Velora<span className="text-[#FF8A00]">.</span>
-          </h1>
-          <p className="text-gray-500 mt-2">Sign in or create an account</p>
+  <div className="min-h-[90vh] flex flex-col items-center justify-center p-6">
+    {/* Main Auth Card */}
+    <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 p-8 md:p-10">
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-black text-black italic tracking-tighter">
+          Velora<span className="text-[#FF8A00]">.</span>
+        </h1>
+        <p className="text-gray-500 mt-3 font-medium">
+          Sign in or create your account
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
+            Email Address
+          </label>
+          <div className="relative group">
+            <Mail
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#0052CC] transition-colors"
+              size={20}
+            />
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@company.com"
+              className="w-full bg-[#F8FAFC] border-2 border-transparent rounded-2xl py-4 pl-12 pr-4 outline-none focus:bg-white focus:border-[#0052CC]/20 focus:ring-4 focus:ring-[#0052CC]/5 transition-all text-sm font-medium"
+            />
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 uppercase ml-1">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-full bg-[#F4F7FA] border-none rounded-xl py-3.5 pl-12 pr-4 outline-none focus:ring-2 focus:ring-[#0052CC] transition-all"
-              />
-            </div>
-          </div>
+        <button
+          disabled={loading}
+          className="w-full bg-[#0052CC] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 cursor-pointer hover:bg-[#0041a3] hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Processing...
+            </span>
+          ) : (
+            <>
+              Continue <ArrowRight size={18} />
+            </>
+          )}
+        </button>
+      </form>
 
-          <button
-            disabled={loading}
-            className="w-full bg-[#0052CC] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-700 transition-all disabled:opacity-50"
-          >
-            {loading ? (
-              'Sending link...'
-            ) : (
-              <>
-                Continue <ArrowRight size={18} />
-              </>
-            )}
-          </button>
-        </form>
+      {/* Subtle Divider for Mobile/Cleanliness */}
+      <div className="mt-8 flex items-center gap-4">
+        <div className="h-[1px] flex-1 bg-gray-100"></div>
+        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Secure Access</span>
+        <div className="h-[1px] flex-1 bg-gray-100"></div>
       </div>
     </div>
-  )
+
+    {/* Professional Vendor Call-to-Action */}
+    <div className="mt-8 w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+      <div className="bg-[#F8FAFC] border border-gray-100 rounded-3xl p-6 flex items-center justify-between group hover:border-blue-100 transition-all">
+        <div className="space-y-1">
+          <p className="text-sm font-bold text-gray-900">Want to sell on Velora?</p>
+          <p className="text-xs text-gray-500 font-medium">Join 500+ businesses today.</p>
+        </div>
+        <Link 
+          href="/vendor/register" 
+          className="bg-white text-[#0052CC] text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-sm border border-gray-100 hover:bg-[#0052CC] hover:text-white transition-all"
+        >
+          Register as Vendor
+        </Link>
+      </div>
+      
+      <p className="text-center mt-8 text-[11px] text-gray-400 font-medium tracking-wide">
+        &copy; {new Date().getFullYear()} Velora Marketplace. All rights reserved.
+      </p>
+    </div>
+  </div>
+)
 }
