@@ -48,12 +48,16 @@ function VerifyContent() {
 
          enqueueSnackbar('Successfully signed in!', { variant: 'success' })
 
-         // Redirect this current tab as well
-         setTimeout(() => {
-           router.push(
-             data.user.role === 'admin' ? '/admin' : callbackUrl || '/',
-           )
-         }, 2000)
+         
+setTimeout(() => {
+  const role = data.user.role;
+  let destination = callbackUrl || '/';
+
+  if (role === 'admin' || role === 'editor') destination = '/admin';
+  else if (role === 'vendor') destination = '/vendor';
+
+  router.push(destination);
+}, 2000)
        } else {
          setStatus('error')
          enqueueSnackbar(data.error || 'Link expired or already used.', {
