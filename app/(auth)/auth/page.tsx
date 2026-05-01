@@ -2,9 +2,11 @@
 
 
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Mail, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { useSnackbar } from 'notistack'
+import { useRouter } from 'next/navigation'
+import { useUserStore } from '@/app/store/useUserStore'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -12,6 +14,35 @@ export default function AuthPage() {
   const [isSent, setIsSent] = useState(false)
   const [serverMessage, setServerMessage] = useState('') 
   const { enqueueSnackbar } = useSnackbar()
+
+  const router = useRouter()
+  const setUser = useUserStore((state) => state.setUser)
+
+  useEffect(() => {
+    // Create the broadcast channel
+    const authChannel = new BroadcastChannel('velora_auth')
+
+    authChannel.onmessage = (event) => {
+      if (event.data.type === 'LOGIN_SUCCESS') {
+        const userData = event.data.user
+
+        // 1. Update the local state/store
+        setUser(userData)
+
+        // 2. Notify the user
+        enqueueSnackbar('Verified in another tab! Redirecting...', {
+          variant: 'success',
+        })
+
+        // 3. Professional Redirection
+        setTimeout(() => {
+          router.push(userData.role === 'admin' ? '/admin' : '/')
+        }, 1000)
+      }
+    }
+
+    return () => authChannel.close() // Clean up on unmount
+  }, [router, setUser, enqueueSnackbar])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

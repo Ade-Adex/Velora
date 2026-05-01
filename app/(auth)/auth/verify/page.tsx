@@ -34,7 +34,7 @@ function VerifyContent() {
        const res = await fetch(`/api/auth/verify?token=${token}`)
        const data = await res.json()
 
-       if (res.ok) {
+      /*  if (res.ok) {
          setStatus('success')
          setUser(data.user)
          enqueueSnackbar('Successfully signed in!', { variant: 'success' })
@@ -51,6 +51,28 @@ function VerifyContent() {
              // 3. Default fallback
              router.push('/')
            }
+         }, 2000)
+       } */
+
+       if (res.ok) {
+         setStatus('success')
+         setUser(data.user)
+
+         // PROFESSIONAL MOVE: Broadcast to other tabs
+         const authChannel = new BroadcastChannel('velora_auth')
+         authChannel.postMessage({
+           type: 'LOGIN_SUCCESS',
+           user: data.user,
+         })
+         authChannel.close()
+
+         enqueueSnackbar('Successfully signed in!', { variant: 'success' })
+
+         // Redirect this current tab as well
+         setTimeout(() => {
+           router.push(
+             data.user.role === 'admin' ? '/admin' : callbackUrl || '/',
+           )
          }, 2000)
        } else {
          setStatus('error')

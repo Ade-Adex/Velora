@@ -1,7 +1,6 @@
 //  /api/checkout/route.ts
 
 import { NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
 import connectDB from '@/app/lib/mongodb'
 import { Order } from '@/app/models/Order'
 import mongoose from 'mongoose'
@@ -84,12 +83,23 @@ export async function POST(req: Request) {
       }
       throw dbError
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Checkout API Full Error:', error)
 
-    if (error instanceof jwt.JsonWebTokenError) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
-    }
+   if (typeof error === 'object' && error !== null && 'code' in error) {
+     // Create a temporary reference with a specific structure to satisfy TS
+     const errorWithCode = error as { code: string }
+
+     if (
+       errorWithCode.code === 'ERR_JWT_EXPIRED' ||
+       errorWithCode.code === 'ERR_JWS_INVALID'
+     ) {
+       return NextResponse.json(
+         { error: 'Invalid or expired session' },
+         { status: 401 },
+       )
+     }
+   }
 
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error'

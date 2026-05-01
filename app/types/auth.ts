@@ -1,8 +1,9 @@
 // /app/types/auth.ts
-import { JwtPayload } from 'jsonwebtoken'
 
-export interface UserPayload extends JwtPayload {
+import { type JWTPayload } from 'jose'
+
+export interface UserPayload extends JWTPayload {
   id: string
   email: string
-  role: 'customer' | 'admin' | 'editor' 
+  role: 'customer' | 'admin' | 'editor'
 }
