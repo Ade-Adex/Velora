@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
   // Create JWT Session using jose
   const sessionToken = await createSessionToken({
-    id: user._id.toString(),
+    _id: user._id.toString(),
     email: user.email,
     role: user.role,
   })

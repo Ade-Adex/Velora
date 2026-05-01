@@ -3,7 +3,8 @@
 import { type JWTPayload } from 'jose'
 
 export interface UserPayload extends JWTPayload {
-  id: string
+  // id: string
+  _id: string
   email: string
   role: 'customer' | 'admin' | 'editor'
 }

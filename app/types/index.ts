@@ -20,6 +20,7 @@ export interface IAddress {
 }
 
 export interface IUser extends Document {
+  // _id: string
   email: string
   fullName: string
   phone?: string

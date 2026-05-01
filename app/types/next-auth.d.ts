@@ -6,7 +6,7 @@ import { IAddress } from './index'
 declare module 'next-auth' {
   interface Session {
     user: {
-      id: string
+      _id: string
       role: string
       addresses: IAddress[]
     } & DefaultSession['user']
@@ -15,7 +15,7 @@ declare module 'next-auth' {
   // This ensures the User object returned from the authorize/adapter
   // includes the addresses property
   interface User {
-    id: string
+    _id: string
     role: string
     addresses: IAddress[]
   }
@@ -23,7 +23,7 @@ declare module 'next-auth' {
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    id: string
+    _id: string
     role: string
     addresses: IAddress[]
   }

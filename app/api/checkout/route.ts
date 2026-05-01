@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     // 4. Create Order
     try {
       const newOrder = await Order.create({
-        user: new mongoose.Types.ObjectId(user.id),
+        user: new mongoose.Types.ObjectId(user._id),
         orderNumber,
         items: sanitizedItems,
         totals,

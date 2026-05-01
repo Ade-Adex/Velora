@@ -96,18 +96,23 @@ export default async function AdminProductsPage({
             <tbody>
               {products.map((product: IProduct) => {
                 const categoryData = product.category as unknown as ICategory
-                const editor = product.updatedBy as unknown as IUser | null
+                const editor = product.updatedBy as unknown as IUser | null  
                 const displayName = editor?.fullName
-                  ? editor.fullName
-                  : 'System'
+                ? editor.fullName
+                : 'System'
                 const initials = editor?.fullName
-                  ? editor.fullName
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)
-                  : 'S'
+                ? editor.fullName
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2)
+                : 'S'
+                
+                
+                console.log('Editor:', editor)
+                console.log('displayName:', displayName)
+                console.log('initials:', initials)
 
                 // Professional Pricing Calculation
                 const hasDiscount =
