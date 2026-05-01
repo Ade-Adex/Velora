@@ -7,16 +7,23 @@ import { getSessionUser } from '@/app/lib/auth-utils'
 import { IUser } from '@/app/types'
 import { UpdateQuery } from 'mongoose'
 
-export async function generateMagicToken(email: string) {
+/**
+ * Generates a magic link token and prepares the user record.
+ * @param email The user's email address.
+ * @param requestedRole The role intended if the user is being created for the first time.
+ */
+export async function generateMagicToken(email: string, requestedRole: string = 'customer') {
   await connectDB()
 
-  // 1. Check for system initialization
+  // 1. Check if the database is empty to assign the first Admin
   const userCount = await User.countDocuments()
   const isFirstUser = userCount === 0
 
+  // 2. Generate security token
   const token = crypto.randomBytes(32).toString('hex')
-  const expiry = new Date(Date.now() + 15 * 60 * 1000)
+  const expiry = new Date(Date.now() + 15 * 60 * 1000) // 15 Minute Expiry
 
+  // 3. Create a friendly display name from the email
   const defaultName = email
     .split('@')[0]
     .replace(/[._-]/g, ' ')
@@ -24,7 +31,11 @@ export async function generateMagicToken(email: string) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 
-  
+  /**
+   * 4. Update or Insert (Upsert) the User
+   * - $set: Updates these fields every time a link is requested.
+   * - $setOnInsert: Only sets these fields if the user is BRAND NEW.
+   */
   const update: UpdateQuery<IUser> = {
     $set: {
       magicToken: token,
@@ -32,22 +43,30 @@ export async function generateMagicToken(email: string) {
     },
     $setOnInsert: {
       fullName: defaultName,
-      ...(isFirstUser
-        ? {
-            role: 'admin',
-            isSuperAdmin: true,
-          }
-        : {}),
+      // Priority: First User -> admin | Vendor Intent -> vendor | Default -> customer
+      role: isFirstUser ? 'admin' : (requestedRole === 'vendor' ? 'vendor' : 'customer'),
+      isSuperAdmin: isFirstUser,
+      isActive: true,
+      createdAt: new Date(),
     },
   }
 
-  await User.findOneAndUpdate({ email: email.toLowerCase() }, update, {
-    upsert: true,
-    new: true,
-  })
+  await User.findOneAndUpdate(
+    { email: email.toLowerCase().trim() }, 
+    update, 
+    {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true
+    }
+  )
 
   return token
 }
+
+/**
+ * Verifies the token and cleans up after use.
+ */
 
 export async function verifyMagicToken(token: string) {
   await connectDB()
