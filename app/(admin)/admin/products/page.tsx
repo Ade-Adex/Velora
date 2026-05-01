@@ -98,8 +98,16 @@ export default async function AdminProductsPage({
                 const categoryData = product.category as unknown as ICategory
                 const editor = product.updatedBy as unknown as IUser | null
                 const displayName = editor?.fullName
-                  ? editor.fullName.split(' ')[0]
+                  ? editor.fullName
                   : 'System'
+                const initials = editor?.fullName
+                  ? editor.fullName
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)
+                  : 'S'
 
                 // Professional Pricing Calculation
                 const hasDiscount =
@@ -183,10 +191,10 @@ export default async function AdminProductsPage({
                             src={editor?.image}
                             size="xs"
                             radius="xl"
-                            alt={editor?.fullName || 'System'}
+                            alt={displayName}
                             color={!editor ? 'gray' : 'blue'}
                           >
-                            {editor?.fullName?.charAt(0) || 'S'}
+                            {initials}
                           </Avatar>
                         </Tooltip>
                         <Stack gap={0}>
@@ -194,7 +202,6 @@ export default async function AdminProductsPage({
                             {displayName}
                           </Text>
                           <Text size="xs" c="dimmed">
-                            {/* updatedAt is always present via Mongoose timestamps */}
                             {new Date(product.updatedAt).toLocaleDateString()}
                           </Text>
                         </Stack>

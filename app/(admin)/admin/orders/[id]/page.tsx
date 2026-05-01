@@ -93,12 +93,15 @@ export default async function SingleOrderPage({ params }: PageProps) {
           </Box>
 
           <Box className="hidden md:block">
-            <Text size="xs" fw={700} c="dimmed" ta="right">
-              CUSTOMER ID
+            <Text size="xs" fw={700} c="dimmed" ta="right" lts="1px">
+              ACCOUNT REF
             </Text>
-            <Text size="sm" fw={500}>
-              {order.user?._id.toString().slice(-8).toUpperCase()}
-            </Text>
+            <Group gap={4} justify="flex-end">
+              <Text size="sm" fw={600} ff="monospace" c="blue.7">
+                {order.user?._id.toString().slice(-8).toUpperCase()}
+              </Text>
+              {/* Optional: Add a small copy icon from lucide-react here */}
+            </Group>
           </Box>
         </Group>
       </Stack>

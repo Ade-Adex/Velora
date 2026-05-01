@@ -122,11 +122,12 @@ export async function updateProduct(id: string, data: ProductUpdateDTO) {
     const adminUser = await ensureAdmin() 
     await connectDB()
 
+    if (!adminUser?._id) throw new Error('Admin ID not found in session')
+
     const updatePayload: UpdateQuery<IProduct> = {
       $set: {
         ...data,
-        // updatedBy: adminUser._id,
-        updatedBy: new mongoose.Types.ObjectId(adminUser._id as string),
+        updatedBy: adminUser._id,
       },
     }
 

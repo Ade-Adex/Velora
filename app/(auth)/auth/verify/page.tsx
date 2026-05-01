@@ -34,26 +34,6 @@ function VerifyContent() {
        const res = await fetch(`/api/auth/verify?token=${token}`)
        const data = await res.json()
 
-      /*  if (res.ok) {
-         setStatus('success')
-         setUser(data.user)
-         enqueueSnackbar('Successfully signed in!', { variant: 'success' })
-
-         // PROFESSIONAL REDIRECTION LOGIC
-         setTimeout(() => {
-           if (data.user.role === 'admin') {
-             // 1. Admins always go to the dashboard for high-level overview
-             router.push('/admin')
-           } else if (callbackUrl) {
-             // 2. Customers go back to where they were (e.g., checkout or a specific product)
-             router.push(callbackUrl)
-           } else {
-             // 3. Default fallback
-             router.push('/')
-           }
-         }, 2000)
-       } */
-
        if (res.ok) {
          setStatus('success')
          setUser(data.user)
