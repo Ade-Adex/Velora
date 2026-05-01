@@ -84,7 +84,7 @@ export async function getUserOrdersAction() {
     }
 
     await connectDB()
-    const orders = await Order.find({ user: user.id })
+    const orders = await Order.find({ user: user._id })
       .sort({ createdAt: -1 })
       .lean()
 
