@@ -105,12 +105,15 @@ export default async function AdminProductsPage({
 
                   const hasDiscount = product.onSale && product.discountPrice && product.discountPrice < product.basePrice
                   const displayPrice = hasDiscount ? product.discountPrice : product.basePrice
+      const imageSrc = typeof product.mainImage === 'string' 
+  ? product.mainImage 
+  : product.mainImage?.src; 
 
                   return (
                     <tr key={product._id.toString()} className="border-t border-gray-100">
                       <td className="p-4">
                         <Group gap="sm" wrap="nowrap">
-                          <Avatar src={product.mainImage} radius="md" size="lg" bg="gray.1">
+                          <Avatar src={imageSrc} radius="md" size="lg" bg="gray.1">
                             <Package size={20} />
                           </Avatar>
                           <Box style={{ flex: 1, minWidth: 150 }}>
