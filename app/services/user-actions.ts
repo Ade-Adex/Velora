@@ -55,7 +55,7 @@ export async function updateUserProfile(payload: Partial<IUser>) {
     }
 
     const updatedUser = await User.findByIdAndUpdate(
-      user.id,
+      user._id,
       { $set: updateData },
       { returnDocument: 'after', runValidators: true },
     )
