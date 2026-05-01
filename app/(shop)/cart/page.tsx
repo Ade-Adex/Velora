@@ -177,7 +177,7 @@ export default function CartPage() {
                 radius="md"
               >
                 You haven&apos;t set a shipping address yet.
-                <Link href="/profile" className="ml-2 font-bold underline">
+                <Link href="/profile?tab=addresses" className="ml-2 font-bold underline">
                   Add Address
                 </Link>
               </Alert>
