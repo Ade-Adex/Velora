@@ -19,6 +19,18 @@ export interface IAddress {
   addressLine1: string
 }
 
+export interface IVendorProfile {
+  shopName: string
+  isVerified: boolean
+  description?: string
+  logo?: string
+  bankDetails?: {
+    accountName: string
+    accountNumber: string
+    bankName: string
+  };
+}
+
 export interface IUser extends Document {
   // _id: string
   email: string
@@ -27,7 +39,8 @@ export interface IUser extends Document {
   image?: string
   birthday?: Date
   gender: 'male' | 'female' | 'other' | 'unspecified'
-  role: 'customer' | 'admin' | 'editor'
+  role: 'customer' | 'admin' | 'editor' | 'vendor'
+  vendorProfile?: IVendorProfile
   isSuperAdmin: boolean
   magicToken?: string
   tokenExpiry?: Date
@@ -96,6 +109,9 @@ export interface IProduct extends Document {
     description?: string
     keywords?: string[]
   }
+  vendor: Types.ObjectId | IUser
+  approvalStatus: 'pending' | 'approved' | 'rejected'
+  commissionRate: number
   isPublished: boolean
   isFeatured: boolean // For homepage highlights
   onSale: boolean
@@ -108,11 +124,14 @@ export interface IProduct extends Document {
 // --- Order Types ---
 export interface IOrderItem {
   product: Types.ObjectId | string
+  vendor: Types.ObjectId | string // Reference to the seller
   variantSku?: string
   name: string
-  image: string // Snapshot for order history
+  image: string
   quantity: number
   price: number
+  adminCommission?: number
+  fulfillmentStatus: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
 }
 
 export interface IOrder extends Document {
