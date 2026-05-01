@@ -32,7 +32,7 @@ export default async function AdminDashboardPage() {
   // Fetch metrics from MongoDB
   const [totalOrders, totalUsers, ordersData] = await Promise.all([
     Order.countDocuments(),
-    User.countDocuments({ role: 'user' }),
+    User.countDocuments({ role: 'customer' }),
     Order.find().select('totals.grandTotal').lean(),
   ])
 
