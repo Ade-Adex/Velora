@@ -24,20 +24,27 @@ export default function AuthPage() {
 
     authChannel.onmessage = (event) => {
       if (event.data.type === 'LOGIN_SUCCESS') {
-        const userData = event.data.user
+        
 
-        // 1. Update the local state/store
-        setUser(userData)
+        const userData = event.data.user;
+setUser(userData);
 
-        // 2. Notify the user
-        enqueueSnackbar('Verified in another tab! Redirecting...', {
-          variant: 'success',
-        })
+enqueueSnackbar('Verified in another tab! Redirecting...', { variant: 'success' });
 
-        // 3. Professional Redirection
         setTimeout(() => {
-          router.push(userData.role === 'admin' ? '/admin' : '/')
-        }, 1000)
+  // Professional Multi-Role Redirect
+  switch (userData.role) {
+    case 'admin':
+    case 'editor':
+      router.push('/admin');
+      break;
+    case 'vendor':
+      router.push('/vendor'); // Or wherever your vendor dashboard lives
+      break;
+    default:
+      router.push('/'); // Customers go to the homepage
+  }
+}, 1000);
       }
     }
 
