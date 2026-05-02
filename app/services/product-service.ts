@@ -166,9 +166,6 @@ export async function getProductsByCollection(type: string) {
   return JSON.parse(JSON.stringify(products))
 }
 
-'use server'
-
-
 export async function createProduct(data: Partial<IProduct>) {
   try {
     await connectDB()
