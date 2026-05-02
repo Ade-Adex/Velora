@@ -9,6 +9,8 @@ import { ICategory, IProduct, IReview } from '@/app/types'
 import { SortOrder, Types } from 'mongoose'
 import '../models/Category'
 import { revalidatePath } from 'next/cache'
+import { getCurrentUser } from '@/app/services/auth-service'
+
 // import slugify from 'slugify'
 
 export type CreateProductInput = Omit<
@@ -169,47 +171,54 @@ export async function getProductsByCollection(type: string) {
   return JSON.parse(JSON.stringify(products))
 }
 
+
 /**
- * Native slug generator to avoid external dependencies
+ * Enhanced native slug generator
  */
 function generateSlug(text: string): string {
   return text
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')     // Replace spaces with -
-    .replace(/[^\w-]+/g, '')  // Remove all non-word chars
-    .replace(/--+/g, '-')     // Replace multiple - with single -
-    .concat('-', Math.random().toString(36).substring(2, 6)) // Add random suffix for uniqueness
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w-]+/g, '')        // Remove all non-word chars
+    .replace(/--+/g, '-')           // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start
+    .replace(/-+$/, '')             // Trim - from end
+    .concat('-', Math.random().toString(36).substring(2, 6)) // Unique suffix
 }
 
 /**
  * Professional Product Creation Service
- * Handles data normalization, slug generation, and safe error handling
  */
-
-/** 
- * Create a specialized input type that overrides the strict IProduct['category'] 
- * with a string ID, which Mongoose handles automatically.
- */
-
 export async function createProduct(data: ProductInput) {
   try {
     await connectDB()
+
+    // 1. Authentication & Security
+    const user = await getCurrentUser()
+    if (!user || !user._id) {
+      return { success: false, error: 'Unauthorized: Please log in to list products.' }
+    }
 
     if (!data.name) {
       return { success: false, error: 'Product name is required' }
     }
 
+    // 2. Data Preparation
     const slug = generateSlug(data.name)
 
     const productData = {
       ...data,
       slug,
+      vendor: user._id, // Securely set vendor ID from session
       approvalStatus: 'pending',
       isPublished: data.isPublished || false,
       commissionRate: 10,
-      ratings: { average: 0, count: 0 },
+      ratings: {
+        average: 0,
+        count: 0
+      },
       seo: {
         title: data.seo?.title || data.name,
         description: data.seo?.description || data.shortDescription || '',
@@ -217,11 +226,12 @@ export async function createProduct(data: ProductInput) {
       }
     }
 
-    // Product.create is now happy because the runtime data matches the Schema,
-    // even if the IProduct interface was stricter than the input.
+    // 3. Database Operation
     const newProduct = await Product.create(productData)
 
+    // 4. Cache Invalidation
     revalidatePath('/vendor/products')
+    revalidatePath('/admin/products')
     revalidatePath('/')
 
     return { 
@@ -230,11 +240,22 @@ export async function createProduct(data: ProductInput) {
     }
 
   } catch (error: unknown) {
-    // ... your existing error handling
     console.error('[PRODUCT_SERVICE_ERROR]:', error)
-    return { success: false, error: 'Failed to create product' }
+
+    // Extract specific Mongoose validation messages (like the Category ID error)
+    let errorMessage = 'An unexpected error occurred while saving the product'
+    
+    if (error instanceof Error) {
+      // This will capture things like "Cast to ObjectId failed for value 'Electronics'"
+      errorMessage = error.message 
+    }
+
+    return { 
+      success: false, 
+      error: errorMessage 
+    }
   }
-}
+              }
 
 
 export async function addProductReview(
