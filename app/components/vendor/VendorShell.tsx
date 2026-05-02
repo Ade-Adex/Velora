@@ -1,102 +1,62 @@
 // /app/components/vendor/VendorShell.tsx
 
-'use client'
 
-import { AppShell, Burger, Group, Text, NavLink, Stack, Box, Badge } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
-import { LayoutDashboard, Package, ListOrdered, Settings, ArrowLeft, Store } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { IUser, Serialized } from '@/app/types'
+'use client';
+import { AppShell, Burger, Group, Text, Avatar, Menu, UnstyledButton } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import VendorSidebar from './VendorSidebar';
+import { IUser, Serialized } from '@/app/types';
+import { ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
 
-interface VendorShellProps {
-  children: React.ReactNode
-  user: Serialized<IUser> // Using Serialized type for client-side safety
-}
-
-export default function VendorShell({ children, user }: VendorShellProps) {
-  const [opened, { toggle, close }] = useDisclosure()
-  const pathname = usePathname()
-
-  const links = [
-    { label: 'Overview', icon: LayoutDashboard, href: '/vendor' },
-    { label: 'My Products', icon: Package, href: '/vendor/products' },
-    { label: 'Order Requests', icon: ListOrdered, href: '/vendor/orders' },
-    { label: 'Store Settings', icon: Settings, href: '/vendor/settings' },
-  ]
+export default function VendorShell({ children, user }: { children: React.ReactNode; user: Serialized<IUser> }) {
+  const [opened, { toggle, close }] = useDisclosure();
 
   return (
     <AppShell
-      header={{ height: 60 }}
-      navbar={{
-        width: 280,
-        breakpoint: 'md',
-        collapsed: { mobile: !opened },
-      }}
+      header={{ height: 70 }}
+      navbar={{ width: 280, breakpoint: 'md', collapsed: { mobile: !opened } }}
       padding="xl"
-      styles={{
-        main: { background: '#fcfcfc' },
-      }}
+      styles={{ main: { backgroundColor: '#F8FAFC' } }}
     >
-      <AppShell.Header withBorder={false} className="shadow-sm">
-        <Group h="100%" px="md" justify="space-between">
+      <AppShell.Header withBorder={false} bg="white" className="shadow-sm">
+        <Group h="100%" px="xl" justify="space-between">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
-            <Text fw={900} lts="-1.5px" size="xl" className="italic">
-              VELORA<span className="text-[#FF8A00]">.</span>
-            </Text>
+            <Text fw={900} size="xl" className="md:hidden italic">VELORA</Text>
           </Group>
-          
-          <Group gap="xs">
-            <Badge size="lg" color="blue.0" c="blue.9" radius="sm" fw={800} variant="flat">
-               {user.vendorProfile?.shopName || 'Merchant'}
-            </Badge>
+
+          <Group gap="xl">
+            <Menu shadow="md" width={200} position="bottom-end">
+              <Menu.Target>
+                <UnstyledButton>
+                  <Group gap="xs">
+                    <Avatar src={user.image} radius="xl" color="indigo" />
+                    <div className="hidden sm:block">
+                      <Text size="sm" fw={800}>{user.fullName}</Text>
+                      <Text size="xs" c="dimmed">{user.vendorProfile?.shopName || 'Store Manager'}</Text>
+                    </div>
+                    <ChevronDown size={14} />
+                  </Group>
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>Merchant Account</Menu.Label>
+                <Menu.Item leftSection={<UserIcon size={14} />}>Profile Settings</Menu.Item>
+                <Menu.Divider />
+                <Menu.Item color="red" leftSection={<LogOut size={14} />}>Log Out</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </Group>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md" bg="white" withBorder>
-        <Stack gap="xs" flex={1}>
-           <Text size="xs" fw={800} c="dimmed" tt="uppercase" px="sm" mb={4}>
-             Store Management
-           </Text>
-          {links.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
-            
-            return (
-              <NavLink
-                key={item.href}
-                component={Link}
-                href={item.href}
-                label={item.label}
-                onClick={close}
-                leftSection={<Icon size={18} strokeWidth={isActive ? 2.5 : 2} />}
-                active={isActive}
-                variant="filled"
-                color="blue.7"
-                className="rounded-xl font-bold"
-              />
-            )
-          })}
-        </Stack>
-
-        <Box className="border-t border-gray-100 pt-4">
-          <NavLink
-            component={Link}
-            href="/"
-            label="Exit to Marketplace"
-            leftSection={<ArrowLeft size={18} />}
-            className="rounded-xl text-gray-500 font-bold"
-          />
-        </Box>
+      <AppShell.Navbar withBorder={false}>
+        <VendorSidebar onClose={close} />
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <div className="max-w-7xl mx-auto">
-          {children}
-        </div>
+        <Box className="max-w-7xl mx-auto">{children}</Box>
       </AppShell.Main>
     </AppShell>
-  )
-    }
+  );
+                                                                }
