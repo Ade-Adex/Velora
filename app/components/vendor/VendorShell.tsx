@@ -28,7 +28,7 @@ export default function VendorShell({ children, user }: { children: React.ReactN
       <AppShell.Header px="md" className="flex items-center justify-between border-b-0 shadow-sm">
         <Group>
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-          <Text fw={900} size="xl" tracking="-1px">VELORA <span className="text-blue-600">MERCHANT</span></Text>
+          <Text fw={900} size="xl" >VELORA <span className="text-blue-600">MERCHANT</span></Text>
         </Group>
         <Group>
            <Badge size="lg" color="blue.1" c="blue.7" radius="sm">Vendor Account</Badge>
