@@ -39,15 +39,14 @@ export default function ProfessionalNewProductPage() {
   const router = useRouter()
   const { enqueueSnackbar } = useSnackbar()
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState<{ value: string; label: string }[]>([])
+  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([])
 
-  // 1. Fetch categories on mount
   useEffect(() => {
-    async function loadCategories() {
+    const fetchOptions = async () => {
       const options = await getCategoryOptions()
-      setCategories(options)
+      setCategoryOptions(options)
     }
-    loadCategories()
+    fetchOptions()
   }, [])
 
   
@@ -253,13 +252,15 @@ const handleCreate = async (values: ProductFormValues) => {
   </Group>
                 <Stack gap="md">
                   <Select 
-    label="Category" 
-    placeholder={categories.length > 0 ? "Choose category" : "Loading categories..."} 
-    data={categories} // Now uses the real IDs from the DB
-    {...form.getInputProps('category')} 
-    required
-    disabled={categories.length === 0}
-  />
+  label="Category" 
+  placeholder={categoryOptions.length > 0 ? "Choose category" : "Loading categories..."} 
+  data={categoryOptions} 
+  {...form.getInputProps('category')} 
+  required
+  searchable
+  clearable
+  disabled={categoryOptions.length === 0}
+/>
                   <TagsInput 
                     label="Search Tags" 
                     placeholder="Add keywords" 
