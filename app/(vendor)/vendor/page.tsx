@@ -1,3 +1,5 @@
+// /app/(vendor)/vendor/page.tsx
+
 import { Stack, Title, Grid, Paper, Text, Group, Button, Badge, ActionIcon } from '@mantine/core';
 import { Wallet, Package, ShoppingCart, TrendingUp, Plus, ArrowUpRight, MoreHorizontal } from 'lucide-react';
 import { AdminStats } from '@/app/components/admin/AdminStats';
