@@ -31,8 +31,9 @@ interface ProductFormValues {
   tags: string[]
   isPublished: boolean
   specifications: { label: string; value: string }[]
-  variants: Omit<IVariant, 'attributes'> & { attributes: Record<string, string> }[]
-}
+  // ADD PARENTHESES HERE
+  variants: (Omit<IVariant, 'attributes'> & { attributes: Record<string, string> })[]
+  }
 
 export default function ProfessionalNewProductPage() {
   const router = useRouter()
@@ -73,17 +74,16 @@ const handleCreate = async (values: ProductFormValues) => {
     setLoading(true)
     try {
       const res = await createProduct({
-        ...values,
-        // Force the return type to IVariant[] to satisfy the service requirements
-        variants: values.variants.map((v): IVariant => ({
-          sku: v.sku,
-          name: v.name,
-          stock: v.stock,
-          price: v.price,
-          images: v.images,
-          attributes: v.attributes 
-        }))
-      })
+  ...values,
+  variants: values.variants.map((v): IVariant => ({
+    sku: v.sku,
+    name: v.name || '',
+    stock: Number(v.stock),
+    price: v.price ? Number(v.price) : undefined,
+    images: v.images || [],
+    attributes: v.attributes 
+  }))
+})
 
       if (res.success) {
         enqueueSnackbar('Product listing created and pending approval', { variant: 'success' })
