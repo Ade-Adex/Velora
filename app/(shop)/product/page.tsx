@@ -68,16 +68,19 @@ export default function ProfessionalNewProductPage() {
   })
       
 
+
 const handleCreate = async (values: ProductFormValues) => {
     setLoading(true)
     try {
-      // No need for complex 'as unknown' anymore because our service 
-      // now expects this exact shape.
       const res = await createProduct({
         ...values,
-        // The variants mapping ensures attributes Record matches the Map/Record in IVariant
-        variants: values.variants.map(v => ({
-          ...v,
+        // Force the return type to IVariant[] to satisfy the service requirements
+        variants: values.variants.map((v): IVariant => ({
+          sku: v.sku,
+          name: v.name,
+          stock: v.stock,
+          price: v.price,
+          images: v.images,
           attributes: v.attributes 
         }))
       })
@@ -93,7 +96,7 @@ const handleCreate = async (values: ProductFormValues) => {
     } finally {
       setLoading(false)
     }
-      }
+          }
 
 
   return (
