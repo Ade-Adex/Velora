@@ -70,8 +70,21 @@ export default function ProfessionalNewProductPage() {
   const handleCreate = async (values: ProductFormValues) => {
     setLoading(true)
     try {
-      // In production, the vendor ID is handled by the server session
-      const res = await createProduct(values)
+      // 1. Transform the flat form values into the IProduct-compatible structure
+      // We explicitly cast the category string to 'unknown' then 'any' 
+      // or simply treat it as the ID the backend expects.
+      const productData = {
+        ...values,
+        category: values.category as unknown as IProduct['category'],
+        // Ensure variants match the schema expected attributes Map/Record
+        variants: values.variants.map(v => ({
+          ...v,
+          attributes: v.attributes
+        }))
+      }
+
+      // 2. Call the service with the transformed data
+      const res = await createProduct(productData)
 
       if (res.success) {
         enqueueSnackbar('Product listing created and pending approval', { variant: 'success' })
@@ -79,7 +92,7 @@ export default function ProfessionalNewProductPage() {
       } else {
         enqueueSnackbar(res.error || 'Failed to create product', { variant: 'error' })
       }
-    } catch (error) {
+    } catch (error: unknown) {
       enqueueSnackbar('An unexpected error occurred', { variant: 'error' })
     } finally {
       setLoading(false)
