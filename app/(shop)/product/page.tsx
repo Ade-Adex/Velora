@@ -71,20 +71,16 @@ export default function ProfessionalNewProductPage() {
 const handleCreate = async (values: ProductFormValues) => {
     setLoading(true)
     try {
-      // 1. Transform and explicitly type as Partial<IProduct>
-      const productData: Partial<IProduct> = {
+      // No need for complex 'as unknown' anymore because our service 
+      // now expects this exact shape.
+      const res = await createProduct({
         ...values,
-        // Bridge the string ID from form to the ObjectId/Category type
-        category: values.category as unknown as IProduct['category'],
-        // Properly spread 'v' so that sku, name, and stock are preserved
+        // The variants mapping ensures attributes Record matches the Map/Record in IVariant
         variants: values.variants.map(v => ({
           ...v,
           attributes: v.attributes 
-        })) as IVariant[]
-      }
-
-      // 2. Call the service
-      const res = await createProduct(productData)
+        }))
+      })
 
       if (res.success) {
         enqueueSnackbar('Product listing created and pending approval', { variant: 'success' })
@@ -97,7 +93,8 @@ const handleCreate = async (values: ProductFormValues) => {
     } finally {
       setLoading(false)
     }
-}
+      }
+
 
   return (
     <Stack gap="xl" pb={100}>
