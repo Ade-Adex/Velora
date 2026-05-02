@@ -38,7 +38,8 @@ export default function ProfessionalNewProductPage() {
   const { enqueueSnackbar } = useSnackbar()
   const [loading, setLoading] = useState(false)
 
-  const form = useForm<ProductFormValues>({
+  
+    const form = useForm<ProductFormValues>({
     initialValues: {
       name: '',
       brand: '',
@@ -53,7 +54,8 @@ export default function ProfessionalNewProductPage() {
       tags: [] as string[],
       isPublished: false,
       specifications: [{ label: '', value: '' }],
-      variants: [] as ProductFormValues['variants']
+      // FIX: Use 'as unknown' to bridge the gap between never[] and your Variant type
+      variants: [] as unknown as ProductFormValues['variants']
     },
     validate: {
       name: (v) => (v.length < 3 ? 'Name must be at least 3 characters' : null),
@@ -99,15 +101,15 @@ export default function ProfessionalNewProductPage() {
         <Group>
           <Button variant="subtle" color="gray" component={Link} href="/vendor/products">Cancel</Button>
           <Button 
-            loading={loading} 
-            onClick={() => form.onSubmit(handleCreate)()} 
-            leftSection={<Check size={18}/>}
-            radius="md"
-            color="indigo.6"
-            px="xl"
-          >
-            Submit for Approval
-          </Button>
+  loading={loading} 
+  onClick={() => form.onSubmit(handleCreate)()} 
+  leftSection={<Check size={18}/>}
+  radius="md"
+  color="indigo.6"
+  px="xl"
+>
+  Submit for Approval
+</Button>
         </Group>
       </Group>
 
