@@ -299,18 +299,24 @@ export async function addProductReview(
 /**
  * Fetches all categories and formats them for the Mantine Select component
  */
+ 
 export async function getCategoryOptions() {
   try {
     await connectDB()
-    const categories = await Category.find().sort({ name: 1 }).lean()
+    
+    // We fetch only the name and ID to keep the payload small
+    const categories = await Category.find({})
+      .select('name _id')
+      .sort({ name: 1 })
+      .lean();
 
-    // Return in the format Mantine Select expects: { value: string, label: string }
-    return categories.map((cat: any) => ({
-      value: cat._id.toString(), // The ID goes to the "value"
-      label: cat.name            // The Name goes to the "label"
-    }))
+    return categories.map((cat) => ({
+      // We explicitly convert _id to string for the Select "value"
+      value: (cat._id as Types.ObjectId).toString(), 
+      label: cat.name as string
+    }));
   } catch (error) {
-    console.error("Error fetching categories:", error)
-    return []
+    console.error("Failed to fetch category options:", error);
+    return [];
   }
-                                       }
+}
