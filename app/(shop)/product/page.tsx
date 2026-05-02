@@ -5,7 +5,7 @@
 import { useState } from 'react'
 import { 
   TextInput, NumberInput, Textarea, Button, Paper, Stack, Title, 
-  Grid, Group, Select, MultiSelect, ActionIcon, Text, Divider, Switch, Card 
+  Grid, Group, Select, MultiSelect, TagsInput, ActionIcon, Text, Divider, Switch, Card 
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { Plus, Trash, Check, ArrowLeft, Layers, Image as ImageIcon, Info } from 'lucide-react'
@@ -249,12 +249,10 @@ const handleCreate = async (values: ProductFormValues) => {
                     {...form.getInputProps('category')} 
                     required
                   />
-                  <MultiSelect 
+                  <TagsInput 
                     label="Search Tags" 
                     placeholder="Add keywords" 
                     data={['New Arrival', 'Sale', 'Limited Edition', 'Best Seller']} 
-                    creatable 
-                    searchable 
                     {...form.getInputProps('tags')} 
                   />
                 </Stack>
