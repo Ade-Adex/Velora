@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { 
-  TextInput, NumberInput, Textarea, Button, Paper, Stack, Title, 
+  TextInput, NumberInput, Textarea, Button, Paper, Stack, Tag, Title, 
   Grid, Group, Select, MultiSelect, ActionIcon, Text, Divider, Switch, Card 
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
