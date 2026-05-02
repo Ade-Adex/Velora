@@ -11,7 +11,7 @@ import {
   Button,
   GridCol,
 } from '@mantine/core'
-import { AdminStats, StatItem } from '@/app/components/admin/AdminStats'
+import { AdminStats } from '@/app/components/admin/AdminStats'
 import { Order } from '@/app/models/Order'
 import { User } from '@/app/models/User'
 import { Product } from '@/app/models/Product' // Import Product model
@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { IOrder } from '@/app/types'
+import { StatItem } from '@/app/types';
 
 export default async function AdminDashboardPage() {
   await connectDB()
