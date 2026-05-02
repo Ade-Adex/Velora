@@ -1,10 +1,31 @@
 // /app/components/vendor/VendorSidebar.tsx
 
-'use client';
-import { Stack, Text, Box, Group, ScrollArea, Title, NavLink, ThemeIcon, rem } from '@mantine/core';
-import { LayoutDashboard, ShoppingBag, Package, Settings, BarChart3, HelpCircle, Store } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+
+'use client'
+import {
+  Stack,
+  Text,
+  Box,
+  Group,
+  ScrollArea,
+  Title,
+  NavLink,
+  ThemeIcon,
+  rem,
+  Tooltip,
+} from '@mantine/core'
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Package,
+  Settings,
+  BarChart3,
+  HelpCircle,
+  Store,
+  ArrowUpRight,
+} from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const menuItems = [
   { label: 'Dashboard', href: '/vendor', icon: LayoutDashboard },
@@ -12,59 +33,105 @@ const menuItems = [
   { label: 'Sales Ledger', href: '/vendor/orders', icon: ShoppingBag },
   { label: 'Growth Insights', href: '/vendor/analytics', icon: BarChart3 },
   { label: 'Merchant Settings', href: '/vendor/settings', icon: Settings },
-];
+]
 
-export default function VendorSidebar({ onClose }: { onClose?: () => void }) {
-  const pathname = usePathname();
+export default function VendorSidebar({ 
+  onClose, 
+  isCollapsed 
+}: { 
+  onClose?: () => void, 
+  isCollapsed?: boolean 
+}) {
+  const pathname = usePathname()
 
   return (
     <Box h="100%" className="flex flex-col bg-[#0F172A] text-white">
-      <Box p="xl" mb="md">
-        <Group gap="xs" mb={4}>
-          <ThemeIcon variant="gradient" gradient={{ from: 'indigo', to: 'cyan' }} size="lg" radius="md">
-            <Store size={20} />
+      {/* Brand Section */}
+      <Box p={isCollapsed ? "md" : "xl"} py="xl" className="flex justify-center items-center">
+        <Group gap="sm" wrap="nowrap" style={{ width: '100%' }} justify={isCollapsed ? 'center' : 'flex-start'}>
+          <ThemeIcon
+            variant="gradient"
+            gradient={{ from: 'indigo.5', to: 'cyan.5' }}
+            size={isCollapsed ? 42 : "lg"}
+            radius="md"
+          >
+            <Store size={isCollapsed ? 24 : 20} />
           </ThemeIcon>
-          <Title order={3} fw={900} lts="-1px">VELORA</Title>
+          {!isCollapsed && (
+            <Box>
+              <Title order={3} fw={900} lts="-1px">VELORA</Title>
+              <Text size="10px" fw={800} c="indigo.3" lts="1px" tt="uppercase">Merchant</Text>
+            </Box>
+          )}
         </Group>
-        <Text size="xs" fw={800} c="indigo.3" lts="1px" tt="uppercase">Merchant Hub</Text>
       </Box>
 
-      <ScrollArea flex={1} px="md">
-        <Stack gap={4}>
+      {/* Navigation Section */}
+      <ScrollArea flex={1} px={isCollapsed ? "xs" : "md"}>
+        <Stack gap={8} py="md">
           {menuItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
-            return (
+            const Icon = item.icon
+            const active = pathname === item.href
+            
+            const navLink = (
               <NavLink
                 key={item.href}
                 component={Link}
                 href={item.href}
                 onClick={onClose}
-                label={item.label}
-                leftSection={<Icon size={18} strokeWidth={active ? 2.5 : 1.5} />}
+                label={!isCollapsed && item.label}
+                leftSection={
+                  <Icon 
+                    size={isCollapsed ? 22 : 20} 
+                    strokeWidth={active ? 2.5 : 1.5} 
+                    className={active ? 'text-white' : 'text-slate-400'}
+                  />
+                }
                 active={active}
-                color="indigo.5"
+                color="indigo.6"
                 variant="filled"
-                className="rounded-lg py-3"
+                className={`rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center h-[50px]' : 'py-3'}`}
                 styles={{
-                  label: { fontWeight: active ? 800 : 500, fontSize: rem(14) },
-                  root: { transition: 'all 0.2s ease' }
+                  label: { fontWeight: active ? 700 : 500, fontSize: rem(14) },
+                  root: { 
+                    backgroundColor: active ? undefined : 'transparent',
+                    '&:hover': { backgroundColor: 'rgba(255,255,255,0.05)' } 
+                  },
                 }}
               />
-            );
+            )
+
+            return isCollapsed ? (
+              <Tooltip key={item.href} label={item.label} position="right" withArrow offset={20}>
+                {navLink}
+              </Tooltip>
+            ) : navLink
           })}
         </Stack>
       </ScrollArea>
 
-      <Box p="lg" className="border-t border-slate-800 bg-slate-900/50">
-        <NavLink
-          component={Link}
-          href="/support"
-          label="Merchant Support"
-          leftSection={<HelpCircle size={18} />}
-          className="rounded-lg text-slate-400"
-        />
+      {/* Footer Section */}
+      <Box p="md" className="mt-auto">
+        {!isCollapsed && (
+            <Box p="md" mb="md" className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl">
+                <Group justify="space-between" mb="xs">
+                    <Text size="xs" fw={700} c="indigo.2">PRO PLAN</Text>
+                    <ArrowUpRight size={14} className="text-indigo.4" />
+                </Group>
+                <Text size="11px" c="slate.4">Unlock advanced analytics and bulk uploads.</Text>
+            </Box>
+        )}
+        
+        <Tooltip label="Support" disabled={!isCollapsed} position="right">
+            <NavLink
+              component={Link}
+              href="/support"
+              label={!isCollapsed && "Support Center"}
+              leftSection={<HelpCircle size={isCollapsed ? 22 : 20} />}
+              className={`rounded-xl text-slate-400 ${isCollapsed ? 'justify-center h-[50px]' : ''}`}
+            />
+        </Tooltip>
       </Box>
     </Box>
-  );
+  )
 }

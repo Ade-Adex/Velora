@@ -21,7 +21,8 @@ interface AppWrapperProps {
 
 export default function AppWrapper({ children, initialUser }: AppWrapperProps) {
   const pathname = usePathname()
-  const isAdminPage = pathname?.startsWith('/admin')
+  const isDashboard =
+    pathname?.startsWith('/admin') || pathname?.startsWith('/vendor')
   return (
     <MantineProvider theme={theme} defaultColorScheme="light">
       <ModalsProvider>
@@ -34,7 +35,7 @@ export default function AppWrapper({ children, initialUser }: AppWrapperProps) {
             >
               <div className="flex flex-col min-h-screen bg-[#F4F7FA]">
                 {/* <Navbar /> */}
-                {!isAdminPage && <Navbar />}
+                {!isDashboard && <Navbar />}
                 <main className="flex-grow">{children}</main>
               </div>
             </SnackbarProvider>

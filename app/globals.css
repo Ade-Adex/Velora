@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+.mantine-Paper-root {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mantine-Paper-root:hover {
+  transform: translateY(-2px);
+}

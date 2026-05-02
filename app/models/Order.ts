@@ -22,24 +22,25 @@ const OrderSchema = new Schema(
     items: [
       {
         product: { type: Schema.Types.ObjectId, ref: 'Product' },
-        vendor: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Tracking the seller
+        vendor: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         variantSku: String,
         name: String,
         image: String, // Store image snapshot
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
         adminCommission: Number, // Percentage at time of sale
+        vendorNetEarning: { type: Number },
         fulfillmentStatus: {
           type: String,
           enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-          default: 'pending'
-        }
+          default: 'pending',
+        },
       },
     ],
     paymentMethod: {
       type: String,
       enum: ['card', 'transfer', 'cod'],
-      required: true
+      required: true,
     },
     totals: {
       subtotal: Number,

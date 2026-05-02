@@ -131,7 +131,13 @@ export interface IOrderItem {
   quantity: number
   price: number
   adminCommission?: number
-  fulfillmentStatus: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  fulfillmentStatus:
+    | 'pending'
+    | 'processing'
+    | 'shipped'
+    | 'delivered'
+    | 'cancelled'
+  vendorNetEarning?: number
 }
 
 export interface IOrder extends Document {
@@ -150,6 +156,7 @@ export interface IOrder extends Document {
   orderStatus: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
   paymentMethod: 'card' | 'transfer' | 'cod'
   paymentReference?: string
+  vendorNetEarnings?: number
   trackingNumber?: string
   createdAt: Date
   updatedAt: Date

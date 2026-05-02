@@ -1,5 +1,3 @@
-
-
 import {
   Stack,
   Group,
@@ -16,7 +14,16 @@ import {
   ScrollArea,
   Pagination,
 } from '@mantine/core'
-import { Plus, Edit3, Trash2, ExternalLink, Star, Package, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Plus,
+  Edit3,
+  Trash2,
+  ExternalLink,
+  Star,
+  Package,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import Link from 'next/link'
 import connectDB from '@/app/lib/mongodb'
 import { Product } from '@/app/models/Product'
@@ -34,9 +41,9 @@ export default async function AdminProductsPage({
   await connectDB()
 
   // Pagination Logic
-  const limit = 10;
-  const currentPage = Math.max(1, parseInt(page || '1'));
-  const skip = (currentPage - 1) * limit;
+  const limit = 10
+  const currentPage = Math.max(1, parseInt(page || '1'))
+  const skip = (currentPage - 1) * limit
 
   const query: Record<string, unknown> = {}
   if (q) query.name = { $regex: q, $options: 'i' }
@@ -54,7 +61,7 @@ export default async function AdminProductsPage({
     Product.countDocuments(query),
   ])
 
-  const totalPages = Math.ceil(totalProducts / limit);
+  const totalPages = Math.ceil(totalProducts / limit)
 
   return (
     <div className="md:px-4 py-0">
@@ -62,7 +69,12 @@ export default async function AdminProductsPage({
         <header>
           <Group justify="space-between" align="center">
             <Stack gap={2}>
-              <Title order={2} fw={900} lts="-1px" fz={{ base: 'xl', md: '26px' }}>
+              <Title
+                order={2}
+                fw={900}
+                lts="-1px"
+                fz={{ base: 'xl', md: '26px' }}
+              >
                 Products
               </Title>
               <Text c="dimmed" size="sm">
@@ -70,7 +82,12 @@ export default async function AdminProductsPage({
               </Text>
             </Stack>
             <Link href="/admin/products/new" className="no-underline">
-              <Button leftSection={<Plus size={18} />} radius="md" color="black" size="sm">
+              <Button
+                leftSection={<Plus size={18} />}
+                radius="md"
+                color="black"
+                size="sm"
+              >
                 Add Product
               </Button>
             </Link>
@@ -83,17 +100,39 @@ export default async function AdminProductsPage({
           currentCategory={category}
         />
 
-        <Paper radius="md" withBorder shadow="xs" style={{ overflow: 'hidden' }}>
+        <Paper
+          radius="md"
+          withBorder
+          shadow="xs"
+          style={{ overflow: 'hidden' }}
+        >
           <ScrollArea scrollbars="x">
-            <Table verticalSpacing="md" horizontalSpacing="md" highlightOnHover miw={850}>
+            <Table
+              verticalSpacing="md"
+              horizontalSpacing="md"
+              highlightOnHover
+              miw={850}
+            >
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">Product</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">Category</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">Pricing</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">Last Edit</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">Inventory</th>
-                  <th className="p-4 text-xs font-bold text-gray-500 uppercase text-right">Actions</th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Product
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Category
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Pricing
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Last Edit
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase">
+                    Inventory
+                  </th>
+                  <th className="p-4 text-xs font-bold text-gray-500 uppercase text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -101,19 +140,39 @@ export default async function AdminProductsPage({
                   const categoryData = product.category as unknown as ICategory
                   const editor = product.updatedBy as unknown as IUser | null
                   const displayName = editor?.fullName || 'System'
-                  const initials = editor?.fullName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'S'
+                  const initials =
+                    editor?.fullName
+                      ?.split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2) || 'S'
 
-                  const hasDiscount = product.onSale && product.discountPrice && product.discountPrice < product.basePrice
-                  const displayPrice = hasDiscount ? product.discountPrice : product.basePrice
-      const imageSrc = typeof product.mainImage === 'string' 
-  ? product.mainImage 
-  : product.mainImage?.src; 
+                  const hasDiscount =
+                    product.onSale &&
+                    product.discountPrice &&
+                    product.discountPrice < product.basePrice
+                  const displayPrice = hasDiscount
+                    ? product.discountPrice
+                    : product.basePrice
+                  const imageSrc =
+                    typeof product.mainImage === 'string'
+                      ? product.mainImage
+                      : product.mainImage?.src
 
                   return (
-                    <tr key={product._id.toString()} className="border-t border-gray-100">
+                    <tr
+                      key={product._id.toString()}
+                      className="border-t border-gray-100"
+                    >
                       <td className="p-4">
                         <Group gap="sm" wrap="nowrap">
-                          <Avatar src={imageSrc} radius="md" size="lg" bg="gray.1">
+                          <Avatar
+                            src={imageSrc}
+                            radius="md"
+                            size="lg"
+                            bg="gray.1"
+                          >
                             <Package size={20} />
                           </Avatar>
                           <Box style={{ flex: 1, minWidth: 150 }}>
@@ -138,9 +197,16 @@ export default async function AdminProductsPage({
 
                       <td className="p-4">
                         <Stack gap={0}>
-                          <Text size="sm" fw={900}>₦{displayPrice?.toLocaleString()}</Text>
+                          <Text size="sm" fw={900}>
+                            ₦{displayPrice?.toLocaleString()}
+                          </Text>
                           {hasDiscount && (
-                            <Text size="xs" c="red.6" td="line-through" fw={500}>
+                            <Text
+                              size="xs"
+                              c="red.6"
+                              td="line-through"
+                              fw={500}
+                            >
                               ₦{product.basePrice?.toLocaleString()}
                             </Text>
                           )}
@@ -160,7 +226,11 @@ export default async function AdminProductsPage({
                             {initials}
                           </Avatar>
                           <Stack gap={0}>
-                            <Text size="xs" fw={800} className="whitespace-nowrap">
+                            <Text
+                              size="xs"
+                              fw={800}
+                              className="whitespace-nowrap"
+                            >
                               {displayName}
                             </Text>
                             <Text size="xs" c="dimmed">
@@ -171,9 +241,15 @@ export default async function AdminProductsPage({
                       </td>
 
                       <td className="p-4">
-                        <Badge 
-                          variant="light" 
-                          color={product.stock <= 0 ? 'red' : product.stock <= 5 ? 'orange' : 'green'}
+                        <Badge
+                          variant="light"
+                          color={
+                            product.stock <= 0
+                              ? 'red'
+                              : product.stock <= 5
+                                ? 'orange'
+                                : 'green'
+                          }
                         >
                           {product.stock} in stock
                         </Badge>
@@ -181,7 +257,13 @@ export default async function AdminProductsPage({
 
                       <td className="p-4">
                         <Group justify="flex-end" gap={4} wrap="nowrap">
-                          <ActionIcon variant="subtle" color="gray" component="a" href={`/product/${product.slug}`} target="_blank">
+                          <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            component="a"
+                            href={`/product/${product.slug}`}
+                            target="_blank"
+                          >
                             <ExternalLink size={16} />
                           </ActionIcon>
                           <Link href={`/admin/products/edit/${product._id}`}>
@@ -205,17 +287,18 @@ export default async function AdminProductsPage({
           <div className="p-4 border-t border-gray-100 bg-gray-50/50">
             <Group justify="space-between">
               <Text size="xs" c="dimmed" fw={600}>
-                Showing {skip + 1} to {Math.min(skip + limit, totalProducts)} of {totalProducts}
+                Showing {skip + 1} to {Math.min(skip + limit, totalProducts)} of{' '}
+                {totalProducts}
               </Text>
-              
+
               <Group gap="xs">
-                <Link 
+                <Link
                   href={`/admin/products?page=${currentPage - 1}${q ? `&q=${q}` : ''}${category ? `&category=${category}` : ''}`}
                   style={{ pointerEvents: currentPage <= 1 ? 'none' : 'auto' }}
                 >
-                  <Button 
-                    variant="default" 
-                    size="compact-sm" 
+                  <Button
+                    variant="default"
+                    size="compact-sm"
                     disabled={currentPage <= 1}
                     leftSection={<ChevronLeft size={14} />}
                   >
@@ -224,16 +307,20 @@ export default async function AdminProductsPage({
                 </Link>
 
                 <div className="flex items-center px-3">
-                  <Text size="xs" fw={800}>Page {currentPage} of {totalPages}</Text>
+                  <Text size="xs" fw={800}>
+                    Page {currentPage} of {totalPages}
+                  </Text>
                 </div>
 
-                <Link 
+                <Link
                   href={`/admin/products?page=${currentPage + 1}${q ? `&q=${q}` : ''}${category ? `&category=${category}` : ''}`}
-                  style={{ pointerEvents: currentPage >= totalPages ? 'none' : 'auto' }}
+                  style={{
+                    pointerEvents: currentPage >= totalPages ? 'none' : 'auto',
+                  }}
                 >
-                  <Button 
-                    variant="default" 
-                    size="compact-sm" 
+                  <Button
+                    variant="default"
+                    size="compact-sm"
                     disabled={currentPage >= totalPages}
                     rightSection={<ChevronRight size={14} />}
                   >
@@ -247,4 +334,4 @@ export default async function AdminProductsPage({
       </Stack>
     </div>
   )
-    }
+}
