@@ -9,7 +9,7 @@ import { ICategory, IProduct, IReview } from '@/app/types'
 import { SortOrder, Types } from 'mongoose'
 import '../models/Category'
 import { revalidatePath } from 'next/cache'
-import slugify from 'slugify'
+// import slugify from 'slugify'
 
 export type CreateProductInput = Omit<
   IProduct,
@@ -166,40 +166,82 @@ export async function getProductsByCollection(type: string) {
   return JSON.parse(JSON.stringify(products))
 }
 
+/**
+ * Native slug generator to avoid external dependencies
+ */
+function generateSlug(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     // Replace spaces with -
+    .replace(/[^\w-]+/g, '')  // Remove all non-word chars
+    .replace(/--+/g, '-')     // Replace multiple - with single -
+    .concat('-', Math.random().toString(36).substring(2, 6)) // Add random suffix for uniqueness
+}
+
+/**
+ * Professional Product Creation Service
+ * Handles data normalization, slug generation, and safe error handling
+ */
 export async function createProduct(data: Partial<IProduct>) {
   try {
     await connectDB()
 
-    // 1. Professional Slug Generation
-    let slug = slugify(data.name || '', { lower: true, strict: true })
-    const existing = await Product.findOne({ slug })
-    if (existing) slug = `${slug}-${Date.now().toString().slice(-4)}`
+    if (!data.name) {
+      return { success: false, error: 'Product name is required' }
+    }
 
-    // 2. Data Preparation matching your Schema
-    const newProduct = new Product({
+    const slug = generateSlug(data.name)
+
+    // Construct the product document based on your professional schema
+    const productData = {
       ...data,
       slug,
-      approvalStatus: 'pending', // Default for marketplace safety
-      isPublished: data.isPublished ?? false,
-      ratings: { average: 0, count: 0 },
+      approvalStatus: 'pending', // Security: manual review required
+      isPublished: data.isPublished || false,
+      commissionRate: 10, // Default marketplace fee
+      ratings: {
+        average: 0,
+        count: 0
+      },
       seo: {
         title: data.seo?.title || data.name,
-        description: data.seo?.description || data.shortDescription || data.description?.slice(0, 160),
+        description: data.seo?.description || data.shortDescription || '',
         keywords: data.tags || []
       }
-    })
+    }
 
-    await newProduct.save()
+    const newProduct = await Product.create(productData)
 
+    // Clear caches so the new product appears in the dashboard/category lists
     revalidatePath('/vendor/products')
     revalidatePath('/admin/products')
+    revalidatePath('/')
+
+    return { 
+      success: true, 
+      id: (newProduct._id as string).toString() 
+    }
+
+  } catch (error: unknown) {
+    // Professional error handling: Type guard for 'unknown'
+    let errorMessage = 'An unexpected error occurred during product creation'
+
+    if (error instanceof Error) {
+      errorMessage = error.message
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    }
+
+    console.error('[PRODUCT_SERVICE_ERROR]:', error)
     
-    return { success: true, id: newProduct._id.toString() }
-  } catch (error: any) {
-    console.error('Error creating product:', error)
-    return { success: false, error: error.message }
+    return { 
+      success: false, 
+      error: errorMessage 
+    }
   }
-  }
+      }
 
 export async function addProductReview(
   productId: string,
