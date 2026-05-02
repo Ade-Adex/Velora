@@ -58,7 +58,7 @@ export default async function VendorDashboardPage() {
 
       <AdminStats data={stats} />
 
-      <Grid gutter="md">
+      <Grid gap="md">
         <Grid.Col span={{ base: 12, lg: 8 }}>
           <Paper withBorder radius="lg" shadow="sm">
             <Group p="md" justify="space-between" className="border-b border-gray-100">
