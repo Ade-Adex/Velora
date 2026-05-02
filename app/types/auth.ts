@@ -6,5 +6,5 @@ export interface UserPayload extends JWTPayload {
   // id: string
   _id: string
   email: string
-  role: 'customer' | 'admin' | 'editor'
+  role: 'customer' | 'admin' | 'editor' | 'vendor' 
 }
