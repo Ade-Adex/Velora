@@ -2,7 +2,7 @@
 
 import { Stack, Title, Grid, Paper, Text, Group, Button, Badge, ActionIcon } from '@mantine/core';
 import { Wallet, Package, ShoppingCart, TrendingUp, Plus, ArrowUpRight, MoreHorizontal } from 'lucide-react';
-import { AdminStats } from '@/app/components/admin/AdminStats';
+import  AdminStats  from '@/app/components/admin/AdminStats';
 import { getCurrentUser } from '@/app/services/auth-service';
 import connectDB from '@/app/lib/mongodb';
 import { Product } from '@/app/models/Product';
