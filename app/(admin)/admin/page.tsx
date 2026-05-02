@@ -27,8 +27,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import Link from 'next/link'
-import { IOrder } from '@/app/types'
-import { StatItem } from '@/app/types';
+import { IOrder, StatItem } from '@/app/types'
 
 export default async function AdminDashboardPage() {
   await connectDB()
