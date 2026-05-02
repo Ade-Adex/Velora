@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { 
-  TextInput, NumberInput, Textarea, Button, Paper, Stack, Tag, Title, 
+  TextInput, NumberInput, Textarea, Button, Paper, Stack, Title, 
   Grid, Group, Select, MultiSelect, ActionIcon, Text, Divider, Switch, Card 
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
@@ -237,9 +237,10 @@ const handleCreate = async (values: ProductFormValues) => {
 
               <Paper withBorder p="xl" radius="md" shadow="sm">
                 <Group mb="lg">
-                  <Tag size={20} className="text-indigo-600" />
-                  <Title order={4}>Organization</Title>
-                </Group>
+    {/* Using the icon you already imported */}
+    <Layers size={20} className="text-indigo-600" /> 
+    <Title order={4}>Organization</Title>
+  </Group>
                 <Stack gap="md">
                   <Select 
                     label="Category" 
