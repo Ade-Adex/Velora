@@ -2,14 +2,14 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   TextInput, NumberInput, Textarea, Button, Paper, Stack, Title, 
   Grid, Group, Select, MultiSelect, TagsInput, ActionIcon, Text, Divider, Switch, Card 
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { Plus, Trash, Check, ArrowLeft, Layers, Image as ImageIcon, Info } from 'lucide-react'
-import { createProduct } from '@/app/services/product-service'
+import { createProduct, getCategoryOptions} from '@/app/services/product-service'
 import { useSnackbar } from 'notistack'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -39,6 +39,16 @@ export default function ProfessionalNewProductPage() {
   const router = useRouter()
   const { enqueueSnackbar } = useSnackbar()
   const [loading, setLoading] = useState(false)
+  const [categories, setCategories] = useState<{ value: string; label: string }[]>([])
+
+  // 1. Fetch categories on mount
+  useEffect(() => {
+    async function loadCategories() {
+      const options = await getCategoryOptions()
+      setCategories(options)
+    }
+    loadCategories()
+  }, [])
 
   
     const form = useForm<ProductFormValues>({
@@ -243,12 +253,13 @@ const handleCreate = async (values: ProductFormValues) => {
   </Group>
                 <Stack gap="md">
                   <Select 
-                    label="Category" 
-                    placeholder="Choose category" 
-                    data={['Electronics', 'Home & Kitchen', 'Fashion', 'Beauty']} 
-                    {...form.getInputProps('category')} 
-                    required
-                  />
+    label="Category" 
+    placeholder={categories.length > 0 ? "Choose category" : "Loading categories..."} 
+    data={categories} // Now uses the real IDs from the DB
+    {...form.getInputProps('category')} 
+    required
+    disabled={categories.length === 0}
+  />
                   <TagsInput 
                     label="Search Tags" 
                     placeholder="Add keywords" 
