@@ -42,18 +42,18 @@ export default async function VendorDashboardPage() {
           <Title order={2} fw={900} lts="-1px">Store Overview</Title>
           <Text c="dimmed" size="sm" fw={500}>Welcome back, {user.vendorProfile?.shopName || user.fullName}.</Text>
         </div>
-        <Button 
-          component={Link} 
-          href="/vendor/products/new" 
-          leftSection={<Plus size={18} />} 
-          variant="filled" 
-          color="indigo.6" 
-          radius="md" 
-          size="md"
-          fw={800}
-        >
-          Add Product
-        </Button>
+        <Link href="/vendor/products/new" style={{ textDecoration: 'none' }}>
+          <Button 
+            leftSection={<Plus size={18} />} 
+            variant="filled" 
+            color="indigo.6" 
+            radius="md" 
+            size="md"
+            fw={800}
+          >
+            Add Product
+          </Button>
+        </Link>
       </Group>
 
       <AdminStats data={stats} />
@@ -63,7 +63,9 @@ export default async function VendorDashboardPage() {
           <Paper withBorder radius="lg" shadow="sm">
             <Group p="md" justify="space-between" className="border-b border-gray-100">
               <Text fw={800} size="xs" tt="uppercase" c="dimmed" lts="1px">Recent Sales Activity</Text>
-              <Button component={Link} href="/vendor/orders" variant="subtle" size="xs">View Ledger</Button>
+              <Link href="/vendor/orders" style={{ textDecoration: 'none' }}>
+        <Button variant="subtle" size="xs">View Ledger</Button>
+      </Link>
             </Group>
 
             <div className="overflow-x-auto">
