@@ -1,6 +1,5 @@
 // /app/(admin)/admin/page.tsx
 
-
 import {
   Stack,
   Title,
@@ -11,7 +10,7 @@ import {
   Button,
   GridCol,
 } from '@mantine/core'
-import  AdminStats  from '@/app/components/admin/AdminStats'
+import AdminStats from '@/app/components/admin/AdminStats'
 import { Order } from '@/app/models/Order'
 import { User } from '@/app/models/User'
 import { Product } from '@/app/models/Product' // Import Product model
@@ -33,51 +32,52 @@ export default async function AdminDashboardPage() {
   await connectDB()
 
   // Define your low stock threshold
-  const LOW_STOCK_THRESHOLD = 5;
+  const LOW_STOCK_THRESHOLD = 5
 
   // Fetch metrics dynamically
-  const [totalOrders, totalUsers, ordersData, lowStockCount] = await Promise.all([
-    Order.countDocuments(),
-    User.countDocuments({ role: 'customer' }),
-    Order.find().select('totals.grandTotal').lean(),
-    Product.countDocuments({ stock: { $lte: LOW_STOCK_THRESHOLD } }), // Dynamic count
-  ])
+  const [totalOrders, totalUsers, ordersData, lowStockCount] =
+    await Promise.all([
+      Order.countDocuments(),
+      User.countDocuments({ role: 'customer' }),
+      Order.find().select('totals.grandTotal').lean(),
+      Product.countDocuments({ stock: { $lte: LOW_STOCK_THRESHOLD } }), // Dynamic count
+    ])
 
   const totalRevenue = ordersData.reduce(
     (acc, order) => acc + (order.totals?.grandTotal || 0),
     0,
   )
 
-const stats: StatItem[] = [
-  {
-    title: 'Revenue',
-    value: `₦${totalRevenue.toLocaleString()}`,
-    diff: 12.5,
-    icon: 'bank',
-    color: 'green',
-  },
-  {
-    title: 'Orders',
-    value: totalOrders,
-    diff: 5.2,
-    icon: 'package',
-    color: 'blue',
-  },
-  {
-    title: 'Customers',
-    value: totalUsers,
-    diff: -1.4,
-    icon: 'users',
-    color: 'violet',
-  },
-  {
-    title: 'Avg. Sale',
-    value: `₦${(totalRevenue / (totalOrders || 1)).toFixed(0)}`,
-    diff: 3.8,
-    icon: 'chart',
-    color: 'orange',
-  },
-];
+  const stats: StatItem[] = [
+    {
+      title: 'Revenue',
+      value: `₦${totalRevenue.toLocaleString()}`,
+      diff: 12.5,
+      icon: 'bank',
+      color: 'green',
+    },
+    {
+      title: 'Orders',
+      value: totalOrders,
+      diff: 5.2,
+      icon: 'package',
+      color: 'blue',
+    },
+    {
+      title: 'Customers',
+      value: totalUsers,
+      diff: -1.4,
+      icon: 'users',
+      color: 'violet',
+    },
+    {
+      title: 'Avg. Sale',
+      value: `₦${(totalRevenue / (totalOrders || 1)).toFixed(0)}`,
+      diff: 3.8,
+      icon: 'chart',
+      color: 'orange',
+    },
+  ]
 
   const recentOrders = await Order.find()
     .sort({ createdAt: -1 })
@@ -125,9 +125,15 @@ const stats: StatItem[] = [
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50/50">
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">Order</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">Status</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase text-right">Total</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">
+                        Order
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase">
+                        Status
+                      </th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase text-right">
+                        Total
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -137,16 +143,26 @@ const stats: StatItem[] = [
                         className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors"
                       >
                         <td className="p-4">
-                          <Text size="sm" fw={700}>#{order.orderNumber}</Text>
-                          <Text size="xs" c="dimmed">{new Date(order.createdAt).toLocaleDateString()}</Text>
+                          <Text size="sm" fw={700}>
+                            #{order.orderNumber}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </Text>
                         </td>
                         <td className="p-4">
-                          <Text size="xs" fw={800} className="uppercase px-2 py-1 bg-gray-100 rounded-md inline-block">
+                          <Text
+                            size="xs"
+                            fw={800}
+                            className="uppercase px-2 py-1 bg-gray-100 rounded-md inline-block"
+                          >
                             {order.orderStatus}
                           </Text>
                         </td>
                         <td className="p-4 text-right">
-                          <Text size="sm" fw={800}>₦{order.totals.grandTotal.toLocaleString()}</Text>
+                          <Text size="sm" fw={800}>
+                            ₦{order.totals.grandTotal.toLocaleString()}
+                          </Text>
                         </td>
                       </tr>
                     ))}
@@ -160,17 +176,33 @@ const stats: StatItem[] = [
           <GridCol span={{ base: 12, md: 4 }}>
             <Stack gap="md">
               <Paper withBorder p="md" radius="md" shadow="sm">
-                <Text fw={800} size="xs" mb="md" className="uppercase tracking-widest opacity-60">
+                <Text
+                  fw={800}
+                  size="xs"
+                  mb="md"
+                  className="uppercase tracking-widest opacity-60"
+                >
                   Quick Actions
                 </Text>
                 <Stack gap="xs">
                   <Link href="/admin/products/new" className="no-underline">
-                    <Button variant="light" fullWidth justify="flex-start" leftSection={<PlusCircle size={16} />}>
+                    <Button
+                      variant="light"
+                      fullWidth
+                      justify="flex-start"
+                      leftSection={<PlusCircle size={16} />}
+                    >
                       Add Product
                     </Button>
                   </Link>
                   <Link href="/admin/settings" className="no-underline">
-                    <Button variant="light" fullWidth justify="flex-start" color="gray" leftSection={<Settings2 size={16} />}>
+                    <Button
+                      variant="light"
+                      fullWidth
+                      justify="flex-start"
+                      color="gray"
+                      leftSection={<Settings2 size={16} />}
+                    >
                       Store Settings
                     </Button>
                   </Link>
@@ -182,25 +214,42 @@ const stats: StatItem[] = [
                 withBorder
                 p="md"
                 radius="md"
-                bg={lowStockCount > 0 ? "orange.9" : "blue.9"} // Color changes based on urgency
+                bg={lowStockCount > 0 ? 'orange.9' : 'blue.9'} // Color changes based on urgency
                 c="white"
                 shadow="md"
               >
                 <Group justify="space-between" align="center" mb="xs">
-                  <Text size="xs" fw={800} className="uppercase tracking-widest opacity-70">
+                  <Text
+                    size="xs"
+                    fw={800}
+                    className="uppercase tracking-widest opacity-70"
+                  >
                     Inventory Sync
                   </Text>
                   {lowStockCount > 0 && <AlertTriangle size={16} />}
                 </Group>
-                
+
                 {lowStockCount > 0 ? (
                   <>
                     <Text size="sm" fw={500} style={{ lineHeight: 1.5 }}>
-                      Low stock levels detected for <b>{lowStockCount} {lowStockCount === 1 ? 'item' : 'items'}</b>. 
-                      Restocking ensures continuity during peak sales periods.
+                      Low stock levels detected for{' '}
+                      <b>
+                        {lowStockCount} {lowStockCount === 1 ? 'item' : 'items'}
+                      </b>
+                      . Restocking ensures continuity during peak sales periods.
                     </Text>
-                    <Link href="/admin/products?stock=low" className="no-underline">
-                      <Button mt="md" variant="white" color="orange.9" size="xs" fullWidth fw={800}>
+                    <Link
+                      href="/admin/products?stock=low"
+                      className="no-underline"
+                    >
+                      <Button
+                        mt="md"
+                        variant="white"
+                        color="orange.9"
+                        size="xs"
+                        fullWidth
+                        fw={800}
+                      >
                         Restock Now
                       </Button>
                     </Link>
@@ -208,10 +257,18 @@ const stats: StatItem[] = [
                 ) : (
                   <>
                     <Text size="sm" fw={500} style={{ lineHeight: 1.5 }}>
-                      Your inventory is healthy! All products are currently above the threshold.
+                      Your inventory is healthy! All products are currently
+                      above the threshold.
                     </Text>
                     <Link href="/admin/products" className="no-underline">
-                      <Button mt="md" variant="white" color="blue.9" size="xs" fullWidth fw={800}>
+                      <Button
+                        mt="md"
+                        variant="white"
+                        color="blue.9"
+                        size="xs"
+                        fullWidth
+                        fw={800}
+                      >
                         Manage Inventory
                       </Button>
                     </Link>
@@ -224,4 +281,4 @@ const stats: StatItem[] = [
       </Stack>
     </div>
   )
-    }
+}

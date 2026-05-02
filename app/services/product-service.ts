@@ -20,8 +20,7 @@ export type CreateProductInput = Omit<
   category: string
 }
 
-type ProductInput = Omit<Partial<IProduct>, 'category'> & { category?: string };
-
+type ProductInput = Omit<Partial<IProduct>, 'category'> & { category?: string }
 
 export async function getProducts(limit: number) {
   await connectDB()
@@ -171,7 +170,6 @@ export async function getProductsByCollection(type: string) {
   return JSON.parse(JSON.stringify(products))
 }
 
-
 /**
  * Enhanced native slug generator
  */
@@ -180,11 +178,11 @@ function generateSlug(text: string): string {
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')           // Replace spaces with -
-    .replace(/[^\w-]+/g, '')        // Remove all non-word chars
-    .replace(/--+/g, '-')           // Replace multiple - with single -
-    .replace(/^-+/, '')             // Trim - from start
-    .replace(/-+$/, '')             // Trim - from end
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start
+    .replace(/-+$/, '') // Trim - from end
     .concat('-', Math.random().toString(36).substring(2, 6)) // Unique suffix
 }
 
@@ -198,7 +196,10 @@ export async function createProduct(data: ProductInput) {
     // 1. Authentication & Security
     const user = await getCurrentUser()
     if (!user || !user._id) {
-      return { success: false, error: 'Unauthorized: Please log in to list products.' }
+      return {
+        success: false,
+        error: 'Unauthorized: Please log in to list products.',
+      }
     }
 
     if (!data.name) {
@@ -217,13 +218,13 @@ export async function createProduct(data: ProductInput) {
       commissionRate: 10,
       ratings: {
         average: 0,
-        count: 0
+        count: 0,
       },
       seo: {
         title: data.seo?.title || data.name,
         description: data.seo?.description || data.shortDescription || '',
-        keywords: data.tags || []
-      }
+        keywords: data.tags || [],
+      },
     }
 
     // 3. Database Operation
@@ -234,29 +235,27 @@ export async function createProduct(data: ProductInput) {
     revalidatePath('/admin/products')
     revalidatePath('/')
 
-    return { 
-      success: true, 
-      id: (newProduct._id as Types.ObjectId).toString() 
+    return {
+      success: true,
+      id: (newProduct._id as Types.ObjectId).toString(),
     }
-
   } catch (error: unknown) {
     console.error('[PRODUCT_SERVICE_ERROR]:', error)
 
     // Extract specific Mongoose validation messages (like the Category ID error)
     let errorMessage = 'An unexpected error occurred while saving the product'
-    
+
     if (error instanceof Error) {
       // This will capture things like "Cast to ObjectId failed for value 'Electronics'"
-      errorMessage = error.message 
+      errorMessage = error.message
     }
 
-    return { 
-      success: false, 
-      error: errorMessage 
+    return {
+      success: false,
+      error: errorMessage,
     }
   }
-              }
-
+}
 
 export async function addProductReview(
   productId: string,
@@ -295,28 +294,27 @@ export async function addProductReview(
   return JSON.parse(JSON.stringify(product))
 }
 
-
 /**
  * Fetches all categories and formats them for the Mantine Select component
  */
- 
+
 export async function getCategoryOptions() {
   try {
     await connectDB()
-    
+
     // We fetch only the name and ID to keep the payload small
     const categories = await Category.find({})
       .select('name _id')
       .sort({ name: 1 })
-      .lean();
+      .lean()
 
     return categories.map((cat) => ({
       // We explicitly convert _id to string for the Select "value"
-      value: (cat._id as Types.ObjectId).toString(), 
-      label: cat.name as string
-    }));
+      value: (cat._id as Types.ObjectId).toString(),
+      label: cat.name as string,
+    }))
   } catch (error) {
-    console.error("Failed to fetch category options:", error);
-    return [];
+    console.error('Failed to fetch category options:', error)
+    return []
   }
 }
