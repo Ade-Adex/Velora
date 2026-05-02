@@ -11,7 +11,7 @@ import {
   Button,
   GridCol,
 } from '@mantine/core'
-import { AdminStats } from '@/app/components/admin/AdminStats'
+import { AdminStats, StatItem } from '@/app/components/admin/AdminStats'
 import { Order } from '@/app/models/Order'
 import { User } from '@/app/models/User'
 import { Product } from '@/app/models/Product' // Import Product model
@@ -48,36 +48,36 @@ export default async function AdminDashboardPage() {
     0,
   )
 
-  const stats = [
-    {
-      title: 'Revenue',
-      value: `₦${totalRevenue.toLocaleString()}`,
-      diff: 12.5,
-      icon: Banknote,
-      color: 'green',
-    },
-    {
-      title: 'Orders',
-      value: totalOrders,
-      diff: 5.2,
-      icon: Package,
-      color: 'blue',
-    },
-    {
-      title: 'Customers',
-      value: totalUsers,
-      diff: -1.4,
-      icon: Users,
-      color: 'violet',
-    },
-    {
-      title: 'Avg. Sale',
-      value: `₦${(totalRevenue / (totalOrders || 1)).toFixed(0)}`,
-      diff: 3.8,
-      icon: BarChart3,
-      color: 'orange',
-    },
-  ]
+const stats: StatItem[] = [
+  {
+    title: 'Revenue',
+    value: `₦${totalRevenue.toLocaleString()}`,
+    diff: 12.5,
+    icon: Banknote, // Direct Component Reference
+    color: 'green',
+  },
+  {
+    title: 'Orders',
+    value: totalOrders,
+    diff: 5.2,
+    icon: Package, // Direct Component Reference
+    color: 'blue',
+  },
+  {
+    title: 'Customers',
+    value: totalUsers,
+    diff: -1.4,
+    icon: Users, // Direct Component Reference
+    color: 'violet',
+  },
+  {
+    title: 'Avg. Sale',
+    value: `₦${(totalRevenue / (totalOrders || 1)).toFixed(0)}`,
+    diff: 3.8,
+    icon: BarChart3, // Direct Component Reference
+    color: 'orange',
+  },
+];
 
   const recentOrders = await Order.find()
     .sort({ createdAt: -1 })
