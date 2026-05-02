@@ -68,23 +68,22 @@ export default function ProfessionalNewProductPage() {
   })
       
 
-  const handleCreate = async (values: ProductFormValues) => {
+const handleCreate = async (values: ProductFormValues) => {
     setLoading(true)
     try {
-      // 1. Transform the flat form values into the IProduct-compatible structure
-      // We explicitly cast the category string to 'unknown' then 'any' 
-      // or simply treat it as the ID the backend expects.
-      const productData = {
+      // 1. Transform and explicitly type as Partial<IProduct>
+      const productData: Partial<IProduct> = {
         ...values,
+        // Bridge the string ID from form to the ObjectId/Category type
         category: values.category as unknown as IProduct['category'],
-        // Ensure variants match the schema expected attributes Map/Record
+        // Properly spread 'v' so that sku, name, and stock are preserved
         variants: values.variants.map(v => ({
           ...v,
-          attributes: v.attributes
-        }))
+          attributes: v.attributes 
+        })) as IVariant[]
       }
 
-      // 2. Call the service with the transformed data
+      // 2. Call the service
       const res = await createProduct(productData)
 
       if (res.success) {
@@ -98,7 +97,7 @@ export default function ProfessionalNewProductPage() {
     } finally {
       setLoading(false)
     }
-  }
+}
 
   return (
     <Stack gap="xl" pb={100}>
