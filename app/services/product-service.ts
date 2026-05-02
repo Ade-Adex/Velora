@@ -8,6 +8,8 @@ import { Product } from '@/app/models/Product'
 import { ICategory, IProduct, IReview } from '@/app/types'
 import { SortOrder, Types } from 'mongoose'
 import '../models/Category'
+import { revalidatePath } from 'next/cache'
+import slugify from 'slugify'
 
 export type CreateProductInput = Omit<
   IProduct,
@@ -163,24 +165,44 @@ export async function getProductsByCollection(type: string) {
 
   return JSON.parse(JSON.stringify(products))
 }
-export async function createProduct(data: CreateProductInput) {
-  await connectDB()
 
-  const productData = { ...data }
+'use server'
 
-  if (productData.name && !productData.slug) {
-    productData.slug =
-      productData.name
-        .toLowerCase()
-        .replace(/[^\w ]+/g, '')
-        .replace(/ +/g, '-') +
-      '-' +
-      Math.random().toString(36).substring(2, 7)
+
+export async function createProduct(data: Partial<IProduct>) {
+  try {
+    await connectDB()
+
+    // 1. Professional Slug Generation
+    let slug = slugify(data.name || '', { lower: true, strict: true })
+    const existing = await Product.findOne({ slug })
+    if (existing) slug = `${slug}-${Date.now().toString().slice(-4)}`
+
+    // 2. Data Preparation matching your Schema
+    const newProduct = new Product({
+      ...data,
+      slug,
+      approvalStatus: 'pending', // Default for marketplace safety
+      isPublished: data.isPublished ?? false,
+      ratings: { average: 0, count: 0 },
+      seo: {
+        title: data.seo?.title || data.name,
+        description: data.seo?.description || data.shortDescription || data.description?.slice(0, 160),
+        keywords: data.tags || []
+      }
+    })
+
+    await newProduct.save()
+
+    revalidatePath('/vendor/products')
+    revalidatePath('/admin/products')
+    
+    return { success: true, id: newProduct._id.toString() }
+  } catch (error: any) {
+    console.error('Error creating product:', error)
+    return { success: false, error: error.message }
   }
-
-  const product = new Product(productData)
-  return await product.save()
-}
+  }
 
 export async function addProductReview(
   productId: string,
