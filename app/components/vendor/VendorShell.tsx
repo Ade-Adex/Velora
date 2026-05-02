@@ -1,13 +1,14 @@
 // /app/components/vendor/VendorShell.tsx
 
 'use client'
-import { AppShell, Burger, Group, Text, NavLink, Stack, Box } from '@mantine/core'
+import { IUser } from '@/app/types'
+import { AppShell, Burger, Group, Text, NavLink, Stack, Box, Badge } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { LayoutDashboard, Package, ListOrdered, Settings, Store, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export default function VendorShell({ children, user }: { children: React.ReactNode, user: any }) {
+export default function VendorShell({ children, user }: { children: React.ReactNode, user: IUser }) {
   const [opened, { toggle }] = useDisclosure()
   const pathname = usePathname()
 
