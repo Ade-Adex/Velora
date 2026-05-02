@@ -2,7 +2,7 @@
 
 
 'use client';
-import { AppShell, Burger, Group, Text, Avatar, Menu, UnstyledButton } from '@mantine/core';
+import { AppShell, Burger, Group, Text, Avatar, Menu, UnstyledButton, Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import VendorSidebar from './VendorSidebar';
 import { IUser, Serialized } from '@/app/types';
