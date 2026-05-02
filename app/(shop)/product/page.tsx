@@ -48,12 +48,12 @@ export default function ProfessionalNewProductPage() {
       discountPrice: 0,
       category: '', 
       mainImage: '',
-      gallery: [],
+      gallery: [] as string[],
       stock: 0,
-      tags: [],
+      tags: [] as string[],
       isPublished: false,
       specifications: [{ label: '', value: '' }],
-      variants: []
+      variants: [] as ProductFormValues['variants']
     },
     validate: {
       name: (v) => (v.length < 3 ? 'Name must be at least 3 characters' : null),
@@ -63,6 +63,7 @@ export default function ProfessionalNewProductPage() {
       category: (v) => (!v ? 'Please select a category' : null),
     }
   })
+      
 
   const handleCreate = async (values: ProductFormValues) => {
     setLoading(true)
