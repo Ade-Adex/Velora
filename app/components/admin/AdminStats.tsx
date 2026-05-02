@@ -85,3 +85,5 @@ export function AdminStats({ data }: AdminStatsProps) {
     </SimpleGrid>
   )
 }
+
+export default AdminStats;
