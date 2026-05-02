@@ -2,7 +2,7 @@
 
 import { Stack, Title, Grid, Paper, Text, Group, Button, Badge, ActionIcon } from '@mantine/core';
 import { Wallet, Package, ShoppingCart, TrendingUp, Plus, ArrowUpRight, MoreHorizontal } from 'lucide-react';
-import { AdminStats } from '@/app/components/admin/AdminStats';
+import { AdminStats, StatItem} from '@/app/components/admin/AdminStats';
 import { getCurrentUser } from '@/app/services/auth-service';
 import connectDB from '@/app/lib/mongodb';
 import { Product } from '@/app/models/Product';
@@ -27,12 +27,37 @@ export default async function VendorDashboardPage() {
     return acc + myItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, 0);
 
-  const stats = [
-    { title: 'Total Revenue', value: `₦${totalRevenue.toLocaleString()}`, diff: 12.5, icon: Wallet, color: 'indigo' },
-    { title: 'My Inventory', value: vendorProducts.length, diff: 2.1, icon: Package, color: 'cyan' },
-    { title: 'Active Sales', value: allOrders.length, diff: 4.3, icon: ShoppingCart, color: 'orange' },
-    { title: 'Store Rating', value: '4.8/5', diff: 0.5, icon: TrendingUp, color: 'green' },
-  ];
+  const stats: StatItem[] = [
+  { 
+    title: 'Total Revenue', 
+    value: `₦${totalRevenue.toLocaleString()}`, 
+    diff: 12.5, 
+    icon: 'wallet', // String Key from IconMap
+    color: 'indigo' 
+  },
+  { 
+    title: 'My Inventory', 
+    value: vendorProducts.length, 
+    diff: 2.1, 
+    icon: 'package', // String Key from IconMap
+    color: 'cyan' 
+  },
+  { 
+    title: 'Active Sales', 
+    value: allOrders.length, 
+    diff: 4.3, 
+    icon: 'cart', // String Key from IconMap (maps to ShoppingCart)
+    color: 'orange' 
+  },
+  { 
+    title: 'Store Rating', 
+    value: '4.8/5', 
+    diff: 0.5, 
+    icon: 'trend', // String Key from IconMap (maps to TrendingUp)
+    color: 'green' 
+  },
+];
+
 
   return (
     <Stack gap="xl">
