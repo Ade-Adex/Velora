@@ -1,7 +1,7 @@
 // /app/components/vendor/VendorSidebar.tsx
 
 'use client';
-import { Stack, Text, Box, ScrollArea, Title, NavLink, ThemeIcon, rem } from '@mantine/core';
+import { Stack, Text, Box, Group, ScrollArea, Title, NavLink, ThemeIcon, rem } from '@mantine/core';
 import { LayoutDashboard, ShoppingBag, Package, Settings, BarChart3, HelpCircle, Store } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
