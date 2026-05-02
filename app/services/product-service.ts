@@ -294,3 +294,23 @@ export async function addProductReview(
 
   return JSON.parse(JSON.stringify(product))
 }
+
+
+/**
+ * Fetches all categories and formats them for the Mantine Select component
+ */
+export async function getCategoryOptions() {
+  try {
+    await connectDB()
+    const categories = await Category.find().sort({ name: 1 }).lean()
+
+    // Return in the format Mantine Select expects: { value: string, label: string }
+    return categories.map((cat: any) => ({
+      value: cat._id.toString(), // The ID goes to the "value"
+      label: cat.name            // The Name goes to the "label"
+    }))
+  } catch (error) {
+    console.error("Error fetching categories:", error)
+    return []
+  }
+                                       }
