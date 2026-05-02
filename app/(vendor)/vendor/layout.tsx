@@ -1,23 +1,24 @@
 // /app/(vendor)/vendor/layout.tsx
 
-import { getCurrentUser } from '@/app/services/auth-service'
-import { redirect } from 'next/navigation'
-import VendorShell from '@/app/components/vendor/VendorShell'
-import { IUser } from '@/app/types'
+import { getCurrentUser } from '@/app/services/auth-service';
+import { redirect } from 'next/navigation';
+import VendorShell from '@/app/components/vendor/VendorShell';
+import { IUser, Serialized } from '@/app/types';
 
 export default async function VendorLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  // Explicitly typing the returned user
-  const user: IUser | null = await getCurrentUser()
+  const user = (await getCurrentUser()) as IUser | null;
 
-  // Guard clause using the IUser role types
+  // Strict role check: Only vendors (and admins for oversight) allowed
   if (!user || !['vendor', 'admin'].includes(user.role)) {
-    redirect('/')
+    redirect('/auth/login');
   }
 
-  // Passing the typed user to the shell
-  return <VendorShell user={JSON.parse(JSON.stringify(user))}>{children}</VendorShell>
+  // Serialize Mongoose data for Client Components
+  const serializedUser = JSON.parse(JSON.stringify(user)) as Serialized<IUser>;
+
+  return <VendorShell user={serializedUser}>{children}</VendorShell>;
 }
