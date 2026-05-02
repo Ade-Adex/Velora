@@ -14,8 +14,9 @@ import {
   HelpCircle,
   LucideIcon 
 } from 'lucide-react'
-
+import { StatItem } from '@/app/types';
 // Map of string keys to components for the Vendor Page
+
 const IconMap: Record<string, LucideIcon> = {
   wallet: Wallet,
   package: Package,
@@ -26,20 +27,15 @@ const IconMap: Record<string, LucideIcon> = {
   chart: BarChart3,
 }
 
-export interface StatItem {
-  title: string
-  value: string | number
-  diff: number
-  /** 
-   * Accepts a Lucide component OR a string key from IconMap 
-   * React.ElementType is the standard type for components 
-   */
-  icon: React.ElementType | keyof typeof IconMap
-  color: string
-}
-
+// Local interface to avoid cross-boundary serialization issues
 interface AdminStatsProps {
-  data: StatItem[]
+  data: {
+    title: string;
+    value: string | number;
+    diff: number;
+    icon: string;
+    color: string;
+  }[]
 }
 
 export function AdminStats({ data }: AdminStatsProps) {
@@ -47,13 +43,7 @@ export function AdminStats({ data }: AdminStatsProps) {
     <SimpleGrid cols={{ base: 1, xs: 2, md: 4 }} spacing="md">
       {data.map((stat) => {
         // Type Guard to resolve the icon correctly
-        let ResolvedIcon: React.ElementType;
-        
-        if (typeof stat.icon === 'string') {
-          ResolvedIcon = IconMap[stat.icon] || HelpCircle;
-        } else {
-          ResolvedIcon = stat.icon;
-        }
+        const ResolvedIcon: LucideIcon = IconMap[stat.icon] || HelpCircle;
 
         return (
           <Paper withBorder p="md" radius="lg" key={stat.title} shadow="sm">
@@ -72,12 +62,7 @@ export function AdminStats({ data }: AdminStatsProps) {
                   {stat.value}
                 </Text>
               </Stack>
-              <ThemeIcon
-                color={stat.color}
-                variant="light"
-                size={48}
-                radius="md"
-              >
+              <ThemeIcon color={stat.color} variant="light" size={48} radius="md">
                 <ResolvedIcon size={24} strokeWidth={2.5} />
               </ThemeIcon>
             </Group>
