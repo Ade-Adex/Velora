@@ -53,28 +53,28 @@ const stats: StatItem[] = [
     title: 'Revenue',
     value: `₦${totalRevenue.toLocaleString()}`,
     diff: 12.5,
-    icon: Banknote, // Direct Component Reference
+    icon: 'bank',
     color: 'green',
   },
   {
     title: 'Orders',
     value: totalOrders,
     diff: 5.2,
-    icon: Package, // Direct Component Reference
+    icon: 'package',
     color: 'blue',
   },
   {
     title: 'Customers',
     value: totalUsers,
     diff: -1.4,
-    icon: Users, // Direct Component Reference
+    icon: 'users',
     color: 'violet',
   },
   {
     title: 'Avg. Sale',
     value: `₦${(totalRevenue / (totalOrders || 1)).toFixed(0)}`,
     diff: 3.8,
-    icon: BarChart3, // Direct Component Reference
+    icon: 'chart',
     color: 'orange',
   },
 ];
