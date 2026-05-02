@@ -38,12 +38,16 @@ interface AdminStatsProps {
   }[]
 }
 
-export function AdminStats({ data }: AdminStatsProps) {
+function AdminStats({ data }: AdminStatsProps) {
   return (
     <SimpleGrid cols={{ base: 1, xs: 2, md: 4 }} spacing="md">
       {data.map((stat) => {
         // Type Guard to resolve the icon correctly
         const ResolvedIcon: LucideIcon = IconMap[stat.icon] || HelpCircle;
+
+      if (!ResolvedIcon) {
+  return <div>Icon Error</div>; // If this renders, your Lucide import is failing
+      }
 
         return (
           <Paper withBorder p="md" radius="lg" key={stat.title} shadow="sm">
