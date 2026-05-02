@@ -13,7 +13,8 @@ import { createProduct } from '@/app/services/product-service'
 import { useSnackbar } from 'notistack'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { IVariant } from '@/app/types'
+import { IVariant, ICategory, IProduct, IReview } from '@/app/types'
+
 
 // Define the form shape to match your Schema exactly
 interface ProductFormValues {
