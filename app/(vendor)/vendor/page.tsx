@@ -2,13 +2,14 @@
 
 import { Stack, Title, Grid, Paper, Text, Group, Button, Badge, ActionIcon } from '@mantine/core';
 import { Wallet, Package, ShoppingCart, TrendingUp, Plus, ArrowUpRight, MoreHorizontal } from 'lucide-react';
-import { AdminStats, StatItem} from '@/app/components/admin/AdminStats';
+import { AdminStats } from '@/app/components/admin/AdminStats';
 import { getCurrentUser } from '@/app/services/auth-service';
 import connectDB from '@/app/lib/mongodb';
 import { Product } from '@/app/models/Product';
 import { Order } from '@/app/models/Order';
-import { IUser, IOrder, IProduct } from '@/app/types';
+import { IUser, IOrder, IProduct, StatItem } from '@/app/types';
 import Link from 'next/link';
+
 
 export default async function VendorDashboardPage() {
   await connectDB();
