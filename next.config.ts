@@ -115,6 +115,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'ng.jumia.is',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'www.very.co.uk',
         pathname: '/**',
       },

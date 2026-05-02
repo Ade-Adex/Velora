@@ -4,6 +4,7 @@ import {
   Stack,
   Title,
   Grid,
+  GridCol,
   Paper,
   Text,
   Group,
@@ -11,11 +12,7 @@ import {
   Badge,
   ActionIcon,
 } from '@mantine/core'
-import {
-  Plus,
-  ArrowUpRight,
-  MoreHorizontal,
-} from 'lucide-react'
+import { Plus, ArrowUpRight, MoreHorizontal } from 'lucide-react'
 import AdminStats from '@/app/components/admin/AdminStats'
 import { getCurrentUser } from '@/app/services/auth-service'
 import connectDB from '@/app/lib/mongodb'
@@ -116,7 +113,7 @@ export default async function VendorDashboardPage() {
       <AdminStats data={stats} />
 
       <Grid gap="md">
-        <Grid.Col span={{ base: 12, lg: 8 }}>
+        <GridCol span={{ base: 12, lg: 8 }}>
           <Paper withBorder radius="lg" shadow="sm">
             <Group
               p="md"
@@ -194,9 +191,9 @@ export default async function VendorDashboardPage() {
               </table>
             </div>
           </Paper>
-        </Grid.Col>
+        </GridCol>
 
-        <Grid.Col span={{ base: 12, lg: 4 }}>
+        <GridCol span={{ base: 12, lg: 4 }}>
           <Stack gap="md">
             <Paper
               withBorder
@@ -259,7 +256,7 @@ export default async function VendorDashboardPage() {
               </Group>
             </Paper>
           </Stack>
-        </Grid.Col>
+        </GridCol>
       </Grid>
     </Stack>
   )
