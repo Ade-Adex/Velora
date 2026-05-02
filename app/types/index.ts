@@ -168,6 +168,13 @@ export interface CartItem {
   stock?: number // To prevent adding more than available
 }
 
+export interface StatItem {
+  title: string;
+  value: string | number;
+  diff: number;
+  icon: string; // Keep this as a string
+  color: string;
+}
 
 // export type Serialized<T> = {
 //   [K in keyof T]: T[K] extends Types.ObjectId | Types.ObjectId[] | Date | undefined
