@@ -1,5 +1,7 @@
 //  /app/(vendor)/vendor/analytics/page.tsx
 
+export const dynamic = 'force-dynamic'
+
 import {
   SimpleGrid,
   Paper,
