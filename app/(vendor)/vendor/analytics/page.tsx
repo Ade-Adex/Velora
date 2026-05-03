@@ -15,7 +15,15 @@ import { DollarSign, ShoppingBag, Package, AlertCircle } from 'lucide-react'
 import { getVendorAnalytics } from '@/app/services/vendor-analytics-service'
 
 export default async function VendorAnalyticsPage() {
-  const stats = await getVendorAnalytics()
+  let stats
+
+  try {
+    stats = await getVendorAnalytics()
+  } catch (error) {
+    return (
+      <Text>Unable to load analytics. Please ensure you are logged in.</Text>
+    )
+  }
 
   const data = [
     {
