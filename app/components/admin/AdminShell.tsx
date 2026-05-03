@@ -15,7 +15,6 @@ export default function AdminShell({
   children: React.ReactNode
   user: Serialized<IUser>
 }) {
-  // desktopOpened handles the side-collapse, mobileOpened handles the drawer
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] =
     useDisclosure()
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true)
@@ -35,15 +34,16 @@ export default function AdminShell({
     <AppShell
       header={{ height: 60 }}
       navbar={{
-        width: 280,
+        // DYNAMIC WIDTH: 280 when open, 80 when "mini"
+        width: desktopOpened ? 280 : 80,
         breakpoint: 'md',
         collapsed: {
           mobile: !mobileOpened,
-          desktop: !desktopOpened, // Enables collapsing on desktop
+          // Remove desktop collapse so it stays visible as a mini-bar
         },
       }}
       padding="md"
-      transitionDuration={300} // Smooth animation
+      transitionDuration={300}
       transitionTimingFunction="ease"
       styles={{
         main: { background: '#f8f9fa' },
@@ -57,7 +57,6 @@ export default function AdminShell({
       >
         <Group h="100%" px="md" justify="space-between">
           <Group>
-            {/* Desktop Toggle */}
             <Burger
               opened={desktopOpened}
               onClick={toggleDesktop}
@@ -65,7 +64,6 @@ export default function AdminShell({
               size="sm"
               color="white"
             />
-            {/* Mobile Toggle */}
             <Burger
               opened={mobileOpened}
               onClick={toggleMobile}
@@ -73,7 +71,6 @@ export default function AdminShell({
               size="sm"
               color="white"
             />
-
             <Text fw={900} lts="-1px" size="xl">
               VELORA<span className="text-red-500">.</span>
             </Text>
@@ -88,8 +85,6 @@ export default function AdminShell({
             >
               Administrator Portal
             </Text>
-
-            {/* Shared UserMenu integrated here */}
             <UserMenu user={user} onLogout={handleLogout} variant="dashboard" />
           </Group>
         </Group>
@@ -99,9 +94,10 @@ export default function AdminShell({
         p="0"
         bg="black"
         withBorder={false}
-        className="transition-all"
+        className="transition-all overflow-hidden"
       >
-        <AdminSidebar onClose={closeMobile} />
+        {/* Pass desktopOpened state to the sidebar */}
+        <AdminSidebar onClose={closeMobile} isExpanded={desktopOpened} />
       </AppShell.Navbar>
 
       <AppShell.Main>
