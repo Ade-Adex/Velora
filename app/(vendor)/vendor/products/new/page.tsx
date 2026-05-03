@@ -1,5 +1,444 @@
-// /app/(vendor)/vendor/products/new/page.tsx
+// // /app/(vendor)/vendor/products/new/page.tsx
 
+// 'use client'
+
+// import { useState, useEffect } from 'react'
+// import {
+//   TextInput,
+//   NumberInput,
+//   Textarea,
+//   Button,
+//   Paper,
+//   Stack,
+//   Title,
+//   Grid,
+//   Group,
+//   Select,
+//   TagsInput,
+//   ActionIcon,
+//   Text,
+//   Divider,
+//   Switch,
+//   Card,
+// } from '@mantine/core'
+// import { useForm } from '@mantine/form'
+// import {
+//   Plus,
+//   Trash,
+//   Check,
+//   ArrowLeft,
+//   Layers,
+//   Image as ImageIcon,
+//   Info,
+// } from 'lucide-react'
+// import {
+//   createProduct,
+//   getCategoryOptions,
+// } from '@/app/services/product-service'
+// import { useSnackbar } from 'notistack'
+// import { useRouter } from 'next/navigation'
+// import Link from 'next/link'
+// import { IVariant } from '@/app/types'
+
+// // Define the form shape to match your Schema exactly
+// interface ProductFormValues {
+//   name: string
+//   brand: string
+//   description: string
+//   shortDescription: string
+//   basePrice: number
+//   discountPrice: number
+//   category: string
+//   mainImage: string
+//   gallery: string[]
+//   stock: number
+//   tags: string[]
+//   isPublished: boolean
+//   specifications: { label: string; value: string }[]
+//   // ADD PARENTHESES HERE
+//   variants: (Omit<IVariant, 'attributes'> & {
+//     attributes: Record<string, string>
+//   })[]
+// }
+
+// export default function ProfessionalNewProductPage() {
+//   const router = useRouter()
+//   const { enqueueSnackbar } = useSnackbar()
+//   const [loading, setLoading] = useState(false)
+//   const [categoryOptions, setCategoryOptions] = useState<
+//     { value: string; label: string }[]
+//   >([])
+
+//   useEffect(() => {
+//     const fetchOptions = async () => {
+//       const options = await getCategoryOptions()
+//       setCategoryOptions(options)
+//     }
+//     fetchOptions()
+//   }, [])
+
+//   const form = useForm<ProductFormValues>({
+//     initialValues: {
+//       name: '',
+//       brand: '',
+//       description: '',
+//       shortDescription: '',
+//       basePrice: 0,
+//       discountPrice: 0,
+//       category: '',
+//       mainImage: '',
+//       gallery: [] as string[],
+//       stock: 0,
+//       tags: [] as string[],
+//       isPublished: false,
+//       specifications: [{ label: '', value: '' }],
+//       // FIX: Use 'as unknown' to bridge the gap between never[] and your Variant type
+//       variants: [] as unknown as ProductFormValues['variants'],
+//     },
+//     validate: {
+//       name: (v) => (v.length < 3 ? 'Name must be at least 3 characters' : null),
+//       brand: (v) => (!v ? 'Brand is required' : null),
+//       basePrice: (v) => (v <= 0 ? 'Price must be greater than 0' : null),
+//       mainImage: (v) => (!v ? 'Main image URL is required' : null),
+//       category: (v) => (!v ? 'Please select a category' : null),
+//     },
+//   })
+
+//   const handleCreate = async (values: ProductFormValues) => {
+//     setLoading(true)
+//     try {
+//       const res = await createProduct({
+//         ...values,
+//         variants: values.variants.map(
+//           (v): IVariant => ({
+//             sku: v.sku,
+//             name: v.name || '',
+//             stock: Number(v.stock),
+//             price: v.price ? Number(v.price) : undefined,
+//             images: v.images || [],
+//             attributes: v.attributes,
+//           }),
+//         ),
+//       })
+
+//       if (res.success) {
+//         enqueueSnackbar('Product listing created and pending approval', {
+//           variant: 'success',
+//         })
+//         router.push('/vendor/products')
+//       } else {
+//         enqueueSnackbar(res.error || 'Failed to create product', {
+//           variant: 'error',
+//         })
+//       }
+//     } catch (error: unknown) {
+//       enqueueSnackbar('An unexpected error occurred', { variant: 'error' })
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+
+//   return (
+//     <Stack gap="xl" pb={100}>
+//       <Group justify="space-between">
+//         <Group>
+//           <ActionIcon
+//             component={Link}
+//             href="/vendor/products"
+//             variant="subtle"
+//             radius="xl"
+//             size="lg"
+//           >
+//             <ArrowLeft size={22} />
+//           </ActionIcon>
+//           <div>
+//             <Title order={2} fw={900} lts="-0.5px">
+//               Create Listing
+//             </Title>
+//             <Text size="sm" c="dimmed">
+//               Submit your product for marketplace verification.
+//             </Text>
+//           </div>
+//         </Group>
+//         <Group>
+//           <Button
+//             variant="subtle"
+//             color="gray"
+//             component={Link}
+//             href="/vendor/products"
+//           >
+//             Cancel
+//           </Button>
+//           <Button
+//             loading={loading}
+//             onClick={() => form.onSubmit(handleCreate)()}
+//             leftSection={<Check size={18} />}
+//             radius="md"
+//             color="indigo.6"
+//             px="xl"
+//           >
+//             Submit for Approval
+//           </Button>
+//         </Group>
+//       </Group>
+
+//       <form>
+//         <Grid gap="xl">
+//           {/* Main Content Area */}
+//           <Grid.Col span={{ base: 12, md: 8 }}>
+//             <Stack gap="lg">
+//               <Paper withBorder p="xl" radius="md" shadow="sm">
+//                 <Group mb="lg">
+//                   <Info size={20} className="text-indigo-600" />
+//                   <Title order={4}>General Information</Title>
+//                 </Group>
+//                 <Grid>
+//                   <Grid.Col span={{ base: 12, sm: 8 }}>
+//                     <TextInput
+//                       label="Product Name"
+//                       placeholder="e.g. Wireless Noise Cancelling Headphones"
+//                       {...form.getInputProps('name')}
+//                       required
+//                     />
+//                   </Grid.Col>
+//                   <Grid.Col span={{ base: 12, sm: 4 }}>
+//                     <TextInput
+//                       label="Brand"
+//                       placeholder="e.g. Sony"
+//                       {...form.getInputProps('brand')}
+//                       required
+//                     />
+//                   </Grid.Col>
+//                   <Grid.Col span={12}>
+//                     <TextInput
+//                       label="Short Description"
+//                       placeholder="A brief catchphrase for search results"
+//                       {...form.getInputProps('shortDescription')}
+//                     />
+//                   </Grid.Col>
+//                   <Grid.Col span={12}>
+//                     <Textarea
+//                       label="Full Product Description"
+//                       placeholder="Highlight features, materials, and benefits..."
+//                       minRows={6}
+//                       {...form.getInputProps('description')}
+//                       required
+//                     />
+//                   </Grid.Col>
+//                 </Grid>
+//               </Paper>
+
+//               <Paper withBorder p="xl" radius="md" shadow="sm">
+//                 <Group mb="lg">
+//                   <ImageIcon size={20} className="text-indigo-600" />
+//                   <Title order={4}>Visual Assets</Title>
+//                 </Group>
+//                 <TextInput
+//                   label="Main Display Image URL"
+//                   placeholder="https://..."
+//                   {...form.getInputProps('mainImage')}
+//                   required
+//                   mb="md"
+//                 />
+
+//                 <Divider
+//                   label="Gallery Selection"
+//                   labelPosition="center"
+//                   my="lg"
+//                 />
+
+//                 {form.values.gallery.map((_, i) => (
+//                   <Group key={i} mb="sm">
+//                     <TextInput
+//                       placeholder="Secondary Image URL"
+//                       flex={1}
+//                       {...form.getInputProps(`gallery.${i}`)}
+//                     />
+//                     <ActionIcon
+//                       color="red"
+//                       variant="subtle"
+//                       onClick={() => form.removeListItem('gallery', i)}
+//                     >
+//                       <Trash size={18} />
+//                     </ActionIcon>
+//                   </Group>
+//                 ))}
+//                 <Button
+//                   variant="light"
+//                   size="xs"
+//                   leftSection={<Plus size={14} />}
+//                   onClick={() => form.insertListItem('gallery', '')}
+//                 >
+//                   Add Gallery Image
+//                 </Button>
+//               </Paper>
+
+//               <Paper withBorder p="xl" radius="md" shadow="sm">
+//                 <Group mb="lg" justify="space-between">
+//                   <Group>
+//                     <Layers size={20} className="text-indigo-600" />
+//                     <Title order={4}>Variants & Inventory</Title>
+//                   </Group>
+//                   <Button
+//                     variant="outline"
+//                     size="xs"
+//                     onClick={() =>
+//                       form.insertListItem('variants', {
+//                         sku: '',
+//                         name: '',
+//                         stock: 0,
+//                         attributes: {},
+//                       })
+//                     }
+//                   >
+//                     Add Variant (Size/Color)
+//                   </Button>
+//                 </Group>
+
+//                 {form.values.variants.length === 0 ? (
+//                   <Text
+//                     size="sm"
+//                     c="dimmed"
+//                     ta="center"
+//                     py="xl"
+//                     style={{
+//                       border: '1px dashed #ced4da',
+//                       borderRadius: '8px',
+//                     }}
+//                   >
+//                     No variants added. Use variants for products with different
+//                     sizes, colors, or materials.
+//                   </Text>
+//                 ) : (
+//                   form.values.variants.map((_, i) => (
+//                     <Card withBorder key={i} mb="sm" bg="gray.0">
+//                       <Grid align="flex-end">
+//                         <Grid.Col span={{ base: 12, sm: 4 }}>
+//                           <TextInput
+//                             label="Variant Name"
+//                             placeholder="e.g. Matte Black / Large"
+//                             {...form.getInputProps(`variants.${i}.name`)}
+//                           />
+//                         </Grid.Col>
+//                         <Grid.Col span={{ base: 6, sm: 4 }}>
+//                           <TextInput
+//                             label="SKU"
+//                             placeholder="HD-BLK-01"
+//                             {...form.getInputProps(`variants.${i}.sku`)}
+//                             required
+//                           />
+//                         </Grid.Col>
+//                         <Grid.Col span={{ base: 5, sm: 3 }}>
+//                           <NumberInput
+//                             label="Stock"
+//                             {...form.getInputProps(`variants.${i}.stock`)}
+//                           />
+//                         </Grid.Col>
+//                         <Grid.Col span={1}>
+//                           <ActionIcon
+//                             color="red"
+//                             mb={5}
+//                             onClick={() => form.removeListItem('variants', i)}
+//                           >
+//                             <Trash size={16} />
+//                           </ActionIcon>
+//                         </Grid.Col>
+//                       </Grid>
+//                     </Card>
+//                   ))
+//                 )}
+//               </Paper>
+//             </Stack>
+//           </Grid.Col>
+
+//           {/* Sidebar Section */}
+//           <Grid.Col span={{ base: 12, md: 4 }}>
+//             <Stack gap="lg">
+//               <Paper withBorder p="xl" radius="md" shadow="sm">
+//                 <Title order={4} mb="lg">
+//                   Pricing & Status
+//                 </Title>
+//                 <Stack gap="md">
+//                   <NumberInput
+//                     label="Regular Price (₦)"
+//                     prefix="₦"
+//                     hideControls
+//                     {...form.getInputProps('basePrice')}
+//                     required
+//                   />
+//                   <NumberInput
+//                     label="Sale Price (₦)"
+//                     prefix="₦"
+//                     hideControls
+//                     {...form.getInputProps('discountPrice')}
+//                   />
+//                   <NumberInput
+//                     label="Total Global Stock"
+//                     description="Total across all variants"
+//                     {...form.getInputProps('stock')}
+//                   />
+
+//                   <Divider my="sm" />
+
+//                   <Switch
+//                     label="Publish immediately"
+//                     description="Visible once admin approves"
+//                     {...form.getInputProps('isPublished', { type: 'checkbox' })}
+//                   />
+//                 </Stack>
+//               </Paper>
+
+//               <Paper withBorder p="xl" radius="md" shadow="sm">
+//                 <Group mb="lg">
+//                   {/* Using the icon you already imported */}
+//                   <Layers size={20} className="text-indigo-600" />
+//                   <Title order={4}>Organization</Title>
+//                 </Group>
+//                 <Stack gap="md">
+//                   <Select
+//                     label="Category"
+//                     placeholder={
+//                       categoryOptions.length > 0
+//                         ? 'Choose category'
+//                         : 'Loading categories...'
+//                     }
+//                     data={categoryOptions}
+//                     {...form.getInputProps('category')}
+//                     required
+//                     searchable
+//                     clearable
+//                     disabled={categoryOptions.length === 0}
+//                   />
+//                   <TagsInput
+//                     label="Search Tags"
+//                     placeholder="Add keywords"
+//                     data={[
+//                       'New Arrival',
+//                       'Sale',
+//                       'Limited Edition',
+//                       'Best Seller',
+//                     ]}
+//                     {...form.getInputProps('tags')}
+//                   />
+//                 </Stack>
+//               </Paper>
+
+//               <Paper withBorder p="xl" radius="md" shadow="sm" bg="indigo.0">
+//                 <Title order={5} c="indigo.9" mb="xs">
+//                   Marketplace Tip
+//                 </Title>
+//                 <Text size="xs" c="indigo.8" style={{ lineHeight: 1.5 }}>
+//                   Detailed descriptions and high-quality image URLs increase
+//                   your approval speed by 40%. Ensure your SKUs are unique.
+//                 </Text>
+//               </Paper>
+//             </Stack>
+//           </Grid.Col>
+//         </Grid>
+//       </form>
+//     </Stack>
+//   )
+// }
 
 'use client'
 
@@ -21,6 +460,8 @@ import {
   Divider,
   Switch,
   Card,
+  Badge,
+  Tooltip,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import {
@@ -31,6 +472,10 @@ import {
   Layers,
   Image as ImageIcon,
   Info,
+  Settings,
+  DollarSign,
+  Tag,
+  Search,
 } from 'lucide-react'
 import {
   createProduct,
@@ -41,7 +486,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IVariant } from '@/app/types'
 
-// Define the form shape to match your Schema exactly
+// Local interface refined for the form
 interface ProductFormValues {
   name: string
   brand: string
@@ -56,10 +501,18 @@ interface ProductFormValues {
   tags: string[]
   isPublished: boolean
   specifications: { label: string; value: string }[]
-  // ADD PARENTHESES HERE
-  variants: (Omit<IVariant, 'attributes'> & {
+  variants: {
+    sku: string
+    name: string
+    stock: number
+    price?: number
+    images: string[]
     attributes: Record<string, string>
-  })[]
+  }[]
+  seo: {
+    title: string
+    description: string
+  }
 }
 
 export default function ProfessionalNewProductPage() {
@@ -88,76 +541,74 @@ export default function ProfessionalNewProductPage() {
       discountPrice: 0,
       category: '',
       mainImage: '',
-      gallery: [] as string[],
+      gallery: [],
       stock: 0,
-      tags: [] as string[],
-      isPublished: false,
-      specifications: [{ label: '', value: '' }],
-      // FIX: Use 'as unknown' to bridge the gap between never[] and your Variant type
-      variants: [] as unknown as ProductFormValues['variants'],
+      tags: [],
+      isPublished: true,
+      specifications: [],
+      variants: [],
+      seo: { title: '', description: '' },
     },
     validate: {
-      name: (v) => (v.length < 3 ? 'Name must be at least 3 characters' : null),
-      brand: (v) => (!v ? 'Brand is required' : null),
-      basePrice: (v) => (v <= 0 ? 'Price must be greater than 0' : null),
-      mainImage: (v) => (!v ? 'Main image URL is required' : null),
-      category: (v) => (!v ? 'Please select a category' : null),
+      name: (v) => (v.length < 3 ? 'Name is too short' : null),
+      category: (v) => (!v ? 'Select a category' : null),
+      basePrice: (v) => (v <= 0 ? 'Price must be positive' : null),
+      mainImage: (v) => (!v ? 'Main image is required' : null),
     },
   })
 
   const handleCreate = async (values: ProductFormValues) => {
     setLoading(true)
     try {
-      const res = await createProduct({
+      // Logic: If user didn't fill SEO, auto-fill from general info
+      const finalData = {
         ...values,
-        variants: values.variants.map(
-          (v): IVariant => ({
-            sku: v.sku,
-            name: v.name || '',
-            stock: Number(v.stock),
-            price: v.price ? Number(v.price) : undefined,
-            images: v.images || [],
-            attributes: v.attributes,
-          }),
-        ),
-      })
+        seo: {
+          title: values.seo.title || values.name,
+          description: values.seo.description || values.shortDescription,
+        },
+      }
+
+      const res = await createProduct(finalData)
 
       if (res.success) {
-        enqueueSnackbar('Product listing created and pending approval', {
-          variant: 'success',
-        })
+        enqueueSnackbar('Product listed successfully!', { variant: 'success' })
         router.push('/vendor/products')
       } else {
-        enqueueSnackbar(res.error || 'Failed to create product', {
+        enqueueSnackbar(res.error || 'Check form for errors', {
           variant: 'error',
         })
       }
-    } catch (error: unknown) {
-      enqueueSnackbar('An unexpected error occurred', { variant: 'error' })
+    } catch (err) {
+      enqueueSnackbar('Internal Server Error', { variant: 'error' })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Stack gap="xl" pb={100}>
-      <Group justify="space-between">
+    <Stack gap="xl" pb={100} className="max-w-7xl mx-auto px-4">
+      {/* Header Section */}
+      <Group justify="space-between" align="flex-start">
         <Group>
           <ActionIcon
             component={Link}
             href="/vendor/products"
-            variant="subtle"
-            radius="xl"
-            size="lg"
+            variant="light"
+            radius="md"
+            size="xl"
           >
-            <ArrowLeft size={22} />
+            <ArrowLeft size={20} />
           </ActionIcon>
           <div>
-            <Title order={2} fw={900} lts="-0.5px">
-              Create Listing
+            <Badge color="indigo" variant="filled" mb={4}>
+              VENDOR PORTAL
+            </Badge>
+            <Title order={2} fw={800}>
+              New Product Listing
             </Title>
             <Text size="sm" c="dimmed">
-              Submit your product for marketplace verification.
+              Complete the details below to list your item on the marketplace.
             </Text>
           </div>
         </Group>
@@ -168,7 +619,7 @@ export default function ProfessionalNewProductPage() {
             component={Link}
             href="/vendor/products"
           >
-            Cancel
+            Discard
           </Button>
           <Button
             loading={loading}
@@ -176,52 +627,52 @@ export default function ProfessionalNewProductPage() {
             leftSection={<Check size={18} />}
             radius="md"
             color="indigo.6"
-            px="xl"
+            size="md"
           >
-            Submit for Approval
+            Submit Listing
           </Button>
         </Group>
       </Group>
 
       <form>
         <Grid gap="xl">
-          {/* Main Content Area */}
+          {/* Main Column */}
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="lg">
-              <Paper withBorder p="xl" radius="md" shadow="sm">
+            <Stack gap="xl">
+              {/* 1. Basic Info */}
+              <Paper withBorder p="xl" radius="md">
                 <Group mb="lg">
                   <Info size={20} className="text-indigo-600" />
-                  <Title order={4}>General Information</Title>
+                  <Title order={4}>General Details</Title>
                 </Group>
                 <Grid>
-                  <Grid.Col span={{ base: 12, sm: 8 }}>
+                  <Grid.Col span={12}>
                     <TextInput
-                      label="Product Name"
-                      placeholder="e.g. Wireless Noise Cancelling Headphones"
+                      label="Product Title"
+                      placeholder="Official name of the product"
                       {...form.getInputProps('name')}
                       required
                     />
                   </Grid.Col>
-                  <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
                     <TextInput
-                      label="Brand"
-                      placeholder="e.g. Sony"
+                      label="Brand / Manufacturer"
+                      placeholder="e.g. Samsung"
                       {...form.getInputProps('brand')}
-                      required
                     />
                   </Grid.Col>
-                  <Grid.Col span={12}>
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
                     <TextInput
-                      label="Short Description"
-                      placeholder="A brief catchphrase for search results"
+                      label="Short Catchphrase"
+                      placeholder="Appears in search results"
                       {...form.getInputProps('shortDescription')}
                     />
                   </Grid.Col>
                   <Grid.Col span={12}>
                     <Textarea
-                      label="Full Product Description"
-                      placeholder="Highlight features, materials, and benefits..."
-                      minRows={6}
+                      label="Full Description"
+                      minRows={5}
+                      placeholder="Tell customers why they should buy this..."
                       {...form.getInputProps('description')}
                       required
                     />
@@ -229,13 +680,15 @@ export default function ProfessionalNewProductPage() {
                 </Grid>
               </Paper>
 
-              <Paper withBorder p="xl" radius="md" shadow="sm">
+              {/* 2. Media Section */}
+              <Paper withBorder p="xl" radius="md">
                 <Group mb="lg">
                   <ImageIcon size={20} className="text-indigo-600" />
-                  <Title order={4}>Visual Assets</Title>
+                  <Title order={4}>Product Media</Title>
                 </Group>
                 <TextInput
-                  label="Main Display Image URL"
+                  label="Feature Image URL"
+                  description="The primary image seen by all customers"
                   placeholder="https://..."
                   {...form.getInputProps('mainImage')}
                   required
@@ -243,195 +696,163 @@ export default function ProfessionalNewProductPage() {
                 />
 
                 <Divider
-                  label="Gallery Selection"
+                  label="Additional Gallery Photos"
                   labelPosition="center"
-                  my="lg"
+                  my="xl"
                 />
 
-                {form.values.gallery.map((_, i) => (
-                  <Group key={i} mb="sm">
-                    <TextInput
-                      placeholder="Secondary Image URL"
-                      flex={1}
-                      {...form.getInputProps(`gallery.${i}`)}
-                    />
-                    <ActionIcon
-                      color="red"
-                      variant="subtle"
-                      onClick={() => form.removeListItem('gallery', i)}
-                    >
-                      <Trash size={18} />
-                    </ActionIcon>
-                  </Group>
-                ))}
-                <Button
-                  variant="light"
-                  size="xs"
-                  leftSection={<Plus size={14} />}
-                  onClick={() => form.insertListItem('gallery', '')}
-                >
-                  Add Gallery Image
-                </Button>
+                <Stack gap="xs">
+                  {form.values.gallery.map((_, i) => (
+                    <Group key={i} align="flex-end">
+                      <TextInput
+                        placeholder="Image URL"
+                        flex={1}
+                        {...form.getInputProps(`gallery.${i}`)}
+                      />
+                      <ActionIcon
+                        color="red"
+                        variant="light"
+                        size="lg"
+                        onClick={() => form.removeListItem('gallery', i)}
+                      >
+                        <Trash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  ))}
+                  <Button
+                    variant="light"
+                    size="xs"
+                    leftSection={<Plus size={14} />}
+                    onClick={() => form.insertListItem('gallery', '')}
+                    mt="sm"
+                  >
+                    Add Gallery Image
+                  </Button>
+                </Stack>
               </Paper>
 
-              <Paper withBorder p="xl" radius="md" shadow="sm">
-                <Group mb="lg" justify="space-between">
-                  <Group>
-                    <Layers size={20} className="text-indigo-600" />
-                    <Title order={4}>Variants & Inventory</Title>
-                  </Group>
+              {/* 3. Specifications */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="lg">
+                  <Settings size={20} className="text-indigo-600" />
+                  <Title order={4}>Technical Specifications</Title>
+                </Group>
+                <Stack gap="xs">
+                  {form.values.specifications.map((_, i) => (
+                    <Group key={i} grow>
+                      <TextInput
+                        placeholder="Label (e.g. Battery Life)"
+                        {...form.getInputProps(`specifications.${i}.label`)}
+                      />
+                      <TextInput
+                        placeholder="Value (e.g. 24 Hours)"
+                        {...form.getInputProps(`specifications.${i}.value`)}
+                      />
+                      <ActionIcon
+                        color="red"
+                        variant="subtle"
+                        onClick={() => form.removeListItem('specifications', i)}
+                        style={{ flex: 0 }}
+                      >
+                        <Trash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  ))}
                   <Button
                     variant="outline"
                     size="xs"
                     onClick={() =>
-                      form.insertListItem('variants', {
-                        sku: '',
-                        name: '',
-                        stock: 0,
-                        attributes: {},
+                      form.insertListItem('specifications', {
+                        label: '',
+                        value: '',
                       })
                     }
                   >
-                    Add Variant (Size/Color)
+                    Add Specification Row
                   </Button>
-                </Group>
-
-                {form.values.variants.length === 0 ? (
-                  <Text
-                    size="sm"
-                    c="dimmed"
-                    ta="center"
-                    py="xl"
-                    style={{
-                      border: '1px dashed #ced4da',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    No variants added. Use variants for products with different
-                    sizes, colors, or materials.
-                  </Text>
-                ) : (
-                  form.values.variants.map((_, i) => (
-                    <Card withBorder key={i} mb="sm" bg="gray.0">
-                      <Grid align="flex-end">
-                        <Grid.Col span={{ base: 12, sm: 4 }}>
-                          <TextInput
-                            label="Variant Name"
-                            placeholder="e.g. Matte Black / Large"
-                            {...form.getInputProps(`variants.${i}.name`)}
-                          />
-                        </Grid.Col>
-                        <Grid.Col span={{ base: 6, sm: 4 }}>
-                          <TextInput
-                            label="SKU"
-                            placeholder="HD-BLK-01"
-                            {...form.getInputProps(`variants.${i}.sku`)}
-                            required
-                          />
-                        </Grid.Col>
-                        <Grid.Col span={{ base: 5, sm: 3 }}>
-                          <NumberInput
-                            label="Stock"
-                            {...form.getInputProps(`variants.${i}.stock`)}
-                          />
-                        </Grid.Col>
-                        <Grid.Col span={1}>
-                          <ActionIcon
-                            color="red"
-                            mb={5}
-                            onClick={() => form.removeListItem('variants', i)}
-                          >
-                            <Trash size={16} />
-                          </ActionIcon>
-                        </Grid.Col>
-                      </Grid>
-                    </Card>
-                  ))
-                )}
+                </Stack>
               </Paper>
             </Stack>
           </Grid.Col>
 
-          {/* Sidebar Section */}
+          {/* Sidebar Column */}
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="lg">
+            <Stack gap="xl">
+              {/* Pricing & Stock */}
               <Paper withBorder p="xl" radius="md" shadow="sm">
-                <Title order={4} mb="lg">
-                  Pricing & Status
-                </Title>
+                <Group mb="md">
+                  <DollarSign size={18} className="text-green-600" />
+                  <Title order={5}>Pricing & Stock</Title>
+                </Group>
                 <Stack gap="md">
                   <NumberInput
-                    label="Regular Price (₦)"
+                    label="Retail Price"
                     prefix="₦"
-                    hideControls
+                    thousandSeparator
                     {...form.getInputProps('basePrice')}
-                    required
                   />
                   <NumberInput
-                    label="Sale Price (₦)"
+                    label="Offer Price (Optional)"
                     prefix="₦"
-                    hideControls
+                    thousandSeparator
                     {...form.getInputProps('discountPrice')}
                   />
                   <NumberInput
-                    label="Total Global Stock"
-                    description="Total across all variants"
+                    label="Warehouse Stock"
+                    description="Global count if no variants exist"
                     {...form.getInputProps('stock')}
                   />
-
-                  <Divider my="sm" />
-
+                  <Divider my="xs" />
                   <Switch
-                    label="Publish immediately"
-                    description="Visible once admin approves"
+                    label="Active Listing"
+                    description="Display on store after approval"
                     {...form.getInputProps('isPublished', { type: 'checkbox' })}
                   />
                 </Stack>
               </Paper>
 
-              <Paper withBorder p="xl" radius="md" shadow="sm">
-                <Group mb="lg">
-                  {/* Using the icon you already imported */}
-                  <Layers size={20} className="text-indigo-600" />
-                  <Title order={4}>Organization</Title>
+              {/* Classification */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="md">
+                  <Tag size={18} className="text-indigo-600" />
+                  <Title order={5}>Organization</Title>
                 </Group>
                 <Stack gap="md">
                   <Select
                     label="Category"
-                    placeholder={
-                      categoryOptions.length > 0
-                        ? 'Choose category'
-                        : 'Loading categories...'
-                    }
+                    placeholder="Select one"
                     data={categoryOptions}
                     {...form.getInputProps('category')}
                     required
                     searchable
                     clearable
-                    disabled={categoryOptions.length === 0}
                   />
                   <TagsInput
-                    label="Search Tags"
-                    placeholder="Add keywords"
-                    data={[
-                      'New Arrival',
-                      'Sale',
-                      'Limited Edition',
-                      'Best Seller',
-                    ]}
+                    label="Search Keywords"
+                    placeholder="Press enter to add"
                     {...form.getInputProps('tags')}
                   />
                 </Stack>
               </Paper>
 
-              <Paper withBorder p="xl" radius="md" shadow="sm" bg="indigo.0">
-                <Title order={5} c="indigo.9" mb="xs">
-                  Marketplace Tip
-                </Title>
-                <Text size="xs" c="indigo.8" style={{ lineHeight: 1.5 }}>
-                  Detailed descriptions and high-quality image URLs increase
-                  your approval speed by 40%. Ensure your SKUs are unique.
-                </Text>
+              {/* SEO Content */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="md">
+                  <Search size={18} className="text-blue-600" />
+                  <Title order={5}>Search Optimization</Title>
+                </Group>
+                <Stack gap="xs">
+                  <TextInput
+                    label="Meta Title"
+                    placeholder="Browser tab title"
+                    {...form.getInputProps('seo.title')}
+                  />
+                  <Textarea
+                    label="Meta Description"
+                    placeholder="Search engine snippet"
+                    {...form.getInputProps('seo.description')}
+                  />
+                </Stack>
               </Paper>
             </Stack>
           </Grid.Col>
