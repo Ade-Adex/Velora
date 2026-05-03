@@ -1,8 +1,8 @@
 // /app/(admin)/admin/layout.tsx
-
 import { getCurrentUser } from '@/app/services/auth-service'
 import { redirect } from 'next/navigation'
 import AdminShell from '@/app/components/admin/AdminShell'
+import { IUser, Serialized } from '@/app/types'
 
 export default async function AdminLayout({
   children,
@@ -15,5 +15,6 @@ export default async function AdminLayout({
     redirect('/')
   }
 
-  return <AdminShell>{children}</AdminShell>
+  // Pass the user to the client component
+  return <AdminShell user={user as Serialized<IUser>}>{children}</AdminShell>
 }
