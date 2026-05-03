@@ -10,7 +10,6 @@ import { IProduct } from '@/app/types'
 import { Product } from '@/app/models/Product'
 import mongoose, { UpdateQuery, Document } from 'mongoose'
 
-
 export type ProductUpdateDTO = Partial<
   Omit<IProduct, keyof Document | 'updatedBy' | 'category'>
 > & {
@@ -33,7 +32,7 @@ export async function getAdminStaff() {
     await connectDB()
     // Fetch both admins and editors
     const staff = await User.find({ role: { $in: ['admin', 'editor'] } })
-      .select('fullName email image role isSuperAdmin') 
+      .select('fullName email image role isSuperAdmin')
       .lean()
     return JSON.parse(JSON.stringify(staff))
   } catch (error) {
@@ -104,10 +103,13 @@ export async function revokeAdminAccess(userId: string) {
 
     // Optional: Only allow a Super Admin to revoke other Admins
     if (!currentUser.isSuperAdmin && targetUser.role === 'admin') {
-      return { success: false, error: 'Only a Super Admin can revoke Admin access.' }
+      return {
+        success: false,
+        error: 'Only a Super Admin can revoke Admin access.',
+      }
     }
 
-    targetUser.role = 'customer' 
+    targetUser.role = 'customer'
     await targetUser.save()
 
     revalidatePath('/admin/team')
@@ -119,7 +121,7 @@ export async function revokeAdminAccess(userId: string) {
 
 export async function updateProduct(id: string, data: ProductUpdateDTO) {
   try {
-    const adminUser = await ensureAdmin() 
+    const adminUser = await ensureAdmin()
     await connectDB()
 
     if (!adminUser?._id) throw new Error('Admin ID not found in session')
@@ -149,5 +151,89 @@ export async function updateProduct(id: string, data: ProductUpdateDTO) {
       success: false,
       error: error instanceof Error ? error.message : 'Update failed',
     }
+  }
+}
+
+export async function getPendingProducts() {
+  try {
+    await ensureAdmin()
+    await connectDB()
+
+    // Fetch products that need review, populating vendor and category details
+    const products = await Product.find({ approvalStatus: 'pending' })
+      .populate('vendor', 'fullName email vendorProfile')
+      .populate('category', 'name')
+      .sort({ createdAt: 1 })
+      .lean()
+
+      console.log('Fetched pending products:', products)
+
+    return JSON.parse(JSON.stringify(products))
+  } catch (error) {
+    throw new Error('Failed to fetch pending products')
+  }
+}
+
+export async function getRejectedProducts() {
+  try {
+    await connectDB()
+    const products = await Product.find({ approvalStatus: 'rejected' })
+      .populate('vendor', 'fullName email vendorProfile')
+      .populate('category', 'name')
+      .sort({ updatedAt: -1 }) // Show most recently rejected first
+      .lean()
+
+    return JSON.parse(JSON.stringify(products))
+  } catch (error) {
+    throw new Error('Failed to fetch rejected products')
+  }
+}
+
+export async function updateProductApproval(
+  productId: string,
+  status: 'approved' | 'rejected',
+  comment?: string, 
+) {
+  try {
+    const admin = await ensureAdmin()
+    await connectDB()
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      {
+        $set: {
+          approvalStatus: status,
+          updatedBy: admin._id,
+          isPublished: status === 'approved',
+        },
+        // We push to the logs array to keep a history of the decision
+        $push: {
+          approvalLogs: {
+            status,
+            comment:
+              comment ||
+              (status === 'approved'
+                ? 'Product approved.'
+                : 'No reason provided.'),
+            adminId: admin._id,
+            createdAt: new Date(),
+          },
+        },
+      },
+      { new: true },
+    )
+
+    if (!updatedProduct) return { success: false, error: 'Product not found' }
+
+    revalidatePath('/admin/products')
+    revalidatePath('/vendor/products')
+
+
+    return {
+      success: true,
+      message: `Product ${status === 'approved' ? 'is now live' : 'has been rejected'}`,
+    }
+  } catch (error) {
+    return { success: false, error: (error as Error).message }
   }
 }

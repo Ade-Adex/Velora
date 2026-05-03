@@ -83,6 +83,15 @@ export interface IReview {
   comment: string
   createdAt: Date
 }
+
+export interface IApprovalLog {
+  status: 'pending' | 'approved' | 'rejected'
+  comment?: string
+  adminId: Types.ObjectId | string
+  createdAt: Date
+}
+
+
 export interface IProduct extends Document {
   name: string
   brand: string // Added for professional branding
@@ -111,6 +120,7 @@ export interface IProduct extends Document {
   }
   vendor: Types.ObjectId | IUser
   approvalStatus: 'pending' | 'approved' | 'rejected'
+  approvalLogs: IApprovalLog[]
   commissionRate: number
   isPublished: boolean
   isFeatured: boolean // For homepage highlights

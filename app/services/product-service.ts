@@ -24,7 +24,10 @@ type ProductInput = Omit<Partial<IProduct>, 'category'> & { category?: string }
 
 export async function getProducts(limit: number) {
   await connectDB()
-  const products = await Product.find({ isPublished: true })
+  const products = await Product.find({
+    isPublished: true,
+    approvalStatus: 'approved',
+  })
     .populate({
       path: 'category',
       model: Category,
@@ -40,7 +43,7 @@ export async function getProducts(limit: number) {
 export async function getProductBySlug(slug: string) {
   await connectDB()
 
-  return await Product.findOne({ slug, isPublished: true })
+  return await Product.findOne({ slug, isPublished: true, approvalStatus: 'approved' })
     .populate({
       path: 'category',
       populate: {
@@ -98,6 +101,7 @@ export async function getProductsByCategory(categorySlug: string) {
   const products = await Product.find({
     category: { $in: allRelatedCategoryIds },
     isPublished: true,
+    approvalStatus: 'approved',
   })
     .populate('category')
     .sort({ createdAt: -1 })
