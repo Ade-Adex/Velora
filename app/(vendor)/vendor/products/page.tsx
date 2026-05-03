@@ -23,6 +23,7 @@ import {
   MenuDropdown,
   MenuItem,
   MenuDivider,
+  Tooltip,
 } from '@mantine/core'
 import {
   Plus,
@@ -95,18 +96,28 @@ export default async function VendorProductsPage() {
                     </Group>
                   </TableTd>
                   <TableTd>
-                    <Badge
-                      variant="light"
-                      color={
-                        product.approvalStatus === 'approved'
-                          ? 'green'
-                          : product.approvalStatus === 'pending'
-                            ? 'orange'
-                            : 'red'
+                    <Tooltip
+                      label={
+                        product.approvalStatus === 'pending'
+                          ? 'Awaiting review'
+                          : `Actioned on: ${new Date(product.updatedAt).toLocaleDateString()}`
                       }
+                      withArrow
+                      position="bottom"
                     >
-                      {product.approvalStatus}
-                    </Badge>
+                      <Badge
+                        variant="light"
+                        color={
+                          product.approvalStatus === 'approved'
+                            ? 'green'
+                            : product.approvalStatus === 'pending'
+                              ? 'orange'
+                              : 'red'
+                        }
+                      >
+                        {product.approvalStatus}
+                      </Badge>
+                    </Tooltip>
                   </TableTd>
                   <TableTd>
                     <Group gap={5}>
@@ -145,10 +156,7 @@ export default async function VendorProductsPage() {
                           View Shop
                         </MenuItem>
                         <MenuDivider />
-                        <MenuItem
-                          color="red"
-                          leftSection={<Trash size={14} />}
-                        >
+                        <MenuItem color="red" leftSection={<Trash size={14} />}>
                           Delete
                         </MenuItem>
                       </MenuDropdown>
