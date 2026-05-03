@@ -1,29 +1,23 @@
 //  /app/(vendor)/vendor/orders/page.tsx
 
+export const dynamic = 'force-dynamic'
+
 import {
   Box,
   Title,
   Text,
-  Group,
-  Button,
   Table,
   Badge,
-  Avatar,
   Paper,
-  Menu,
   ActionIcon,
   TableThead,
   TableTr,
   TableTh,
   TableTbody,
   TableTd,
-  MenuTarget,
-  MenuDropdown,
-  MenuItem,
-  MenuDivider,
   Tooltip,
 } from '@mantine/core'
-import { Eye, Package } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { getVendorOrders } from '@/app/services/vendor-service'
 import { Serialized, IOrder } from '@/app/types'
 

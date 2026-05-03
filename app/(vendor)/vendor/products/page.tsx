@@ -1,5 +1,7 @@
 // /app/(vendor)/vendor/products/page.tsx
 
+export const dynamic = 'force-dynamic'
+
 import {
   Box,
   Title,
