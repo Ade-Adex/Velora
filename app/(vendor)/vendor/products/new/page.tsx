@@ -135,9 +135,27 @@ export default function ProfessionalNewProductPage() {
         enqueueSnackbar('Product listed successfully!', { variant: 'success' })
         router.push('/vendor/products')
       } else {
-        enqueueSnackbar(res.error || 'Check form for errors', {
-          variant: 'error',
-        })
+        // Handle the KYC specific error
+        if (res.error === 'KYC_INCOMPLETE') {
+          enqueueSnackbar(res.message, {
+            variant: 'warning',
+            autoHideDuration: 6000,
+            action: (key) => (
+              <Button
+                size="compact-xs"
+                color="white"
+                variant="outline"
+                onClick={() => router.push('/vendor/settings')}
+              >
+                Go to Settings
+              </Button>
+            ),
+          })
+        } else {
+          enqueueSnackbar(res.error || 'Check form for errors', {
+            variant: 'error',
+          })
+        }
       }
     } catch (err) {
       enqueueSnackbar('Internal Server Error', { variant: 'error' })
@@ -193,6 +211,40 @@ export default function ProfessionalNewProductPage() {
           </Button>
         </Group>
       </Group>
+
+      <Paper
+        withBorder
+        p="md"
+        radius="md"
+        mb="xl"
+        className="bg-amber-50 border-amber-200"
+      >
+        <Group justify="space-between">
+          <Group>
+            <div className="p-2 bg-amber-100 rounded-full">
+              <Settings size={20} className="text-amber-700" />
+            </div>
+            <div>
+              <Text fw={700} size="sm" c="amber.9">
+                Profile Incomplete
+              </Text>
+              <Text size="xs" c="amber.8">
+                Your shop won&apos;t be able to list items until payout details
+                are set.
+              </Text>
+            </div>
+          </Group>
+          <Button
+            variant="light"
+            color="amber"
+            size="xs"
+            component={Link}
+            href="/vendor/settings"
+          >
+            Complete Setup
+          </Button>
+        </Group>
+      </Paper>
 
       <form>
         <Grid gap="xl">

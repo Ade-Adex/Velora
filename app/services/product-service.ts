@@ -10,6 +10,7 @@ import { SortOrder, Types } from 'mongoose'
 import '../models/Category'
 import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from '@/app/services/auth-service'
+import { User } from '@/app/models/User'
 
 // import slugify from 'slugify'
 
@@ -26,7 +27,7 @@ export async function getProducts(limit: number) {
   await connectDB()
   const products = await Product.find({
     isPublished: true,
-    // approvalStatus: 'approved',
+    approvalStatus: 'approved',
   })
     .populate({
       path: 'category',
@@ -198,32 +199,46 @@ export async function createProduct(data: ProductInput) {
     await connectDB()
 
     // 1. Authentication & Security
-    const user = await getCurrentUser()
-    if (!user || !user._id) {
+    const sessionUser = await getCurrentUser()
+    if (!sessionUser || !sessionUser._id) {
+      return { success: false, error: 'Unauthorized: Please log in.' }
+    }
+
+    // 2. Fetch full user to check KYC (vendorProfile)
+    const user = await User.findById(sessionUser._id).select(
+      'vendorProfile role',
+    )
+
+    if (!user) return { success: false, error: 'User not found' }
+
+    // 3. KYC Check: Ensure shop name and bank details exist
+    const profile = user.vendorProfile
+    const isKycComplete =
+      profile?.shopName &&
+      profile?.bankDetails?.bankName &&
+      profile?.bankDetails?.accountNumber
+
+    if (!isKycComplete && user.role !== 'admin') {
       return {
         success: false,
-        error: 'Unauthorized: Please log in to list products.',
+        error: 'KYC_INCOMPLETE', // Specific error code for the UI to handle
+        message:
+          'Please complete your Shop Settings (Shop Name and Payout Details) before listing products.',
       }
     }
 
-    if (!data.name) {
-      return { success: false, error: 'Product name is required' }
-    }
+    if (!data.name) return { success: false, error: 'Product name is required' }
 
-    // 2. Data Preparation
+    // 4. Data Preparation
     const slug = generateSlug(data.name)
-
     const productData = {
       ...data,
       slug,
-      vendor: user._id, // Securely set vendor ID from session
+      vendor: user._id,
       approvalStatus: 'pending',
       isPublished: data.isPublished || false,
       commissionRate: 10,
-      ratings: {
-        average: 0,
-        count: 0,
-      },
+      ratings: { average: 0, count: 0 },
       seo: {
         title: data.seo?.title || data.name,
         description: data.seo?.description || data.shortDescription || '',
@@ -231,10 +246,9 @@ export async function createProduct(data: ProductInput) {
       },
     }
 
-    // 3. Database Operation
+    // 5. Database Operation
     const newProduct = await Product.create(productData)
 
-    // 4. Cache Invalidation
     revalidatePath('/vendor/products')
     revalidatePath('/admin/products')
     revalidatePath('/')
@@ -245,22 +259,13 @@ export async function createProduct(data: ProductInput) {
     }
   } catch (error: unknown) {
     console.error('[PRODUCT_SERVICE_ERROR]:', error)
-
-    // Extract specific Mongoose validation messages (like the Category ID error)
-    let errorMessage = 'An unexpected error occurred while saving the product'
-
-    if (error instanceof Error) {
-      // This will capture things like "Cast to ObjectId failed for value 'Electronics'"
-      errorMessage = error.message
-    }
-
     return {
       success: false,
-      error: errorMessage,
+      error:
+        error instanceof Error ? error.message : 'An unexpected error occurred',
     }
   }
 }
-
 export async function addProductReview(
   productId: string,
   reviewData: { userId: string; name: string; rating: number; comment: string },
