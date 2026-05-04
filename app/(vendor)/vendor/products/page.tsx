@@ -35,6 +35,7 @@ import {
 } from 'lucide-react'
 import { getVendorProducts } from '@/app/services/vendor-service'
 import { Serialized, IProduct } from '@/app/types'
+import Link from 'next/link'
 
 export default async function VendorProductsPage() {
   const products: Serialized<IProduct>[] = await getVendorProducts()
@@ -50,9 +51,11 @@ export default async function VendorProductsPage() {
             Manage your marketplace listings and stock levels.
           </Text>
         </Box>
+        <Link href="/vendor/products/new">
         <Button leftSection={<Plus size={18} />} color="indigo" radius="md">
           Add New Product
-        </Button>
+          </Button>
+        </Link>
       </Group>
 
       <Paper withBorder radius="md" className="overflow-hidden">

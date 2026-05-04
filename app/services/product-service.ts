@@ -26,7 +26,7 @@ export async function getProducts(limit: number) {
   await connectDB()
   const products = await Product.find({
     isPublished: true,
-    approvalStatus: 'approved',
+    // approvalStatus: 'approved',
   })
     .populate({
       path: 'category',

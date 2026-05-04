@@ -6,7 +6,7 @@ import connectDB from '@/app/lib/mongodb'
 import { User } from '@/app/models/User'
 import { getSessionUser } from '@/app/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
-import { IProduct } from '@/app/types'
+import { IApprovalLog, IProduct } from '@/app/types'
 import { Product } from '@/app/models/Product'
 import mongoose, { UpdateQuery, Document } from 'mongoose'
 
@@ -189,6 +189,7 @@ export async function getRejectedProducts() {
   }
 }
 
+
 export async function updateProductApproval(
   productId: string,
   status: 'approved' | 'rejected',
@@ -198,42 +199,52 @@ export async function updateProductApproval(
     const admin = await ensureAdmin()
     await connectDB()
 
+    // 1. Define a strictly typed log entry
+    const newLog: IApprovalLog = {
+      status,
+      comment: comment || (status === 'approved' ? 'Product approved.' : 'No reason provided.'),
+      adminId: admin._id as string,
+      createdAt: new Date(),
+    }
+
+    // 2. Build a type-safe update payload using UpdateQuery<IProduct>
+    // This avoids 'any' and ensures all keys match your IProduct interface
+    const updatePayload: UpdateQuery<IProduct> = {
+      $set: {
+        approvalStatus: status,
+        updatedBy: admin._id as string,
+        isPublished: status === 'approved',
+        // Automatically put it on sale if approved
+        onSale: status === 'approved',
+      },
+      $push: {
+        approvalLogs: newLog
+      },
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       productId,
-      {
-        $set: {
-          approvalStatus: status,
-          updatedBy: admin._id,
-          isPublished: status === 'approved',
-        },
-        // We push to the logs array to keep a history of the decision
-        $push: {
-          approvalLogs: {
-            status,
-            comment:
-              comment ||
-              (status === 'approved'
-                ? 'Product approved.'
-                : 'No reason provided.'),
-            adminId: admin._id,
-            createdAt: new Date(),
-          },
-        },
-      },
-      { new: true },
+      updatePayload,
+      { new: true, runValidators: true }
     )
 
-    if (!updatedProduct) return { success: false, error: 'Product not found' }
+    if (!updatedProduct) {
+      return { success: false, error: 'Product not found' }
+    }
 
+    // 3. Clear relevant caches
     revalidatePath('/admin/products')
     revalidatePath('/vendor/products')
-
+    revalidatePath('/shop')
 
     return {
       success: true,
-      message: `Product ${status === 'approved' ? 'is now live' : 'has been rejected'}`,
+      message: `Product ${status === 'approved' ? 'is now live and on sale' : 'has been rejected'}`,
     }
   } catch (error) {
-    return { success: false, error: (error as Error).message }
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'An unknown error occurred' 
+    }
   }
 }
