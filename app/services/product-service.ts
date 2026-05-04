@@ -198,44 +198,60 @@ export async function createProduct(data: ProductInput) {
   try {
     await connectDB()
 
-    // 1. Authentication & Security
+    // 1. Authentication Check
     const sessionUser = await getCurrentUser()
     if (!sessionUser || !sessionUser._id) {
       return { success: false, error: 'Unauthorized: Please log in.' }
     }
 
-    // 2. Fetch full user to check KYC (vendorProfile)
+    // 2. Fetch user with full vendor profile
     const user = await User.findById(sessionUser._id).select(
       'vendorProfile role',
     )
+    if (!user) return { success: false, error: 'User account not found.' }
 
-    if (!user) return { success: false, error: 'User not found' }
+    // Bypass checks for Admins
+    const isAdmin = user.role === 'admin' || user.isSuperAdmin
 
-    // 3. KYC Check: Ensure shop name and bank details exist
-    const profile = user.vendorProfile
-    const isKycComplete =
-      profile?.shopName &&
-      profile?.bankDetails?.bankName &&
-      profile?.bankDetails?.accountNumber
+    if (!isAdmin) {
+      const profile = user.vendorProfile
 
-    if (!isKycComplete && user.role !== 'admin') {
-      return {
-        success: false,
-        error: 'KYC_INCOMPLETE', // Specific error code for the UI to handle
-        message:
-          'Please complete your Shop Settings (Shop Name and Payout Details) before listing products.',
+      // 3. Step 1: Check if basic data exists (KYC)
+      const hasShopData = !!(
+        profile?.shopName &&
+        profile?.bankDetails?.bankName &&
+        profile?.bankDetails?.accountNumber
+      )
+
+      if (!hasShopData) {
+        return {
+          success: false,
+          error: 'KYC_INCOMPLETE',
+          message: 'Please complete your shop profile and bank details first.',
+        }
+      }
+
+      // 4. Step 2: Check administrative verification
+      if (!profile?.isVerified) {
+        return {
+          success: false,
+          error: 'NOT_VERIFIED',
+          message:
+            'Your account is pending administrative verification. You will be notified once approved.',
+        }
       }
     }
 
+    // 5. Validation
     if (!data.name) return { success: false, error: 'Product name is required' }
 
-    // 4. Data Preparation
+    // 6. Data Preparation
     const slug = generateSlug(data.name)
     const productData = {
       ...data,
       slug,
       vendor: user._id,
-      approvalStatus: 'pending',
+      approvalStatus: 'pending', // Individual products still require review
       isPublished: data.isPublished || false,
       commissionRate: 10,
       ratings: { average: 0, count: 0 },
@@ -246,9 +262,10 @@ export async function createProduct(data: ProductInput) {
       },
     }
 
-    // 5. Database Operation
+    // 7. Database Operation
     const newProduct = await Product.create(productData)
 
+    // 8. Revalidation
     revalidatePath('/vendor/products')
     revalidatePath('/admin/products')
     revalidatePath('/')
