@@ -77,10 +77,11 @@ export default function Navbar() {
     <header className="w-full bg-white sticky top-0 z-50 shadow-sm">
       {/* --- TOP BAR --- */}
       <div className="container mx-auto px-4 py-3 lg:py-4 flex items-center justify-between gap-4">
-        
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0 group">
-          <div className={`w-10 h-10 ${currentTheme.bg} rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform`}>
+          <div
+            className={`w-10 h-10 ${currentTheme.bg} rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform`}
+          >
             <ShoppingCart className="text-white" size={22} />
           </div>
           <div className="flex flex-col leading-none">
@@ -122,7 +123,9 @@ export default function Navbar() {
                 <UserIcon size={20} />
               </div>
               <div className="hidden lg:flex flex-col leading-tight">
-                <span className="text-[10px] text-gray-400 font-bold uppercase">Sign In</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase">
+                  Sign In
+                </span>
                 <span className="text-sm font-bold">Account</span>
               </div>
             </Link>
@@ -136,19 +139,27 @@ export default function Navbar() {
             >
               <ShoppingCart size={22} />
               {cartCount > 0 && (
-                <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white">
+                <span className="absolute top-0 right-0 bg-[#FF8A00] text-white text-[10px] font-bold min-w-4.5 h-4.5 px-1 rounded-full flex items-center justify-center border-2 border-white">
                   {cartCount}
                 </span>
               )}
             </Link>
           )}
 
-          <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" aria-label="Toggle navigation" />
+          <Burger
+            opened={opened}
+            onClick={toggle}
+            hiddenFrom="md"
+            size="sm"
+            aria-label="Toggle navigation"
+          />
         </div>
       </div>
 
       {/* --- SUB-NAV BAR (Desktop) --- */}
-      <nav className={`${currentTheme.bg} text-white hidden md:block transition-colors duration-500`}>
+      <nav
+        className={`${currentTheme.bg} text-white hidden md:block transition-colors duration-500`}
+      >
         <div className="container mx-auto px-4 flex items-center gap-8 py-2.5">
           {navLinks.map((link) => (
             <Link
@@ -180,15 +191,31 @@ export default function Navbar() {
           <div className="px-md pb-xl">
             {user ? (
               <Group p="md" className="bg-gray-50 rounded-2xl mb-4">
-                <UserMenu user={user} onLogout={handleLogout} variant="dashboard" />
+                <UserMenu
+                  user={user}
+                  onLogout={handleLogout}
+                  variant="dashboard"
+                />
                 <div style={{ flex: 1 }}>
-                  <Text size="sm" fw={700}>{user.fullName}</Text>
-                  <Text size="xs" c="dimmed" className="truncate w-40">{user.email}</Text>
+                  <Text size="sm" fw={700}>
+                    {user.fullName}
+                  </Text>
+                  <Text size="xs" c="dimmed" className="truncate w-40">
+                    {user.email}
+                  </Text>
                 </div>
               </Group>
             ) : (
               <Center mb="md">
-                <Button component={Link} href="/auth" onClick={close} radius="xl" color="blue" px="xl" className="bg-[#0052CC]!">
+                <Button
+                  component={Link}
+                  href="/auth"
+                  onClick={close}
+                  radius="xl"
+                  color="blue"
+                  px="xl"
+                  className="bg-[#0052CC]!"
+                >
                   Sign In / Register
                 </Button>
               </Center>
@@ -210,15 +237,49 @@ export default function Navbar() {
             {user && (
               <>
                 <Divider my="sm" label="Your Account" labelPosition="center" />
-                <NavLink component={Link} href="/profile" label="Profile Settings" leftSection={<Settings size={18} />} onClick={close} />
-                <NavLink component={Link} href="/profile?tab=orders" label="Track Orders" leftSection={<Package size={18} />} onClick={close} />
-                <NavLink component={Link} href="/wishlist" label="My Wishlist" leftSection={<Heart size={18} />} onClick={close} />
-                
+                <NavLink
+                  component={Link}
+                  href="/profile"
+                  label="Profile Settings"
+                  leftSection={<Settings size={18} />}
+                  onClick={close}
+                />
+                <NavLink
+                  component={Link}
+                  href="/profile?tab=orders"
+                  label="Track Orders"
+                  leftSection={<Package size={18} />}
+                  onClick={close}
+                />
+                <NavLink
+                  component={Link}
+                  href="/wishlist"
+                  label="My Wishlist"
+                  leftSection={<Heart size={18} />}
+                  onClick={close}
+                />
+
                 {user.role === 'vendor' && (
-                  <NavLink component={Link} href="/vendor" label="Shop Manager" leftSection={<LayoutGrid size={18} />} color="indigo" variant="light" onClick={close} />
+                  <NavLink
+                    component={Link}
+                    href="/vendor"
+                    label="Shop Manager"
+                    leftSection={<LayoutGrid size={18} />}
+                    color="indigo"
+                    variant="light"
+                    onClick={close}
+                  />
                 )}
 
-                <NavLink label="Logout" color="red" leftSection={<LogOut size={18} />} onClick={handleLogout} mt="xl" variant="light" className="rounded-lg" />
+                <NavLink
+                  label="Logout"
+                  color="red"
+                  leftSection={<LogOut size={18} />}
+                  onClick={handleLogout}
+                  mt="xl"
+                  variant="light"
+                  className="rounded-lg"
+                />
               </>
             )}
           </div>

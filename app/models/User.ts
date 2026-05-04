@@ -31,16 +31,18 @@ const UserSchema = new Schema<IUser>(
       isVerified: { type: Boolean, default: false },
       description: String,
       logo: String,
+      rating: { type: Number, default: 0 },
+      reviewsCount: { type: Number, default: 0 },
       bankDetails: {
         accountName: String,
         accountNumber: String,
         bankName: String,
-      }
+      },
     },
     isSuperAdmin: {
       type: Boolean,
       default: false,
-      index: true
+      index: true,
     },
     magicToken: { type: String, index: true },
     tokenExpiry: { type: Date },

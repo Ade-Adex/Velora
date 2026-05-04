@@ -24,6 +24,8 @@ export interface IVendorProfile {
   isVerified: boolean
   description?: string
   logo?: string
+  rating: number
+  reviewsCount: number
   bankDetails?: {
     accountName: string
     accountNumber: string
@@ -145,66 +147,65 @@ export interface IProduct extends Document, Omit<IProductData, 'category'> {
 }
 
 
-// export interface IProduct extends Document {
-//   name: string
-//   brand: string // Added for professional branding
-//   slug: string
-//   description: string
-//   shortDescription?: string // Added for snippets/grid
-//   basePrice: number
-//   discountPrice?: number
-//   category: Types.ObjectId | ICategory
-//   tags: string[]
-//   mainImage: ImageSource // Flexible type
-//   gallery: string[]
-//   videoUrl?: string
-//   stock: number // Global stock fallback
-//   variants: IVariant[]
-//   specifications: { label: string; value: string }[] // Technical details
-//   reviews: IReview[]
-//   ratings: {
-//     average: number
-//     count: number
-//   }
-//   seo: {
-//     title?: string
-//     description?: string
-//     keywords?: string[]
-//   }
-//   vendor: Types.ObjectId | IUser
-//   approvalStatus: 'pending' | 'approved' | 'rejected'
-//   approvalLogs: IApprovalLog[]
-//   commissionRate: number
-//   isPublished: boolean
-//   isFeatured: boolean // For homepage highlights
-//   onSale: boolean
-//   saleEndsAt?: Date
-//   updatedBy?: Types.ObjectId | IUser // Track who made changes
-//   createdAt: Date
-//   updatedAt: Date
-// }
+// --- Shipment Types ---
+export interface IShipment extends Document {
+  order: Types.ObjectId | string | IOrder
+  vendor: Types.ObjectId | string | IUser
+  orderItems: {
+    productId: Types.ObjectId | string
+    quantity: number
+    name: string
+  }[]
+  trackingNumber?: string
+  carrier: string
+  status: 
+    | 'label_created'
+    | 'pickup_pending'
+    | 'in_transit'
+    | 'out_for_delivery'
+    | 'delivered'
+    | 'failed_attempt'
+    | 'returned'
+  statusHistory: {
+    status: string
+    timestamp: Date
+    description?: string
+  }[]
+  estimatedDelivery?: Date
+  actualDelivery?: Date
+  shippingLabelUrl?: string
+  createdAt: Date
+  updatedAt: Date
+}
 
-// --- Order Types ---
+// --- Modified Order Item (To match professional structure) ---
 export interface IOrderItem {
   product: Types.ObjectId | string
-  vendor: Types.ObjectId | string // Reference to the seller
+  vendor: Types.ObjectId | string
   variantSku?: string
   name: string
   image: string
   quantity: number
   price: number
-  adminCommission?: number
-  fulfillmentStatus:
+  // Financials
+  adminCommissionRate: number
+  adminCommissionAmount: number
+  vendorNetEarning: number
+  shippingFee: number
+  // Logistics link
+  shipment?: Types.ObjectId | string | IShipment
+  status: 
     | 'pending'
     | 'processing'
     | 'shipped'
     | 'delivered'
     | 'cancelled'
-  vendorNetEarning?: number
+    | 'returned'
 }
 
+// --- Modified Order ---
 export interface IOrder extends Document {
-  user: Types.ObjectId | string
+  user: Types.ObjectId | string | IUser
   orderNumber: string
   items: IOrderItem[]
   totals: {
@@ -216,11 +217,16 @@ export interface IOrder extends Document {
   }
   shippingAddress: IAddress
   paymentStatus: 'unpaid' | 'processing' | 'paid' | 'failed' | 'refunded'
-  orderStatus: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+  orderStatus: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
   paymentMethod: 'card' | 'transfer' | 'cod'
+  updatedBy?: Types.ObjectId | IUser
+  statusHistory: {
+    status: string
+    updatedAt: Date
+    updatedBy: Types.ObjectId | IUser
+  }[]
   paymentReference?: string
-  vendorNetEarnings?: number
-  trackingNumber?: string
+  notes?: string
   createdAt: Date
   updatedAt: Date
 }

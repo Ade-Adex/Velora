@@ -225,6 +225,27 @@ export default async function SingleOrderPage({ params }: PageProps) {
                 orderId={order._id.toString()}
                 currentStatus={order.orderStatus}
               />
+              {/* --- ADDED AUDIT INFO BELOW --- */}
+              {order.updatedBy && (
+                <Box
+                  mt="lg"
+                  pt="sm"
+                  style={{ borderTop: '1px solid var(--mantine-color-gray-2)' }}
+                >
+                  <Group gap={6} mb={2}>
+                    <User size={14} color="var(--mantine-color-dimmed)" />
+                    <Text size="xs" c="dimmed" fw={500}>
+                      Last modified by:
+                    </Text>
+                  </Group>
+                  <Text size="xs" fw={700} ml={20}>
+                    {order.updatedBy.fullName || 'Administrator'}
+                  </Text>
+                  <Text size="xs" c="dimmed" ml={20}>
+                    {new Date(order.updatedAt).toLocaleString()}
+                  </Text>
+                </Box>
+              )}
             </Paper>
 
             {/* Customer Details Card */}

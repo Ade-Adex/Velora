@@ -34,6 +34,7 @@ import { ReactNode, useState } from 'react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { useRouter } from 'next/navigation'
 import { SHIPPING_CONFIG } from '@/app/lib/constants'
+import { IAddress, ImageSource } from '@/app/types'
 
 interface BadgeProps {
   children: ReactNode
@@ -75,51 +76,58 @@ export default function CartPage() {
 
    setLoading(true)
 
-   const activeAddress =
+   const activeAddress: IAddress =
      user.addresses.find((a) => a.isDefault) || user.addresses[0]
 
-   const orderPayload = {
-     items: cart.map((item) => ({
-       product: item.id,
-       name: item.name,
-       quantity: item.quantity,
-       price: item.price,
-       image: item.image, // Pass the image here!
-       variantSku: item.variantSku || '',
-     })),
-     shippingAddress: activeAddress,
-     paymentMethod,
-   }
+ const orderPayload: {
+   items: {
+     product: string
+     quantity: number
+     image: ImageSource
+     variantSku: string
+   }[]
+   shippingAddress: IAddress
+   paymentMethod: string
+ } = {
+   items: cart.map((item) => ({
+     product: item.id,
+     quantity: item.quantity,
+     image: item.image,
+     variantSku: item.variantSku || '',
+   })),
+   shippingAddress: activeAddress,
+   paymentMethod,
+ }
 
-   try {
-     const response = await fetch('/api/checkout', {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify(orderPayload),
-     })
+ try {
+   const response = await fetch('/api/checkout', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify(orderPayload),
+   })
 
-     const data = await response.json()
+   const data = await response.json()
 
-     if (data.success) {
-       clearCart()
+   if (data.success) {
+     clearCart()
 
-       // --- PROFESSIONAL REDIRECT ---
-       // If the URL is external (like Paystack), use .assign()
-       // to avoid the mutation error.
-       if (data.redirectUrl.startsWith('http')) {
-         window.location.assign(data.redirectUrl)
-       } else {
-         router.push(data.redirectUrl)
-       }
+     // --- PROFESSIONAL REDIRECT ---
+     // If the URL is external (like Paystack), use .assign()
+     // to avoid the mutation error.
+     if (data.redirectUrl.startsWith('http')) {
+       window.location.assign(data.redirectUrl)
      } else {
-       alert(data.error || 'Failed to initialize checkout.')
+       router.push(data.redirectUrl)
      }
-   } catch (error) {
-     console.error('Checkout Error:', error)
-     alert('A network error occurred. Please try again.')
-   } finally {
-     setLoading(false)
+   } else {
+     alert(data.error || 'Failed to initialize checkout.')
    }
+ } catch (error) {
+   console.error('Checkout Error:', error)
+   alert('A network error occurred. Please try again.')
+ } finally {
+   setLoading(false)
+ }
  }
 
   if (cart.length === 0) {

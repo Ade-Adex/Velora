@@ -21,11 +21,11 @@ import {
 import { Plus, MoreHorizontal, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import AdminStats from '@/app/components/admin/AdminStats'
-import { IUser, IOrder, StatItem } from '@/app/types'
+import { IUser, IOrder, StatItem, Serialized } from '@/app/types'
 
 interface DashboardClientProps {
-  user: IUser
-  allOrders: IOrder[]
+  user: Serialized<IUser>
+  allOrders: Serialized<IOrder>[]
   stats: StatItem[]
 }
 
@@ -39,7 +39,7 @@ export default function DashboardClient({
       {/* Header */}
       <Group justify="space-between" align="center">
         <Box>
-          <Badge variant="dot" color="indigo" size="lg" mb="xs">
+          <Badge variant="dot" color="indigo" size="md" mb="xs">
             Merchant Active
           </Badge>
           <Title order={1} fw={900} lts="-1.5px">
@@ -77,7 +77,7 @@ export default function DashboardClient({
         <GridCol span={{ base: 12, lg: 8 }}>
           <Paper
             withBorder
-            radius="xl"
+            radius="md"
             shadow="xs"
             p={0}
             style={{ overflow: 'hidden' }}
@@ -92,7 +92,7 @@ export default function DashboardClient({
                 </Text>
               </Stack>
               <Link href="/vendor/orders" passHref>
-                <Button variant="subtle" size="xs" radius="xl">
+                <Button variant="subtle" size="xs" radius="md">
                   View Ledger
                 </Button>
               </Link>
@@ -139,14 +139,19 @@ export default function DashboardClient({
                 <Table.Tbody>
                   {allOrders.length > 0 ? (
                     allOrders.map((order) => {
-                      const myTotal = order.items
-                        .filter(
-                          (i) => i.vendor.toString() === user._id.toString(),
-                        )
-                        .reduce((s, i) => s + i.price * i.quantity, 0)
+                      // Use string comparison for serialized IDs
+                      const myVendorItems = order.items.filter(
+                        (i) => i.vendor.toString() === user._id.toString(),
+                      )
+
+                      // We show the Net Earning (what the vendor actually takes home)
+                      const myNetTotal = myVendorItems.reduce(
+                        (sum, item) => sum + (item.vendorNetEarning || 0),
+                        0,
+                      )
 
                       return (
-                        <Table.Tr key={order._id.toString()}>
+                        <Table.Tr key={order._id}>
                           <Table.Td>
                             <Group gap="sm">
                               <Avatar size="sm" color="indigo" radius="md">
@@ -166,18 +171,35 @@ export default function DashboardClient({
                           </Table.Td>
                           <Table.Td>
                             <Badge
-                              color="orange.1"
-                              c="orange.9"
+                              color={
+                                order.orderStatus === 'pending'
+                                  ? 'yellow'
+                                  : order.orderStatus === 'confirmed'
+                                    ? 'blue'
+                                    : order.orderStatus === 'shipped'
+                                      ? 'indigo'
+                                      : order.orderStatus === 'delivered'
+                                        ? 'green'
+                                        : 'red'
+                              }
+                              c="white"
                               variant="filled"
                               size="sm"
                             >
-                              Processing
+                              {order.orderStatus}
                             </Badge>
                           </Table.Td>
                           <Table.Td>
-                            <Text size="sm" fw={800} c="indigo">
-                              ₦{myTotal.toLocaleString()}
-                            </Text>
+                            <Stack gap={2}>
+                              <Text size="sm" fw={800} c="indigo">
+                                ₦{myNetTotal.toLocaleString()}
+                              </Text>
+                              <Text size="10px" c="dimmed" fw={500}>
+                                {myVendorItems.length}{' '}
+                                {myVendorItems.length === 1 ? 'item' : 'items'}{' '}
+                                in order
+                              </Text>
+                            </Stack>
                           </Table.Td>
                           <Table.Td>
                             <ActionIcon

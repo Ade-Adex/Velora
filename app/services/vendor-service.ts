@@ -72,37 +72,37 @@ export async function getVendorOrders(): Promise<Serialized<IOrder>[]> {
 /**
  * Updates fulfillment for a specific line item in a multi-vendor order
  */
-export async function updateItemFulfillment(
-  orderId: string,
-  itemId: string,
-  status: IOrderItem['fulfillmentStatus'],
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    await connectDB()
-    const user = await ensureVendor()
+// export async function updateItemFulfillment(
+//   orderId: string,
+//   itemId: string,
+//   status: IOrderItem['fulfillmentStatus'],
+// ): Promise<{ success: boolean; error?: string }> {
+//   try {
+//     await connectDB()
+//     const user = await ensureVendor()
 
-    const result = await Order.updateOne(
-      {
-        _id: orderId,
-        'items._id': itemId,
-        'items.vendor': user._id,
-      },
-      { $set: { 'items.$.fulfillmentStatus': status } },
-    )
+//     const result = await Order.updateOne(
+//       {
+//         _id: orderId,
+//         'items._id': itemId,
+//         'items.vendor': user._id,
+//       },
+//       { $set: { 'items.$.fulfillmentStatus': status } },
+//     )
 
-    if (result.modifiedCount === 0) {
-      return { success: false, error: 'Item not found or unauthorized' }
-    }
+//     if (result.modifiedCount === 0) {
+//       return { success: false, error: 'Item not found or unauthorized' }
+//     }
 
-    revalidatePath('/vendor/orders')
-    return { success: true }
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Update failed',
-    }
-  }
-}
+//     revalidatePath('/vendor/orders')
+//     return { success: true }
+//   } catch (error) {
+//     return {
+//       success: false,
+//       error: error instanceof Error ? error.message : 'Update failed',
+//     }
+//   }
+// }
 
 /**
  * Updates Vendor Shop Profile and Bank Details

@@ -163,9 +163,9 @@ function OrderSuccessContent() {
             </Badge>
             <Text size="xs" c="dimmed">
               Tracking:{' '}
-              <span className="font-mono">
+              {/* <span className="font-mono">
                 {order.trackingNumber || 'Processing...'}
-              </span>
+              </span> */}
             </Text>
           </Stack>
 
