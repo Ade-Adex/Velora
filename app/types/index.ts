@@ -56,6 +56,11 @@ export interface IUser extends Document {
   updatedAt: Date
 }
 
+export interface CategoryOption {
+  label: string
+  value: string
+}
+
 // --- Product & Category Types ---
 export interface ICategory extends Document {
   name: string
