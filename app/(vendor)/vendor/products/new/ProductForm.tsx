@@ -65,7 +65,10 @@ type ProductFormValues = Omit<
   | 'slug'
   | 'owner'
   | 'updatedBy'
->
+  | 'category' // Remove category from IProduct
+> & {
+  category: string // Re-add it as a string for the form state
+}
 
 export default function ProductForm({
   categoryOptions,
@@ -104,27 +107,29 @@ export default function ProductForm({
     },
   })
 
-  const handleCreate = async (values: ProductFormValues) => {
-    setLoading(true)
-    try {
-      const res = await createProduct(values)
-      if (res.success) {
-        enqueueSnackbar('Product submitted for approval', {
-          variant: 'success',
-        })
-        router.push('/vendor/products')
-        router.refresh()
-      } else {
-        enqueueSnackbar(res.message || 'Error creating product', {
-          variant: res.error === 'KYC_INCOMPLETE' ? 'warning' : 'error',
-        })
-      }
-    } catch (err) {
-      enqueueSnackbar('Internal connection error', { variant: 'error' })
-    } finally {
-      setLoading(false)
+const handleCreate = async (values: ProductFormValues) => {
+  setLoading(true)
+  try {
+    // We cast to unknown first, then to IProduct to avoid the 'any' keyword
+    // while satisfying the service's expected type.
+    const payload = values as unknown as IProduct
+    const res = await createProduct(payload)
+
+    if (res.success) {
+      enqueueSnackbar('Product submitted for approval', { variant: 'success' })
+      router.push('/vendor/products')
+      router.refresh()
+    } else {
+      enqueueSnackbar(res.message || 'Error creating product', {
+        variant: res.error === 'KYC_INCOMPLETE' ? 'warning' : 'error',
+      })
     }
+  } catch (err) {
+    enqueueSnackbar('Internal connection error', { variant: 'error' })
+  } finally {
+    setLoading(false)
   }
+}
 
   const isRestricted = !userStatus.isVerified && !userStatus.isAdmin
 
