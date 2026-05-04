@@ -103,7 +103,7 @@ export default function VendorSidebar({
                 active={active}
                 color="indigo.6"
                 variant="filled"
-                className={`rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center h-[50px]' : 'py-3'}`}
+                className={`rounded-xl transition-all duration-200 ${isCollapsed ? 'justify-center h-12.5' : 'py-3 hover:bg-indigo-500/20!'}`}
                 styles={{
                   label: { fontWeight: active ? 700 : 500, fontSize: rem(14) },
                   root: {
@@ -163,7 +163,7 @@ export default function VendorSidebar({
               href="/support"
               label={!isCollapsed && 'Support Center'}
               leftSection={<HelpCircle size={isCollapsed ? 22 : 20} />}
-              className={`rounded-xl text-slate-400 hover:text-white transition-colors ${isCollapsed ? 'justify-center h-[50px]' : ''}`}
+              className={`rounded-xl text-slate-400 hover:text-white hover:bg-indigo-500/20! transition-colors ${isCollapsed ? 'justify-center h-12.5' : ''}`}
             />
           </Tooltip>
 
@@ -183,8 +183,8 @@ export default function VendorSidebar({
                   className="group-hover:-translate-x-1 transition-transform"
                 />
               }
-              className={`rounded-xl text-slate-400 hover:text-white transition-colors group ${
-                isCollapsed ? 'justify-center h-[50px]' : ''
+              className={`rounded-xl text-slate-400 hover:text-white hover:bg-indigo-500/20! transition-colors group ${
+                isCollapsed ? 'justify-center h-12.5' : ''
               }`}
               styles={{
                 label: {
