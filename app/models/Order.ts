@@ -100,6 +100,12 @@ const OrderSchema = new Schema(
       index: true,
     },
 
+    // --- ADDED PROFESSIONAL LOGISTICS SUMMARY ---
+    trackingNumber: { type: String }, // Primary tracking number for the order
+    shippedAt: { type: Date },       // When the status first moved to 'shipped'
+    deliveredAt: { type: Date },     // When the status moved to 'delivered'
+    // --------------------------------------------
+
     updatedBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',

@@ -217,8 +217,17 @@ export interface IOrder extends Document {
   }
   shippingAddress: IAddress
   paymentStatus: 'unpaid' | 'processing' | 'paid' | 'failed' | 'refunded'
-  orderStatus: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  orderStatus:
+    | 'pending'
+    | 'confirmed'
+    | 'processing'
+    | 'shipped'
+    | 'delivered'
+    | 'cancelled'
   paymentMethod: 'card' | 'transfer' | 'cod'
+  trackingNumber?: string // High-level tracking for the master order
+  shippedAt?: Date // Global timestamp for when fulfillment started
+  deliveredAt?: Date
   updatedBy?: Types.ObjectId | IUser
   statusHistory: {
     status: string
