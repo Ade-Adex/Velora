@@ -33,6 +33,7 @@ import { useCartStore } from '@/app/store/useCartStore'
 import { ReactNode, useState } from 'react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { useRouter } from 'next/navigation'
+import { SHIPPING_CONFIG } from '@/app/lib/constants'
 
 interface BadgeProps {
   children: ReactNode
@@ -57,12 +58,16 @@ export default function CartPage() {
   const hasAddress = (user?.addresses?.length ?? 0) > 0
   const isAuthenticated = !!user
 
-  const subtotal = cart.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
-  )
-  const shipping = subtotal > 500 ? 0 : 15
-  const total = subtotal + shipping
+ const subtotal = cart.reduce(
+   (acc, item) => acc + item.price * item.quantity,
+   0,
+ )
+
+ // Use the shared constants here
+ const shipping =
+   subtotal >= SHIPPING_CONFIG.FREE_THRESHOLD ? 0 : SHIPPING_CONFIG.FLAT_RATE
+
+ const total = subtotal + shipping
 
   // --- PROFESSIONAL handleCheckout Implementation ---
  const handleCheckout = async () => {
@@ -82,13 +87,6 @@ export default function CartPage() {
        image: item.image, // Pass the image here!
        variantSku: item.variantSku || '',
      })),
-     totals: {
-       subtotal,
-       shipping,
-       tax: 0,
-       discount: 0,
-       grandTotal: total,
-     },
      shippingAddress: activeAddress,
      paymentMethod,
    }
