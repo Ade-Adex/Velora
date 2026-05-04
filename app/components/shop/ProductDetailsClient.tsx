@@ -431,7 +431,6 @@ export default function ProductDetailsClient({
                 {product.name}
               </Title>
 
-
               <Group gap={6} mt={4}>
                 <Text size="xs" c="dimmed" fw={500}>
                   Sold by:
@@ -446,7 +445,6 @@ export default function ProductDetailsClient({
                     c="blue.7"
                     underline="hover"
                   >
-         
                     {product.vendor.vendorProfile?.shopName ||
                       product.vendor.fullName ||
                       'Official Store'}
@@ -709,16 +707,31 @@ export default function ProductDetailsClient({
         <Tabs.Panel value="specifications" pt="xl">
           <Table withTableBorder withColumnBorders verticalSpacing="md" fz="md">
             <Table.Tbody>
+              {/* PLACE THE MERCHANT ROW HERE */}
               <Table.Tr>
                 <Table.Th bg="gray.0" w={150} className="text-xs! md:text-sm!">
-                  Product Identity
+                  Merchant
                 </Table.Th>
                 <Table.Td className="text-xs! md:text-sm!">
-                  {product.name}
+                  {isPopulatedVendor(product.vendor)
+                    ? product.vendor.vendorProfile?.shopName ||
+                      product.vendor.fullName
+                    : 'Official Store'}
                 </Table.Td>
               </Table.Tr>
-              {product.specifications?.map((spec, i) => (
-                <Table.Tr key={i}>
+
+              <Table.Tr>
+                <Table.Th bg="gray.0" className="text-xs! md:text-sm!">
+                  Brand
+                </Table.Th>
+                <Table.Td className="text-xs! md:text-sm!">
+                  {product.brand}
+                </Table.Td>
+              </Table.Tr>
+
+              {/* Loop through your dynamic specifications */}
+              {product.specifications.map((spec, index) => (
+                <Table.Tr key={index}>
                   <Table.Th bg="gray.0" className="text-xs! md:text-sm!">
                     {spec.label}
                   </Table.Th>
@@ -727,16 +740,6 @@ export default function ProductDetailsClient({
                   </Table.Td>
                 </Table.Tr>
               ))}
-              <Table.Tr>
-                <Table.Th bg="gray.0" className="text-xs! md:text-sm!">
-                  Category
-                </Table.Th>
-                <Table.Td className="text-xs! md:text-sm!">
-                  {isPopulatedCategory(product.category)
-                    ? product.category.name
-                    : 'General Retail'}
-                </Table.Td>
-              </Table.Tr>
             </Table.Tbody>
           </Table>
         </Tabs.Panel>
