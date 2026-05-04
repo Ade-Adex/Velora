@@ -6,7 +6,7 @@ import connectDB from '@/app/lib/mongodb'
 import { User } from '@/app/models/User'
 import { getSessionUser } from '@/app/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
-import { IApprovalLog, IProduct } from '@/app/types'
+import { IApprovalLog, IProduct, IUser, Serialized } from '@/app/types'
 import { Product } from '@/app/models/Product'
 import mongoose, { UpdateQuery, Document } from 'mongoose'
 
@@ -246,5 +246,63 @@ export async function updateProductApproval(
       success: false, 
       error: error instanceof Error ? error.message : 'An unknown error occurred' 
     }
+  }
+}
+
+
+/**
+ * Fetches users who have a shop name (vendors) but are not yet verified.
+ */
+export async function getPendingVendors() {
+  try {
+    await ensureAdmin();
+    await connectDB();
+
+    const pendingVendors = await User.find({
+      role: 'vendor',
+      'vendorProfile.isVerified': false,
+      'vendorProfile.shopName': { $exists: true }
+    })
+    .select('fullName email image vendorProfile createdAt')
+    .sort({ createdAt: 1 })
+    .lean();
+
+    return JSON.parse(JSON.stringify(pendingVendors)) as Serialized<IUser>[];
+  } catch (error) {
+    throw new Error('Failed to fetch pending vendors');
+  }
+}
+
+/**
+ * Verifies or revokes verification for a vendor.
+ */
+export async function toggleVendorVerification(userId: string, verify: boolean) {
+  try {
+    await ensureAdmin();
+    await connectDB();
+
+    const updatePayload: UpdateQuery<IUser> = {
+      $set: {
+        'vendorProfile.isVerified': verify,
+      },
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updatePayload, { 
+      new: true,
+      runValidators: true 
+    });
+
+    if (!updatedUser) return { success: false, error: 'Vendor not found' };
+
+    revalidatePath('/admin/vendors');
+    return { 
+      success: true, 
+      message: `Vendor ${verify ? 'verified' : 'verification revoked'} successfully` 
+    };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Action failed' 
+    };
   }
 }
