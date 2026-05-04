@@ -1,6 +1,5 @@
 // /app/components/vendor/VendorSidebar.tsx
 
-
 'use client'
 import {
   Stack,
@@ -36,12 +35,12 @@ const menuItems = [
   { label: 'Merchant Settings', href: '/vendor/settings', icon: Settings },
 ]
 
-export default function VendorSidebar({ 
-  onClose, 
-  isCollapsed 
-}: { 
-  onClose?: () => void, 
-  isCollapsed?: boolean 
+export default function VendorSidebar({
+  onClose,
+  isCollapsed,
+}: {
+  onClose?: () => void
+  isCollapsed?: boolean
 }) {
   const pathname = usePathname()
 
@@ -132,30 +131,8 @@ export default function VendorSidebar({
         </Stack>
       </ScrollArea>
 
-      {/* Footer Actions */}
-      <div
-        className={`border-t border-white/10 bg-white/5 transition-all duration-300 ${isCollapsed ? 'p-6' : 'p-4'}`}
-      >
-        <Link
-          href="/"
-          className={`flex items-center text-gray-400 hover:text-white no-underline group transition-colors ${
-            isCollapsed ? 'gap-3' : 'justify-center'
-          }`}
-        >
-          <ArrowLeft
-            size={20}
-            className="group-hover:-translate-x-1 transition-transform shrink-0"
-          />
-          {isCollapsed && (
-            <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap">
-              Exit Admin
-            </span>
-          )}
-        </Link>
-      </div>
-
       {/* Footer Section */}
-      <Box p="md" className="mt-auto">
+      <Box p="md" className="mt-auto border-t border-white/10 bg-white/5">
         {!isCollapsed && (
           <Box
             p="md"
@@ -174,15 +151,52 @@ export default function VendorSidebar({
           </Box>
         )}
 
-        <Tooltip label="Support" disabled={!isCollapsed} position="right">
-          <NavLink
-            component={Link}
-            href="/support"
-            label={!isCollapsed && 'Support Center'}
-            leftSection={<HelpCircle size={isCollapsed ? 22 : 20} />}
-            className={`rounded-xl text-slate-400 ${isCollapsed ? 'justify-center h-[50px]' : ''}`}
-          />
-        </Tooltip>
+        <Stack gap={4}>
+          <Tooltip
+            label="Support"
+            disabled={!isCollapsed}
+            position="right"
+            offset={20}
+          >
+            <NavLink
+              component={Link}
+              href="/support"
+              label={!isCollapsed && 'Support Center'}
+              leftSection={<HelpCircle size={isCollapsed ? 22 : 20} />}
+              className={`rounded-xl text-slate-400 hover:text-white transition-colors ${isCollapsed ? 'justify-center h-[50px]' : ''}`}
+            />
+          </Tooltip>
+
+          <Tooltip
+            label="Exit Admin"
+            disabled={!isCollapsed}
+            position="right"
+            offset={20}
+          >
+            <NavLink
+              component={Link}
+              href="/"
+              label={!isCollapsed && 'Exit Admin'}
+              leftSection={
+                <ArrowLeft
+                  size={isCollapsed ? 22 : 20}
+                  className="group-hover:-translate-x-1 transition-transform"
+                />
+              }
+              className={`rounded-xl text-slate-400 hover:text-white transition-colors group ${
+                isCollapsed ? 'justify-center h-[50px]' : ''
+              }`}
+              styles={{
+                label: {
+                  fontSize: rem(12),
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                },
+              }}
+            />
+          </Tooltip>
+        </Stack>
       </Box>
     </Box>
   )
