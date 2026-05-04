@@ -529,7 +529,7 @@
 
 
 // /app/(vendor)/vendor/products/new/page.tsx
-import ProductForm from ''
+import ProductForm from '@/app/(vendor)/vendor/products/new/ProductForm'
 import { getCategoryOptions } from '@/app/services/product-service'
 import { getCurrentUser } from '@/app/services/auth-service'
 

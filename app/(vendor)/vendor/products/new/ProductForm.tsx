@@ -18,13 +18,54 @@ import {
   Divider,
   Switch,
   Alert,
+  Card,
+  Badge,
 } from '@mantine/core'
-import { useForm, zodResolver } from '@mantine/form'
-import { Plus, Trash, Check, ArrowLeft, Info, ShieldAlert } from 'lucide-react'
-import { createProduct } from '@/app/services/product-service' // Ensure this returns a typed Promise
+import { useForm } from '@mantine/form'
+import {
+  Plus,
+  Trash,
+  Check,
+  ArrowLeft,
+  ShieldAlert,
+  Image as ImageIcon,
+  Settings,
+  DollarSign,
+  Search,
+  Info,
+} from 'lucide-react'
+import { createProduct } from '@/app/services/product-service'
 import { useSnackbar } from 'notistack'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { IProduct, CategoryOption } from '@/app/types'
+
+interface UserStatus {
+  isVerified: boolean
+  hasShopData: boolean
+  isAdmin: boolean
+}
+
+interface ProductFormProps {
+  categoryOptions: CategoryOption[]
+  userStatus: UserStatus
+}
+
+type ProductFormValues = Omit<
+  IProduct,
+  | '_id'
+  | 'id'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'vendor'
+  | 'approvalStatus'
+  | 'approvalLogs'
+  | 'ratings'
+  | 'reviews'
+  | 'slug'
+  | 'owner'
+  | 'updatedBy'
+>
 
 export default function ProductForm({
   categoryOptions,
@@ -43,22 +84,23 @@ export default function ProductForm({
       basePrice: 0,
       discountPrice: 0,
       category: '',
+      tags: [],
       mainImage: '',
       gallery: [],
       stock: 0,
-      tags: [],
-      isPublished: true,
-      specifications: [],
       variants: [],
-      seo: { title: '', description: '' },
+      specifications: [],
+      seo: { title: '', description: '', keywords: [] },
+      isPublished: false,
+      isFeatured: false,
+      onSale: false,
+      commissionRate: 10,
     },
     validate: {
-      name: (value) =>
-        value.length < 3 ? 'Name must be at least 3 characters' : null,
-      category: (value) => (!value ? 'Please select a category' : null),
-      basePrice: (value) =>
-        value <= 0 ? 'Price must be greater than 0' : null,
-      mainImage: (value) => (!value ? 'Main image URL is required' : null),
+      name: (v) => (v.length < 2 ? 'Name is too short' : null),
+      category: (v) => (!v ? 'Please select a category' : null),
+      basePrice: (v) => (v <= 0 ? 'Price must be positive' : null),
+      mainImage: (v) => (!v ? 'Main image is required' : null),
     },
   })
 
@@ -66,19 +108,19 @@ export default function ProductForm({
     setLoading(true)
     try {
       const res = await createProduct(values)
-
       if (res.success) {
-        enqueueSnackbar('Product successfully listed!', { variant: 'success' })
+        enqueueSnackbar('Product submitted for approval', {
+          variant: 'success',
+        })
         router.push('/vendor/products')
         router.refresh()
       } else {
-        const errorMessage = res.error || 'Failed to create product'
-        enqueueSnackbar(errorMessage, {
+        enqueueSnackbar(res.message || 'Error creating product', {
           variant: res.error === 'KYC_INCOMPLETE' ? 'warning' : 'error',
         })
       }
     } catch (err) {
-      enqueueSnackbar('An unexpected error occurred', { variant: 'error' })
+      enqueueSnackbar('Internal connection error', { variant: 'error' })
     } finally {
       setLoading(false)
     }
@@ -90,33 +132,35 @@ export default function ProductForm({
     <form onSubmit={form.onSubmit(handleCreate)}>
       <Stack gap="xl" pb={100} className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <Group justify="space-between" align="center">
+        <Group justify="space-between" align="flex-start">
           <Stack gap={4}>
-            <Group gap="xs">
-              <Button
-                component={Link}
-                href="/vendor/products"
-                variant="subtle"
-                leftSection={<ArrowLeft size={16} />}
-                px={0}
-              >
-                Back to Products
-              </Button>
-            </Group>
-            <Title order={2}>Create New Product</Title>
+            <Button
+              component={Link}
+              href="/vendor/products"
+              variant="subtle"
+              leftSection={<ArrowLeft size={14} />}
+              p={0}
+              h="auto"
+            >
+              Back to Inventory
+            </Button>
+            <Title order={2} fw={800}>
+              Create New Listing
+            </Title>
           </Stack>
 
           <Group>
             <Button variant="default" onClick={() => router.back()}>
-              Cancel
+              Discard
             </Button>
             <Button
               type="submit"
               loading={loading}
               disabled={isRestricted}
               leftSection={<Check size={18} />}
+              color="indigo"
             >
-              Publish Product
+              Submit Listing
             </Button>
           </Group>
         </Group>
@@ -124,26 +168,31 @@ export default function ProductForm({
         {isRestricted && (
           <Alert
             icon={<ShieldAlert size={16} />}
-            title="Verification Required"
+            title="Verification Pending"
             color="orange"
+            radius="md"
           >
-            Your account is currently under review. You can draft products, but
-            publishing is restricted until your vendor profile is verified.
+            Your vendor account is awaiting verification. You can save this
+            draft, but it won&apos;t be live until approved.
           </Alert>
         )}
 
-        <Grid gutter="lg">
-          {/* Main Information */}
+        <Grid gutter="xl">
+          {/* Main Content Column */}
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="md">
-              <Paper withBorder p="md" radius="md">
-                <Stack gap="sm">
-                  <Text fw={600} size="lg">
-                    Basic Details
+            <Stack gap="xl">
+              {/* 1. General Info */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="lg">
+                  <Info size={20} color="var(--mantine-color-indigo-6)" />
+                  <Text fw={700} size="lg">
+                    General Information
                   </Text>
+                </Group>
+                <Stack gap="md">
                   <TextInput
-                    label="Product Name"
-                    placeholder="e.g. Wireless Noise Cancelling Headphones"
+                    label="Product Title"
+                    placeholder="Official name"
                     required
                     {...form.getInputProps('name')}
                   />
@@ -151,109 +200,213 @@ export default function ProductForm({
                     <Grid.Col span={6}>
                       <TextInput
                         label="Brand"
-                        placeholder="e.g. Sony"
+                        placeholder="e.g. Apple"
                         {...form.getInputProps('brand')}
                       />
                     </Grid.Col>
                     <Grid.Col span={6}>
                       <Select
                         label="Category"
-                        placeholder="Select category"
+                        placeholder="Select one"
                         data={categoryOptions}
-                        required
+                        searchable
                         {...form.getInputProps('category')}
                       />
                     </Grid.Col>
                   </Grid>
                   <Textarea
-                    label="Short Description"
-                    placeholder="Brief summary for search results..."
+                    label="Short Summary"
+                    placeholder="Brief catchphrase"
                     rows={2}
                     {...form.getInputProps('shortDescription')}
                   />
                   <Textarea
-                    label="Full Description"
-                    placeholder="Detailed product information..."
+                    label="Detailed Description"
+                    placeholder="Full product details..."
                     minRows={5}
                     {...form.getInputProps('description')}
                   />
                 </Stack>
               </Paper>
 
-              <Paper withBorder p="md" radius="md">
-                <Stack gap="sm">
-                  <Text fw={600} size="lg">
-                    Inventory & Pricing
+              {/* 2. Media Gallery (Restored from Old Form) */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="lg">
+                  <ImageIcon size={20} color="var(--mantine-color-indigo-6)" />
+                  <Text fw={700} size="lg">
+                    Product Gallery
                   </Text>
-                  <Grid>
-                    <Grid.Col span={4}>
-                      <NumberInput
-                        label="Base Price"
-                        prefix="$"
-                        min={0}
-                        hideControls
-                        {...form.getInputProps('basePrice')}
+                </Group>
+                <TextInput
+                  label="Feature Image URL"
+                  placeholder="https://..."
+                  required
+                  mb="md"
+                  {...form.getInputProps('mainImage')}
+                />
+
+                <Divider
+                  label="Additional Images"
+                  labelPosition="center"
+                  my="lg"
+                />
+                <Stack gap="xs">
+                  {form.values.gallery.map((_, i) => (
+                    <Group key={i}>
+                      <TextInput
+                        placeholder="Image URL"
+                        flex={1}
+                        {...form.getInputProps(`gallery.${i}`)}
                       />
-                    </Grid.Col>
-                    <Grid.Col span={4}>
-                      <NumberInput
-                        label="Discount Price"
-                        prefix="$"
-                        min={0}
-                        hideControls
-                        {...form.getInputProps('discountPrice')}
+                      <ActionIcon
+                        color="red"
+                        variant="light"
+                        onClick={() => form.removeListItem('gallery', i)}
+                      >
+                        <Trash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  ))}
+                  <Button
+                    variant="light"
+                    size="xs"
+                    leftSection={<Plus size={14} />}
+                    onClick={() => form.insertListItem('gallery', '')}
+                  >
+                    Add Image to Gallery
+                  </Button>
+                </Stack>
+              </Paper>
+
+              {/* 3. Technical Specs (Restored from Old Form) */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="lg">
+                  <Settings size={20} color="var(--mantine-color-indigo-6)" />
+                  <Text fw={700} size="lg">
+                    Technical Specifications
+                  </Text>
+                </Group>
+                <Stack gap="xs">
+                  {form.values.specifications.map((_, i) => (
+                    <Group key={i} grow>
+                      <TextInput
+                        placeholder="Label (e.g. Material)"
+                        {...form.getInputProps(`specifications.${i}.label`)}
                       />
-                    </Grid.Col>
-                    <Grid.Col span={4}>
-                      <NumberInput
-                        label="Stock Quantity"
-                        min={0}
-                        {...form.getInputProps('stock')}
+                      <TextInput
+                        placeholder="Value (e.g. 100% Cotton)"
+                        {...form.getInputProps(`specifications.${i}.value`)}
                       />
-                    </Grid.Col>
-                  </Grid>
+                      <ActionIcon
+                        color="red"
+                        variant="subtle"
+                        onClick={() => form.removeListItem('specifications', i)}
+                        style={{ flex: 0 }}
+                      >
+                        <Trash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="xs"
+                    onClick={() =>
+                      form.insertListItem('specifications', {
+                        label: '',
+                        value: '',
+                      })
+                    }
+                  >
+                    Add Specification Row
+                  </Button>
                 </Stack>
               </Paper>
             </Stack>
           </Grid.Col>
 
-          {/* Sidebar Settings */}
+          {/* Sidebar Column */}
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="md">
-              <Paper withBorder p="md" radius="md">
+            <Stack gap="xl">
+              {/* Pricing & Logistics */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="md">
+                  <DollarSign size={18} color="var(--mantine-color-green-6)" />
+                  <Text fw={700}>Pricing & Inventory</Text>
+                </Group>
                 <Stack gap="sm">
-                  <Text fw={600} size="lg">
-                    Status & Visibility
-                  </Text>
-                  <Divider />
-                  <Switch
-                    label="Publish to storefront"
-                    description="Make this product visible to customers immediately"
-                    {...form.getInputProps('isPublished', { type: 'checkbox' })}
+                  <NumberInput
+                    label="Base Price"
+                    prefix="₦"
+                    thousandSeparator
+                    required
+                    {...form.getInputProps('basePrice')}
                   />
-                  <TagsInput
-                    label="Search Tags"
-                    placeholder="Add keywords"
-                    {...form.getInputProps('tags')}
+                  <NumberInput
+                    label="Discount Price"
+                    prefix="₦"
+                    thousandSeparator
+                    {...form.getInputProps('discountPrice')}
+                  />
+                  <NumberInput
+                    label="Global Stock"
+                    description="Ignored if variants exist"
+                    {...form.getInputProps('stock')}
+                  />
+                  <Divider my="sm" />
+                  <Switch
+                    label="Currently on Sale"
+                    {...form.getInputProps('onSale', { type: 'checkbox' })}
+                  />
+                  <Switch
+                    label="Featured Product"
+                    {...form.getInputProps('isFeatured', { type: 'checkbox' })}
+                  />
+                  <Switch
+                    label="Publish Immediately"
+                    {...form.getInputProps('isPublished', { type: 'checkbox' })}
                   />
                 </Stack>
               </Paper>
 
-              <Paper withBorder p="md" radius="md">
+              {/* Tags & Keywords */}
+              <Paper withBorder p="xl" radius="md">
+                <Group mb="md">
+                  <Search size={18} color="var(--mantine-color-indigo-6)" />
+                  <Text fw={700}>Search Visibility</Text>
+                </Group>
                 <Stack gap="sm">
-                  <Text fw={600} size="lg">
-                    Product Images
-                  </Text>
-                  <TextInput
-                    label="Main Image URL"
-                    placeholder="https://..."
-                    required
-                    {...form.getInputProps('mainImage')}
+                  <TagsInput
+                    label="Search Keywords"
+                    placeholder="Enter & press enter"
+                    {...form.getInputProps('tags')}
                   />
-                  <Text size="xs" c="dimmed">
-                    Please provide direct links to your hosted images.
-                  </Text>
+                  <TextInput
+                    label="SEO Title"
+                    {...form.getInputProps('seo.title')}
+                  />
+                  <Textarea
+                    label="SEO Description"
+                    rows={3}
+                    {...form.getInputProps('seo.description')}
+                  />
                 </Stack>
+              </Paper>
+
+              {/* Commission Info (New Field from IProduct) */}
+              <Paper
+                withBorder
+                p="xl"
+                radius="md"
+                bg="var(--mantine-color-gray-0)"
+              >
+                <Text size="xs" c="dimmed" fw={700} mb={4}>
+                  ADMINISTRATIVE
+                </Text>
+                <NumberInput
+                  label="Commission Rate (%)"
+                  description="Platform fee for this product"
+                  {...form.getInputProps('commissionRate')}
+                />
               </Paper>
             </Stack>
           </Grid.Col>
