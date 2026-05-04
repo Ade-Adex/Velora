@@ -1,4 +1,8 @@
 // app/(admin)/admin/vendors/page.tsx
+
+export const dynamic = 'force-dynamic'
+
+
 import { Title, Text, Container, Stack } from '@mantine/core'
 import { getPendingVendors } from '@/app/services/adminService'
 import VendorVerificationTable from '@/app/components/admin/vendors/VendorVerificationTable'
