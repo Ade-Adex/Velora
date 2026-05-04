@@ -38,7 +38,7 @@ import { createProduct } from '@/app/services/product-service'
 import { useSnackbar } from 'notistack'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { IProduct, CategoryOption } from '@/app/types'
+import { IProduct, CategoryOption, IProductData } from '@/app/types'
 
 interface UserStatus {
   isVerified: boolean
@@ -51,24 +51,7 @@ interface ProductFormProps {
   userStatus: UserStatus
 }
 
-type ProductFormValues = Omit<
-  IProduct,
-  | '_id'
-  | 'id'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'vendor'
-  | 'approvalStatus'
-  | 'approvalLogs'
-  | 'ratings'
-  | 'reviews'
-  | 'slug'
-  | 'owner'
-  | 'updatedBy'
-  | 'category' // Remove category from IProduct
-> & {
-  category: string // Re-add it as a string for the form state
-}
+type ProductFormValues = Omit<IProductData, 'slug'>
 
 export default function ProductForm({
   categoryOptions,
@@ -107,29 +90,28 @@ export default function ProductForm({
     },
   })
 
-const handleCreate = async (values: ProductFormValues) => {
-  setLoading(true)
-  try {
-    // We cast to unknown first, then to IProduct to avoid the 'any' keyword
-    // while satisfying the service's expected type.
-    const payload = values as unknown as IProduct
-    const res = await createProduct(payload)
+  const handleCreate = async (values: ProductFormValues) => {
+    setLoading(true)
+    try {
+      const res = await createProduct(values)
 
-    if (res.success) {
-      enqueueSnackbar('Product submitted for approval', { variant: 'success' })
-      router.push('/vendor/products')
-      router.refresh()
-    } else {
-      enqueueSnackbar(res.message || 'Error creating product', {
-        variant: res.error === 'KYC_INCOMPLETE' ? 'warning' : 'error',
-      })
+      if (res.success) {
+        enqueueSnackbar('Product submitted for approval', {
+          variant: 'success',
+        })
+        router.push('/vendor/products')
+        router.refresh()
+      } else {
+        enqueueSnackbar(res.message || 'Error creating product', {
+          variant: res.error === 'KYC_INCOMPLETE' ? 'warning' : 'error',
+        })
+      }
+    } catch (err) {
+      enqueueSnackbar('Internal connection error', { variant: 'error' })
+    } finally {
+      setLoading(false)
     }
-  } catch (err) {
-    enqueueSnackbar('Internal connection error', { variant: 'error' })
-  } finally {
-    setLoading(false)
   }
-}
 
   const isRestricted = !userStatus.isVerified && !userStatus.isAdmin
 
@@ -182,7 +164,7 @@ const handleCreate = async (values: ProductFormValues) => {
           </Alert>
         )}
 
-        <Grid gutter="xl">
+        <Grid gap="xl">
           {/* Main Content Column */}
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Stack gap="xl">

@@ -57,8 +57,8 @@ export interface IUser extends Document {
 }
 
 export interface CategoryOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 // --- Product & Category Types ---
@@ -97,44 +97,92 @@ export interface IApprovalLog {
 }
 
 
-export interface IProduct extends Document {
+// --- Product Data Interface (Pure Data for Forms/UI) ---
+// This interface has NO Mongoose methods, making it safe for useForm
+export interface IProductData {
   name: string
-  brand: string // Added for professional branding
+  brand: string
   slug: string
   description: string
-  shortDescription?: string // Added for snippets/grid
+  shortDescription?: string
   basePrice: number
   discountPrice?: number
-  category: Types.ObjectId | ICategory
+  category: string // Form Selects use strings. DB handles the conversion.
   tags: string[]
-  mainImage: ImageSource // Flexible type
+  mainImage: ImageSource
   gallery: string[]
   videoUrl?: string
-  stock: number // Global stock fallback
+  stock: number
   variants: IVariant[]
-  specifications: { label: string; value: string }[] // Technical details
-  reviews: IReview[]
-  ratings: {
-    average: number
-    count: number
-  }
+  specifications: { label: string; value: string }[]
   seo: {
     title?: string
     description?: string
     keywords?: string[]
   }
+  commissionRate: number
+  isPublished: boolean
+  isFeatured: boolean
+  onSale: boolean
+  saleEndsAt?: Date
+}
+
+// --- Product Document Interface (For Backend/Database Logic) ---
+// We omit 'category' from IProductData so we can redefine it as an ObjectId/ICategory
+export interface IProduct extends Document, Omit<IProductData, 'category'> {
+  category: Types.ObjectId | ICategory 
   vendor: Types.ObjectId | IUser
   approvalStatus: 'pending' | 'approved' | 'rejected'
   approvalLogs: IApprovalLog[]
-  commissionRate: number
-  isPublished: boolean
-  isFeatured: boolean // For homepage highlights
-  onSale: boolean
-  saleEndsAt?: Date
-  updatedBy?: Types.ObjectId | IUser // Track who made changes
+  ratings: {
+    average: number
+    count: number
+  }
+  reviews: IReview[]
+  updatedBy?: Types.ObjectId | IUser
   createdAt: Date
   updatedAt: Date
 }
+
+
+// export interface IProduct extends Document {
+//   name: string
+//   brand: string // Added for professional branding
+//   slug: string
+//   description: string
+//   shortDescription?: string // Added for snippets/grid
+//   basePrice: number
+//   discountPrice?: number
+//   category: Types.ObjectId | ICategory
+//   tags: string[]
+//   mainImage: ImageSource // Flexible type
+//   gallery: string[]
+//   videoUrl?: string
+//   stock: number // Global stock fallback
+//   variants: IVariant[]
+//   specifications: { label: string; value: string }[] // Technical details
+//   reviews: IReview[]
+//   ratings: {
+//     average: number
+//     count: number
+//   }
+//   seo: {
+//     title?: string
+//     description?: string
+//     keywords?: string[]
+//   }
+//   vendor: Types.ObjectId | IUser
+//   approvalStatus: 'pending' | 'approved' | 'rejected'
+//   approvalLogs: IApprovalLog[]
+//   commissionRate: number
+//   isPublished: boolean
+//   isFeatured: boolean // For homepage highlights
+//   onSale: boolean
+//   saleEndsAt?: Date
+//   updatedBy?: Types.ObjectId | IUser // Track who made changes
+//   createdAt: Date
+//   updatedAt: Date
+// }
 
 // --- Order Types ---
 export interface IOrderItem {
