@@ -35,7 +35,7 @@ import {
   Share2,
 } from 'lucide-react'
 import { useCartStore } from '@/app/store/useCartStore'
-import { IProduct, ICategory, CartItem, ImageSource } from '@/app/types'
+import { IProduct, ICategory, CartItem, ImageSource, IUser } from '@/app/types'
 import { Types } from 'mongoose'
 import { useProductStore } from '@/app/store/useProductStore'
 import { addProductReview } from '@/app/services/product-service'
@@ -258,9 +258,24 @@ export default function ProductDetailsClient({
     { title: product.name, href: '#' },
   ]
 
+  /**
+   * Narrows the vendor type from ObjectId | IUser to a populated IUser object.
+   * We check for '_id' and 'fullName' which are guaranteed on a populated User document.
+   */
+  const isPopulatedVendor = (
+    vendor: Types.ObjectId | IUser,
+  ): vendor is IUser => {
+    return (
+      vendor !== null &&
+      typeof vendor === 'object' &&
+      '_id' in vendor &&
+      'fullName' in vendor
+    )
+  }
+
   return (
     <Container size="lg" py="lg">
-            <Group justify="space-between" mb="md">
+      <Group justify="space-between" mb="md">
         <Button
           variant="subtle"
           color="gray"
@@ -279,7 +294,7 @@ export default function ProductDetailsClient({
               key={index}
               c={index === breadcrumbs.length - 1 ? 'dimmed' : 'blue'}
               underline="hover"
-              className='text-xs! md:text-sm!'
+              className="text-xs! md:text-sm!"
             >
               {item.title}
             </Anchor>
@@ -399,7 +414,7 @@ export default function ProductDetailsClient({
                     radius="xl"
                     onClick={handleShare}
                     title="Share product"
-                    className='bg-gray-300! p-1!'
+                    className="bg-gray-300! p-1!"
                   >
                     <Share2 size={18} />
                   </ActionIcon>
@@ -415,6 +430,33 @@ export default function ProductDetailsClient({
               >
                 {product.name}
               </Title>
+
+
+              <Group gap={6} mt={4}>
+                <Text size="xs" c="dimmed" fw={500}>
+                  Sold by:
+                </Text>
+
+                {isPopulatedVendor(product.vendor) ? (
+                  <Anchor
+                    component={Link}
+                    href={`/vendors/${product.vendor._id.toString()}`}
+                    size="xs"
+                    fw={700}
+                    c="blue.7"
+                    underline="hover"
+                  >
+         
+                    {product.vendor.vendorProfile?.shopName ||
+                      product.vendor.fullName ||
+                      'Official Store'}
+                  </Anchor>
+                ) : (
+                  <Text size="xs" fw={700} c="blue.7">
+                    Official Store
+                  </Text>
+                )}
+              </Group>
 
               <Group gap="xs" mt="xs">
                 <Rating value={product.ratings?.average || 0} readOnly />

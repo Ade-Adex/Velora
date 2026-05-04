@@ -34,6 +34,7 @@ export async function getProducts(limit: number) {
       model: Category,
       select: 'name slug',
     })
+    .populate('vendor', 'vendorProfile fullName')
     .sort({ createdAt: -1 })
     .limit(limit)
     .lean()
@@ -44,7 +45,11 @@ export async function getProducts(limit: number) {
 export async function getProductBySlug(slug: string) {
   await connectDB()
 
-  return await Product.findOne({ slug, isPublished: true, approvalStatus: 'approved' })
+  return await Product.findOne({
+    slug,
+    isPublished: true,
+    approvalStatus: 'approved',
+  })
     .populate({
       path: 'category',
       populate: {
@@ -54,6 +59,11 @@ export async function getProductBySlug(slug: string) {
           populate: { path: 'parent' }, // Allows up to 4-5 levels of breadcrumbs
         },
       },
+    })
+    .populate({
+      path: 'vendor',
+      model: User,
+      select: 'vendorProfile fullName',
     })
     .lean()
 }

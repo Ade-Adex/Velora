@@ -159,7 +159,8 @@ export default function ProductForm({
             color="orange"
             radius="md"
           >
-            Your vendor account is awaiting verification. You cant submit new listings until verified.
+            Your vendor account is awaiting verification. You can&apos;t submit
+            new listings until verified.
           </Alert>
         )}
 
