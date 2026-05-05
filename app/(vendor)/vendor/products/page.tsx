@@ -138,7 +138,7 @@ export default async function VendorProductsPage() {
                   </TableTd>
                   <TableTd>
                     <Text size="sm" fw={700}>
-                      ₦{product.basePrice.toLocaleString()}
+                      ₦{product.discountPrice?.toLocaleString()}
                     </Text>
                     <Text size="xs" c="indigo.6">
                       Fee: {product.commissionRate}%

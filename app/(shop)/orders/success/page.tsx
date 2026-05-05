@@ -1,5 +1,6 @@
 //  /app/%28shop%29/orders/success/page.tsx
 
+
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
@@ -21,6 +22,7 @@ import {
   Stepper,
   Box,
   useMantineTheme,
+  Anchor,
 } from '@mantine/core'
 import {
   CheckCircle,
@@ -29,11 +31,44 @@ import {
   MapPin,
   CreditCard,
   Package,
+  ExternalLink,
 } from 'lucide-react'
 import Link from 'next/link'
 import { getOrderByIdAction } from '@/app/services/order-service'
 import { IOrder, Serialized } from '@/app/types'
 import { useMediaQuery } from '@mantine/hooks'
+import dayjs from 'dayjs'
+
+/**
+ * Helper to determine the current Stepper index.
+ * 0: Placed, 1: Processing, 2: Shipped, 3: Delivered
+ */
+const getStep = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'pending':
+      return 0
+    case 'processing':
+      return 1
+    case 'shipped':
+      return 2
+    case 'delivered':
+      return 3
+    default:
+      return 0
+  }
+}
+
+/**
+ * Generates a tracking URL based on the carrier prefix.
+ */
+const getTrackingLink = (trackingNumber: string) => {
+  if (!trackingNumber) return null
+  const num = trackingNumber.toUpperCase()
+  if (num.startsWith('GIG')) return `https://www.giglogistics.com/track/${num}`
+  if (num.startsWith('DHL'))
+    return `https://www.dhl.com/en/express/tracking.html?AWB=${num}`
+  return `https://www.google.com/search?q=track+package+${num}`
+}
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams()
@@ -46,21 +81,6 @@ function OrderSuccessContent() {
   const theme = useMantineTheme()
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`)
 
-  // Logic to determine the current step based on order status
-  const getStep = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-      case 'processing':
-        return 1
-      case 'shipped':
-        return 2
-      case 'delivered':
-        return 3
-      default:
-        return 1
-    }
-  }
-
   useEffect(() => {
     if (orderId) {
       getOrderByIdAction(orderId).then((data) => {
@@ -70,9 +90,7 @@ function OrderSuccessContent() {
     }
   }, [orderId])
 
-  if (loading) {
-    return <LoaderState />
-  }
+  if (loading) return <LoaderState />
 
   if (!order) {
     return (
@@ -86,7 +104,7 @@ function OrderSuccessContent() {
   return (
     <Paper withBorder p={{ base: 20, sm: 40 }} radius="xl" shadow="md">
       <Stack align="center" gap="xl">
-        <CheckCircle size={60} color="#40C057" />
+        <CheckCircle size={60} color={theme.colors.green[6]} />
 
         <Stack gap={4} align="center">
           <Title order={1} ta="center" fz={{ base: 24, sm: 32 }} fw={900}>
@@ -94,14 +112,14 @@ function OrderSuccessContent() {
           </Title>
           <Text c="dimmed" size="sm" ta="center">
             Thank you for your purchase,{' '}
-            {order.shippingAddress?.fullName.split(' ')[0]}. <br />
+            <b>{order.shippingAddress?.fullName.split(' ')[0]}</b>. <br />
             Order <b>#{order.orderNumber.split('-').pop()?.toUpperCase()}</b> is
             being prepared.
           </Text>
         </Stack>
 
         {/* VISUAL TRACKING STEPPER */}
-        <Box w="100%" py="xl">
+        <Box w="100%" py="md">
           <Stepper
             active={getStep(order.orderStatus)}
             size="sm"
@@ -109,33 +127,18 @@ function OrderSuccessContent() {
             color="blue"
             orientation={isMobile ? 'vertical' : 'horizontal'}
           >
-            <Stepper.Step
-              label="Placed"
-              description="Confirmed"
-              icon={<Package size={18} />}
-            />
-            <Stepper.Step
-              label="Processing"
-              description="Preparing"
-              icon={<Building2 size={18} />}
-            />
-            <Stepper.Step
-              label="Shipped"
-              description="On the way"
-              icon={<Truck size={18} />}
-            />
-            <Stepper.Step
-              label="Delivered"
-              description="Received"
-              icon={<CheckCircle size={18} />}
-            />
+            <Stepper.Step label="Placed" icon={<Package size={18} />} />
+            <Stepper.Step label="Processing" icon={<Building2 size={18} />} />
+            <Stepper.Step label="Shipped" icon={<Truck size={18} />} />
+            <Stepper.Step label="Delivered" icon={<CheckCircle size={18} />} />
           </Stepper>
         </Box>
 
-        <Divider w="100%" label="Order Summary" labelPosition="center" />
+        <Divider w="100%" label="Logistics & Payment" labelPosition="center" />
 
         {/* ORDER DETAILS GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full">
+          {/* COLUMN 1: SHIPPING ADDRESS */}
           <Stack gap={4}>
             <Group gap={6} c="dimmed">
               <MapPin size={14} />
@@ -144,31 +147,47 @@ function OrderSuccessContent() {
               </Text>
             </Group>
             <Text size="sm" fw={600}>
-              {order.shippingAddress?.addressLine1 ?? 'No address provided'}
+              {order.shippingAddress?.fullName}
             </Text>
             <Text size="sm" c="dimmed">
-              {order.shippingAddress?.city}, {order.shippingAddress?.state}
+              {order.shippingAddress?.addressLine1},{' '}
+              {order.shippingAddress?.city}
             </Text>
           </Stack>
 
+          {/* COLUMN 2: ORDER TRACKING */}
           <Stack gap={4}>
             <Group gap={6} c="dimmed">
               <Truck size={14} />
               <Text size="xs" fw={700} tt="uppercase">
-                Delivery Status
+                Delivery Tracking
               </Text>
             </Group>
-            <Badge color="blue" variant="light" radius="sm">
-              {order.orderStatus?.toUpperCase() || 'PENDING'}
-            </Badge>
-            <Text size="xs" c="dimmed">
-              Tracking:{' '}
-              {/* <span className="font-mono">
-                {order.trackingNumber || 'Processing...'}
-              </span> */}
-            </Text>
+
+            {order.trackingNumber ? (
+              <Group justify="space-between" wrap="nowrap">
+                <Badge color="blue" variant="dot" size="sm">
+                  {order.orderStatus?.toUpperCase()}
+                </Badge>
+                <Anchor
+                  href={getTrackingLink(order.trackingNumber) || '#'}
+                  target="_blank"
+                  size="xs"
+                  fw={700}
+                  display="flex"
+                  style={{ alignItems: 'center', gap: '4px' }}
+                >
+                  {order.trackingNumber} <ExternalLink size={10} />
+                </Anchor>
+              </Group>
+            ) : (
+              <Badge color="blue" variant="light" radius="sm">
+                {order.orderStatus?.toUpperCase() || 'PROCESSING'}
+              </Badge>
+            )}
           </Stack>
 
+          {/* COLUMN 3: PAYMENT METHOD */}
           <Stack gap={4}>
             <Group gap={6} c="dimmed">
               <CreditCard size={14} />
@@ -177,7 +196,7 @@ function OrderSuccessContent() {
               </Text>
             </Group>
             <Text size="sm" fw={600}>
-              {method === 'card' ? 'Paystack (Card/Transfer)' : 'Bank Transfer'}
+              {method === 'card' ? 'Paystack (Secure Card)' : 'Bank Transfer'}
             </Text>
             <Badge
               color={order.paymentStatus === 'paid' ? 'green' : 'orange'}
@@ -188,6 +207,7 @@ function OrderSuccessContent() {
             </Badge>
           </Stack>
 
+          {/* COLUMN 4: TOTAL AMOUNT */}
           <Stack gap={4}>
             <Group gap={6} c="dimmed">
               <CheckCircle size={14} />
@@ -205,14 +225,13 @@ function OrderSuccessContent() {
         {method === 'transfer' && order.paymentStatus !== 'paid' && (
           <Alert
             icon={<Building2 size={20} />}
-            title="Action Required: Complete your Transfer"
+            title="Pending Transfer"
             color="blue"
             radius="md"
             w="100%"
           >
             <Text size="xs" mb={5}>
-              Please transfer the exact total to the account below to avoid
-              delays:
+              Please transfer the exact total to confirm your order:
             </Text>
             <Box
               p="xs"
@@ -233,8 +252,8 @@ function OrderSuccessContent() {
 
         {/* NAVIGATION ACTIONS */}
         <Flex
-          mt={{ base: 40, sm: 'xl' }}
-          gap={{ base: 'lg', sm: 'md' }}
+          mt={20}
+          gap="md"
           direction={{ base: 'column', sm: 'row' }}
           w="100%"
         >
@@ -246,14 +265,9 @@ function OrderSuccessContent() {
             leftSection={<Package size={18} />}
             flex={1}
             size="md"
-            py={10}
             radius="md"
-            styles={{
-              root: { height: 'auto' }, // Allows padding to dictate the height
-              inner: { fontSize: '16px' }, // Ensures text remains legible
-            }}
           >
-            Order History
+            Track in My Account
           </Button>
 
           <Button
@@ -263,12 +277,7 @@ function OrderSuccessContent() {
             href="/"
             flex={1}
             size="md"
-            py={10}
             radius="md"
-            styles={{
-              root: { height: 'auto' },
-              inner: { fontSize: '16px' },
-            }}
           >
             Back to Home
           </Button>
@@ -280,7 +289,7 @@ function OrderSuccessContent() {
 
 export default function OrderSuccessPage() {
   return (
-    <Container size="sm" py={20}>
+    <Container size="sm" py={40}>
       <Suspense fallback={<LoaderState />}>
         <OrderSuccessContent />
       </Suspense>
@@ -295,10 +304,10 @@ function LoaderState() {
         <Stack align="center" gap="xs">
           <Loader size="lg" color="blue" />
           <Text c="dimmed" size="sm" fw={500}>
-            Updating order status...
+            Fetching order details...
           </Text>
         </Stack>
       </Center>
     </Paper>
   )
-} 
+}

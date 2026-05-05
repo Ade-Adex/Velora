@@ -18,24 +18,26 @@ import {
   Tooltip,
   Group,
   Stack,
+  ScrollArea,
+  Center,
 } from '@mantine/core'
-import { Package, Eye } from 'lucide-react'
+import { Package, Eye, Inbox } from 'lucide-react'
 import { getVendorOrders } from '@/app/services/vendor-service'
 import { getCurrentUser } from '@/app/services/auth-service'
 import { Serialized, IOrder } from '@/app/types'
 import Link from 'next/link'
+import classes from './VendorOrders.module.css' // See CSS below
 
 export default async function VendorOrdersPage() {
-  // 1. Get current vendor to filter items
   const user = await getCurrentUser()
   const orders: Serialized<IOrder>[] = await getVendorOrders()
 
   if (!user) return null
 
   return (
-    <Box p="md">
+    <Box p={{ base: '4px', sm: '4px', lg: '4px' }}>
       <Stack mb="xl" gap={4}>
-        <Title order={2} fw={900} lts="-1px">
+        <Title order={2} fw={900} lts="-1px" fz={{ base: 'xl', sm: '24px' }}>
           Order Fulfillment
         </Title>
         <Text c="dimmed" size="sm">
@@ -43,68 +45,78 @@ export default async function VendorOrdersPage() {
         </Text>
       </Stack>
 
-      <Paper withBorder radius="lg" shadow="xs" style={{ overflow: 'hidden' }}>
-        <Table verticalSpacing="md" horizontalSpacing="lg" highlightOnHover>
-          <TableThead bg="gray.0">
-            <TableTr>
-              <TableTh style={{ fontSize: '11px', textTransform: 'uppercase' }}>
-                Order Details
-              </TableTh>
-              <TableTh style={{ fontSize: '11px', textTransform: 'uppercase' }}>
-                Your Products
-              </TableTh>
-              <TableTh style={{ fontSize: '11px', textTransform: 'uppercase' }}>
-                Your Earnings
-              </TableTh>
-              <TableTh style={{ fontSize: '11px', textTransform: 'uppercase' }}>
-                Payment
-              </TableTh>
-              <TableTh />
-            </TableTr>
-          </TableThead>
-          <TableTbody>
-            {orders.length > 0 ? (
-              orders.map((order) => {
-                // Filter items to only show what belongs to THIS vendor
-                const myItems = order.items.filter(
-                  (item) => item.vendor.toString() === user._id.toString(),
-                )
+      <Paper withBorder radius="lg" shadow="xs">
+        {/* ScrollArea handles overflow if table is still too wide for small devices */}
+        <ScrollArea>
+          <Table
+            verticalSpacing="md"
+            horizontalSpacing="lg"
+            highlightOnHover
+            className={classes.responsiveTable}
+          >
+            <TableThead bg="gray.0" className={classes.hideOnMobile}>
+              <TableTr>
+                <TableTh
+                  style={{ fontSize: '11px', textTransform: 'uppercase' }}
+                >
+                  Order Details
+                </TableTh>
+                <TableTh
+                  style={{ fontSize: '11px', textTransform: 'uppercase' }}
+                >
+                  Your Products
+                </TableTh>
+                <TableTh
+                  style={{ fontSize: '11px', textTransform: 'uppercase' }}
+                >
+                  Your Earnings
+                </TableTh>
+                <TableTh
+                  style={{ fontSize: '11px', textTransform: 'uppercase' }}
+                >
+                  Payment
+                </TableTh>
+                <TableTh />
+              </TableTr>
+            </TableThead>
+            <TableTbody>
+              {orders.length > 0 ? (
+                orders.map((order) => {
+                  const myItems = order.items.filter(
+                    (item) => item.vendor.toString() === user._id.toString(),
+                  )
 
-                // Calculate only this vendor's earnings for this order
-                const myNetEarnings = myItems.reduce(
-                  (acc, item) => acc + (item.vendorNetEarning || 0),
-                  0,
-                )
+                  const myNetEarnings = myItems.reduce(
+                    (acc, item) => acc + (item.vendorNetEarning || 0),
+                    0,
+                  )
 
-                return (
-                  <TableTr key={order._id}>
-                    <TableTd>
-                      <Stack gap={2}>
-                        <Text size="sm" fw={800}>
-                          #{order.orderNumber}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {new Date(order.createdAt).toLocaleDateString(
-                            undefined,
-                            {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            },
-                          )}
-                        </Text>
-                      </Stack>
-                    </TableTd>
+                  const targetShipmentId = myItems[0]?.shipment?.toString()
 
-                    <TableTd>
-                      <Stack gap={6}>
-                        {myItems.map((item, idx) => (
-                          <Group
-                            key={idx}
-                            justify="space-between"
-                            wrap="nowrap"
-                          >
-                            <Box>
+                  return (
+                    <TableTr key={order._id} className={classes.responsiveRow}>
+                      <TableTd data-label="Order Details">
+                        <Stack gap={2}>
+                          <Text size="sm" fw={800}>
+                            #{order.orderNumber}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {new Date(order.createdAt).toLocaleDateString(
+                              undefined,
+                              {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              },
+                            )}
+                          </Text>
+                        </Stack>
+                      </TableTd>
+
+                      <TableTd data-label="Your Products">
+                        <Stack gap={6}>
+                          {myItems.map((item, idx) => (
+                            <Box key={idx}>
                               <Text size="xs" fw={700}>
                                 {item.quantity}x {item.name}
                               </Text>
@@ -112,8 +124,9 @@ export default async function VendorOrdersPage() {
                                 size="xs"
                                 variant="light"
                                 color={
-                                  item.status === 'shipped' ||
-                                  item.status === 'delivered'
+                                  ['shipped', 'delivered'].includes(
+                                    item.status?.toLowerCase(),
+                                  )
                                     ? 'indigo'
                                     : 'gray'
                                 }
@@ -121,70 +134,91 @@ export default async function VendorOrdersPage() {
                                 {item.status}
                               </Badge>
                             </Box>
-                          </Group>
-                        ))}
-                      </Stack>
-                    </TableTd>
+                          ))}
+                        </Stack>
+                      </TableTd>
 
-                    <TableTd>
-                      <Text size="sm" fw={800} c="indigo.7">
-                        ₦{myNetEarnings.toLocaleString()}
-                      </Text>
-                      <Text size="10px" c="dimmed">
-                        Net after commission
-                      </Text>
-                    </TableTd>
+                      <TableTd data-label="Your Earnings">
+                        <Box>
+                          <Text size="sm" fw={800} c="indigo.7">
+                            ₦{myNetEarnings.toLocaleString()}
+                          </Text>
+                          <Text size="10px" c="dimmed">
+                            Net earning
+                          </Text>
+                        </Box>
+                      </TableTd>
 
-                    <TableTd>
-                      <Badge
-                        color={
-                          order.paymentStatus === 'paid' ? 'teal' : 'orange'
-                        }
-                        variant="dot"
-                        size="sm"
-                        fw={700}
-                      >
-                        {order.paymentStatus}
-                      </Badge>
-                    </TableTd>
+                      <TableTd data-label="Payment">
+                        <Badge
+                          color={
+                            order.paymentStatus === 'paid' ? 'teal' : 'orange'
+                          }
+                          variant="dot"
+                          size="sm"
+                          fw={700}
+                        >
+                          {order.paymentStatus}
+                        </Badge>
+                      </TableTd>
 
-                    <TableTd>
-                      <Group gap="xs" justify="flex-end">
-                        <Tooltip label="Update Shipping">
-                          {/* Wrap with Link instead of passing it as a prop */}
+                      <TableTd>
+                        <Group gap="xs" justify="flex-end" wrap="nowrap">
+                          {targetShipmentId ? (
+                            <Tooltip label="Update Shipping">
+                              <Link
+                                href={`/vendor/orders/${targetShipmentId}`}
+                                passHref
+                              >
+                                <ActionIcon
+                                  color="indigo"
+                                  variant="light"
+                                  radius="md"
+                                  size="lg"
+                                >
+                                  <Package size={18} />
+                                </ActionIcon>
+                              </Link>
+                            </Tooltip>
+                          ) : (
+                            <Text size="xs" c="red" fw={600}>
+                              Pending Shipment
+                            </Text>
+                          )}
                           <Link
-                            href={`/vendor/orders/${order._id}`}
-                            style={{ textDecoration: 'none' }}
+                            href={`/vendor/orders/view/${order._id}`}
+                            passHref
                           >
                             <ActionIcon
-                              color="indigo"
+                              color="gray"
                               variant="subtle"
-                              radius="md"
+                              component="a"
                             >
-                              <Package size={18} />
+                              <Eye size={18} />
                             </ActionIcon>
                           </Link>
-                        </Tooltip>
-
-                        <ActionIcon color="gray" variant="subtle" radius="md">
-                          <Eye size={18} />
-                        </ActionIcon>
-                      </Group>
-                    </TableTd>
-                  </TableTr>
-                )
-              })
-            ) : (
-              <TableTr>
-                <TableTd colSpan={5} align="center" py="xl">
-                  <Text c="dimmed" size="sm">
-                    No orders to fulfill yet.
-                  </Text>
-                </TableTd>
-              </TableTr>
-            )}
-          </TableTbody>
-        </Table>
+                        </Group>
+                      </TableTd>
+                    </TableTr>
+                  )
+                })
+              ) : (
+                <TableTr>
+                  <TableTd colSpan={5}>
+                    <Center py={50}>
+                      <Stack align="center" gap="xs">
+                        <Inbox size={40} strokeWidth={1} color="gray" />
+                        <Text c="dimmed" size="sm">
+                          No orders to fulfill yet.
+                        </Text>
+                      </Stack>
+                    </Center>
+                  </TableTd>
+                </TableTr>
+              )}
+            </TableTbody>
+          </Table>
+        </ScrollArea>
       </Paper>
     </Box>
   )

@@ -203,6 +203,24 @@ const getRoleBadge = (): {
   }
 }
 
+const getStatusColor = (status: string) => {
+  const s = status?.toLowerCase()
+  switch (s) {
+    case 'delivered':
+      return 'green'
+    case 'shipped':
+      return 'blue'
+    case 'processing':
+      return 'cyan'
+    case 'pending':
+      return 'orange'
+    case 'cancelled':
+      return 'red'
+    default:
+      return 'gray'
+  }
+}
+
 const badge = getRoleBadge()
 
   return (
@@ -646,9 +664,9 @@ function OrderTable({ orders }: { orders: Serialized<IOrder>[] }) {
       <Table verticalSpacing="lg" highlightOnHover>
         <Table.Thead bg="gray.0">
           <Table.Tr>
-            <Table.Th>Order #</Table.Th>
+            <Table.Th>Order Details</Table.Th> {/* Combined ID + Item Status */}
             <Table.Th>Date</Table.Th>
-            <Table.Th>Status</Table.Th>
+            <Table.Th>Global Status</Table.Th>
             <Table.Th>Total</Table.Th>
             <Table.Th ta="right">Action</Table.Th>
           </Table.Tr>
@@ -656,15 +674,34 @@ function OrderTable({ orders }: { orders: Serialized<IOrder>[] }) {
         <Table.Tbody>
           {orders.map((order) => (
             <Table.Tr key={order._id}>
+              {/* COLUMN 1: ID & ITEM CHIPS */}
               <Table.Td>
                 <Text fw={700} size="sm">
-                  {order.orderNumber.split('-').pop()?.toUpperCase()}
+                  #{order.orderNumber.split('-').pop()?.toUpperCase()}
                 </Text>
-                <Text size="xs" c="dimmed">
-                  {order.items.length} items
-                </Text>
+
+                {/* Show micro-status for items here to save horizontal space */}
+                <Group gap={4} mt={6}>
+                  {order.items.map((item, idx) => (
+                    <Tooltip
+                      key={idx}
+                      label={`${item.name}: ${item.status}`}
+                      withArrow
+                    >
+                      <Badge
+                        size="xs"
+                        variant="dot"
+                        color={getStatusColor(item.status)}
+                        styles={{ label: { textTransform: 'capitalize' } }}
+                      >
+                        {item.status}
+                      </Badge>
+                    </Tooltip>
+                  ))}
+                </Group>
               </Table.Td>
 
+              {/* COLUMN 2: DATE */}
               <Table.Td>
                 <Text size="sm">
                   {dayjs(order.createdAt).format('DD MMM YYYY')}
@@ -674,23 +711,31 @@ function OrderTable({ orders }: { orders: Serialized<IOrder>[] }) {
                 </Text>
               </Table.Td>
 
+              {/* COLUMN 3: GLOBAL STATUS */}
               <Table.Td>
                 <Badge
-                  variant="dot"
+                  variant="filled"
                   color={getStatusColor(order.orderStatus)}
                   tt="uppercase"
                   size="sm"
+                  radius="sm"
                 >
                   {order.orderStatus || 'Pending'}
                 </Badge>
               </Table.Td>
 
+              {/* COLUMN 4: TOTAL */}
               <Table.Td>
                 <Text fw={700} size="sm" c="blue.9">
                   ₦{order.totals.grandTotal.toLocaleString()}
                 </Text>
+                <Text size="xs" c="dimmed">
+                  {order.items.length}{' '}
+                  {order.items.length === 1 ? 'item' : 'items'}
+                </Text>
               </Table.Td>
 
+              {/* COLUMN 5: ACTIONS */}
               <Table.Td>
                 <Group gap="xs" justify="flex-end">
                   <Button

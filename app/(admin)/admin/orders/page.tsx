@@ -4,7 +4,6 @@ import {
   Button,
   Title,
   Paper,
-  Container,
   Text,
   Group,
   Stack,
@@ -147,7 +146,17 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                       </Text>
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={order.orderStatus} />
+                      <Stack gap={4}>
+                        <StatusBadge status={order.orderStatus} />
+                        {/* If items have different statuses than the main order */}
+                        {order.items.some(
+                          (i) => i.status !== order.orderStatus,
+                        ) && (
+                          <Text size="10px" c="dimmed" >
+                            Partial status updates in items
+                          </Text>
+                        )}
+                      </Stack>
                     </td>
                     <td className="px-6 py-4">
                       <Text fw={700} size="sm">
@@ -273,14 +282,25 @@ function PaginationLink({
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    delivered: 'green',
     pending: 'orange',
-    cancelled: 'red',
+    confirmed: 'cyan',
+    processing: 'yellow',
     shipped: 'blue',
+    'in transit': 'indigo', 
+    'out for delivery': 'teal', 
+    delivered: 'green',
+    cancelled: 'red',
+    returned: 'pink', 
   }
+  const label = status.replace(/[_-]/g, ' ').toUpperCase()
+
   return (
-    <Badge variant="dot" color={colors[status] || 'gray'} size="sm">
-      {status.toUpperCase()}
+    <Badge
+      variant="dot"
+      color={colors[status.toLowerCase()] || 'gray'}
+      size="sm"
+    >
+      {label}
     </Badge>
   )
 }

@@ -1,0 +1,47 @@
+/* VendorOrders.module.css */
+
+@media (max-width: 768px) {
+  .hideOnMobile {
+    display: none;
+  }
+
+  .responsiveTable, 
+  .responsiveTable thead, 
+  .responsiveTable tbody, 
+  .responsiveTable th, 
+  .responsiveTable td, 
+  .responsiveTable tr {
+    display: block;
+    width: 100%;
+  }
+
+  .responsiveRow {
+    border-bottom: 1px solid var(--mantine-color-gray-2);
+    padding: 15px 10px;
+  }
+
+  .responsiveTable td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    padding: 8px 10px !important;
+    border: none !important;
+  }
+
+  /* Create the labels on the left side of the card */
+  .responsiveTable td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 10px;
+    color: var(--mantine-color-dimmed);
+    display: block;
+    text-align: left;
+  }
+
+  /* Don't show the label for the last cell (actions) */
+  .responsiveTable td:last-child::before {
+    content: none;
+  }
+}
