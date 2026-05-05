@@ -16,12 +16,19 @@ import {
   IOrderItem,
 } from '@/app/types'
 import { revalidatePath } from 'next/cache'
-import { Types } from 'mongoose'
+
+
+
+export type ProductUpdateDTO = Partial<
+  Omit<IProduct, keyof Document | 'updatedBy' | 'category'>
+> & {
+  category?: string
+}
 
 /**
  * Security: Ensures session exists and user is a Vendor or Admin
  */
-async function ensureVendor(): Promise<Serialized<IUser>> {
+export async function ensureVendor(): Promise<Serialized<IUser>> {
   const user = await getCurrentUser()
   if (!user || (user.role !== 'vendor' && user.role !== 'admin')) {
     throw new Error('Unauthorized: Vendor access required.')
@@ -42,6 +49,31 @@ export async function getVendorProducts(): Promise<Serialized<IProduct>[]> {
     .lean()
 
   return JSON.parse(JSON.stringify(products))
+}
+
+
+/**
+ * Fetches a single product by ID, ensuring it belongs to the current vendor
+ */
+export async function getVendorProductById(id: string): Promise<Serialized<IProduct> | null> {
+  try {
+    await connectDB()
+    const user = await ensureVendor()
+
+    const product = await Product.findOne({ 
+      _id: id, 
+      vendor: user._id 
+    })
+    .populate('category', 'name _id')
+    .lean()
+
+    if (!product) return null
+
+    return JSON.parse(JSON.stringify(product))
+  } catch (error) {
+    console.error('Error fetching vendor product:', error)
+    return null
+  }
 }
 
 /**
@@ -70,41 +102,6 @@ export async function getVendorOrders(): Promise<Serialized<IOrder>[]> {
 }
 
 /**
- * Updates fulfillment for a specific line item in a multi-vendor order
- */
-// export async function updateItemFulfillment(
-//   orderId: string,
-//   itemId: string,
-//   status: IOrderItem['fulfillmentStatus'],
-// ): Promise<{ success: boolean; error?: string }> {
-//   try {
-//     await connectDB()
-//     const user = await ensureVendor()
-
-//     const result = await Order.updateOne(
-//       {
-//         _id: orderId,
-//         'items._id': itemId,
-//         'items.vendor': user._id,
-//       },
-//       { $set: { 'items.$.fulfillmentStatus': status } },
-//     )
-
-//     if (result.modifiedCount === 0) {
-//       return { success: false, error: 'Item not found or unauthorized' }
-//     }
-
-//     revalidatePath('/vendor/orders')
-//     return { success: true }
-//   } catch (error) {
-//     return {
-//       success: false,
-//       error: error instanceof Error ? error.message : 'Update failed',
-//     }
-//   }
-// }
-
-/**
  * Updates Vendor Shop Profile and Bank Details
  */
 export async function updateVendorProfile(
@@ -130,5 +127,37 @@ export async function updateVendorProfile(
       success: false,
       error: error instanceof Error ? error.message : 'Profile update failed',
     }
+  }
+}
+
+
+// /app/services/vendor-service.ts (Add this)
+
+export async function updateVendorProduct(id: string, data: ProductUpdateDTO) {
+  try {
+    const user = await ensureVendor(); 
+    await connectDB();
+
+    // CRITICAL: Ensure the vendor actually OWNS the product they are trying to edit
+    const product = await Product.findOne({ _id: id, vendor: user._id });
+    
+    if (!product) {
+      return { success: false, error: 'Product not found or unauthorized' };
+    }
+
+    // Logic: If a vendor edits an approved product, you might want to set it back to 'pending'
+    // so an admin can re-review the changes.
+    const updatePayload = {
+      ...data,
+      approvalStatus: 'pending', // Re-verify on edit (optional but safer)
+      updatedBy: user._id,
+    };
+
+    await Product.findByIdAndUpdate(id, { $set: updatePayload });
+
+    revalidatePath('/vendor/products');
+    return { success: true, message: 'Product updated and sent for review.' };
+  } catch (error) {
+    return { success: false, error: 'Failed to update product' };
   }
 }
