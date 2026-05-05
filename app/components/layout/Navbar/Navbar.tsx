@@ -27,7 +27,8 @@ import {
   Settings, 
   Package, 
   Heart, 
-  LogOut 
+  LogOut, 
+  ShieldCheck
 } from 'lucide-react'
 
 import { useApp } from '@/app/context/AppContext'
@@ -221,18 +222,22 @@ export default function Navbar() {
               </Center>
             )}
 
-            <Divider my="sm" label="Explore" labelPosition="center" />
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.name}
-                component={Link}
-                href={link.href}
-                label={link.name}
-                onClick={close}
-                leftSection={<LayoutGrid size={18} strokeWidth={1.5} />}
-                styles={{ label: { fontWeight: 600 } }}
-              />
-            ))}
+            <div
+              className={`${user?.role === 'admin' || user?.role === 'vendor' ? 'hidden md:block' : 'block'} `}
+            >
+              <Divider my="sm" label="Explore" labelPosition="center" />
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.name}
+                  component={Link}
+                  href={link.href}
+                  label={link.name}
+                  onClick={close}
+                  leftSection={<LayoutGrid size={18} strokeWidth={1.5} />}
+                  styles={{ label: { fontWeight: 600 } }}
+                />
+              ))}
+            </div>
 
             {user && (
               <>
@@ -270,6 +275,19 @@ export default function Navbar() {
                     onClick={close}
                   />
                 )}
+
+                {user.role === 'admin' && (
+                  <NavLink
+                    component={Link}
+                    href="/admin"
+                    label="Admin Panel"
+                    leftSection={<ShieldCheck size={18} />}
+                    color="red"
+                    variant="light"
+                    onClick={close}
+                  />
+                )}
+
 
                 <NavLink
                   label="Logout"
