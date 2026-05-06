@@ -42,7 +42,7 @@ export default function DashboardClient({
           <Badge variant="dot" color="indigo" size="md" mb="xs">
             Merchant Active
           </Badge>
-          <Title order={1} fw={900} lts="-1.5px">
+          <Title order={2} fw={900} lts="-1.5px">
             Dashboard
           </Title>
           <Text c="dimmed" size="sm">
