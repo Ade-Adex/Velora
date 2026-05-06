@@ -264,7 +264,7 @@ export default function Navbar() {
                       label="Shop Manager"
                       leftSection={<LayoutGrid size={18} />}
                       color="indigo"
-                      variant="filled" 
+                      variant="filled" // Using filled makes it stand out as a primary action
                       onClick={close}
                       className="rounded-lg"
                     />
@@ -289,32 +289,59 @@ export default function Navbar() {
             {/* 4. Personal Account Section */}
             {user && (
               <>
-                <Divider my="sm" label="Your Account" labelPosition="center" />
+                <Divider
+                  my="sm"
+                  label="Account Settings"
+                  labelPosition="center"
+                />
                 <Stack gap={4}>
                   <NavLink
                     component={Link}
-                    href="/profile"
-                    label="Profile Settings"
+                    href={
+                      user.role === 'vendor'
+                        ? `/${user.role}/profile`
+                        : '/profile'
+                    }
+                    label="My Profile"
+                    leftSection={<UserIcon size={18} />}
+                    onClick={close}
+                    className="rounded-lg"
+                  />
+
+                  <NavLink
+                    component={Link}
+                    href={
+                      user.role === 'vendor'
+                        ? `/${user.role}/settings`
+                        : '/profile'
+                    }
+                    label="Settings"
                     leftSection={<Settings size={18} />}
                     onClick={close}
                     className="rounded-lg"
                   />
-                  <NavLink
-                    component={Link}
-                    href="/profile?tab=orders"
-                    label="Track Orders"
-                    leftSection={<Package size={18} />}
-                    onClick={close}
-                    className="rounded-lg"
-                  />
-                  <NavLink
-                    component={Link}
-                    href="/wishlist"
-                    label="My Wishlist"
-                    leftSection={<Heart size={18} />}
-                    onClick={close}
-                    className="rounded-lg"
-                  />
+
+                  {/* Track Orders is usually for Customers; you can hide it for Admin/Vendors if they don't buy products */}
+                  {user.role === 'customer' && (
+                    <>
+                      <NavLink
+                        component={Link}
+                        href="/profile?tab=orders"
+                        label="Track Orders"
+                        leftSection={<Package size={18} />}
+                        onClick={close}
+                        className="rounded-lg"
+                      />
+                      <NavLink
+                        component={Link}
+                        href="/wishlist"
+                        label="My Wishlist"
+                        leftSection={<Heart size={18} />}
+                        onClick={close}
+                        className="rounded-lg"
+                      />
+                    </>
+                  )}
 
                   <NavLink
                     label="Logout"
