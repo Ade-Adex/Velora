@@ -213,7 +213,7 @@ export default function Navbar() {
                 </div>
               </Group>
             ) : (
-              <Center mb="md" py="md">
+              <Center mb="md" py="md" px="lg">
                 <Button
                   component={Link}
                   href="/auth"
