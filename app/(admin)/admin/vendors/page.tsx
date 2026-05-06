@@ -15,7 +15,7 @@ export default async function VendorVerificationPage() {
   const pendingVendors = await getPendingVendors()
 
   return (
-    <Container size="xl">
+    <div className="p-2">
       <Stack gap="lg">
         <div>
           <Title order={2} fz="28px" fw={900}>
@@ -28,6 +28,6 @@ export default async function VendorVerificationPage() {
 
         <VendorVerificationTable initialVendors={pendingVendors} />
       </Stack>
-    </Container>
+    </div>
   )
 }
