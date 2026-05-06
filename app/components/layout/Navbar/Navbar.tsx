@@ -16,7 +16,8 @@ import {
   Button, 
   Center, 
   NavLink, 
-  rem 
+  rem, 
+  Stack
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { 
@@ -190,31 +191,36 @@ export default function Navbar() {
       >
         <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
           <div className="px-md pb-xl">
+            {/* 1. User Profile Section */}
             {user ? (
-              <Group p="md" className="bg-gray-50 rounded-2xl mb-4">
+              <Group
+                p="md"
+                className="bg-gray-50 rounded-2xl mb-4"
+                wrap="nowrap"
+              >
                 <UserMenu
                   user={user}
                   onLogout={handleLogout}
                   variant="dashboard"
                 />
-                <div style={{ flex: 1 }}>
-                  <Text size="sm" fw={700}>
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <Text size="sm" fw={700} truncate>
                     {user.fullName}
                   </Text>
-                  <Text size="xs" c="dimmed" className="truncate w-40">
+                  <Text size="xs" c="dimmed" truncate>
                     {user.email}
                   </Text>
                 </div>
               </Group>
             ) : (
-              <Center mb="md">
+              <Center mb="md" py="md">
                 <Button
                   component={Link}
                   href="/auth"
                   onClick={close}
                   radius="xl"
                   color="blue"
-                  px="xl"
+                  fullWidth
                   className="bg-[#0052CC]!"
                 >
                   Sign In / Register
@@ -222,8 +228,14 @@ export default function Navbar() {
               </Center>
             )}
 
+            {/* 2. Primary Navigation (Explore) */}
+            {/* Logic: Only hide Explore on mobile for Admin/Vendor if you want them to focus solely on management */}
             <div
-              className={`${user?.role === 'admin' || user?.role === 'vendor' ? 'hidden md:block' : 'block'} `}
+              className={
+                user?.role === 'admin' || user?.role === 'vendor'
+                  ? 'hidden md:block'
+                  : 'block'
+              }
             >
               <Divider my="sm" label="Explore" labelPosition="center" />
               {navLinks.map((link) => (
@@ -235,69 +247,85 @@ export default function Navbar() {
                   onClick={close}
                   leftSection={<LayoutGrid size={18} strokeWidth={1.5} />}
                   styles={{ label: { fontWeight: 600 } }}
+                  className="rounded-lg mb-1"
                 />
               ))}
             </div>
 
+            {/* 3. Management Section (Vendor/Admin) */}
+            {(user?.role === 'vendor' || user?.role === 'admin') && (
+              <>
+                <Divider my="sm" label="Management" labelPosition="center" />
+                <Stack gap={4}>
+                  {user.role === 'vendor' && (
+                    <NavLink
+                      component={Link}
+                      href="/vendor"
+                      label="Shop Manager"
+                      leftSection={<LayoutGrid size={18} />}
+                      color="indigo"
+                      variant="filled" 
+                      onClick={close}
+                      className="rounded-lg"
+                    />
+                  )}
+
+                  {user.role === 'admin' && (
+                    <NavLink
+                      component={Link}
+                      href="/admin"
+                      label="Admin Panel"
+                      leftSection={<ShieldCheck size={18} />}
+                      color="red"
+                      variant="filled"
+                      onClick={close}
+                      className="rounded-lg"
+                    />
+                  )}
+                </Stack>
+              </>
+            )}
+
+            {/* 4. Personal Account Section */}
             {user && (
               <>
                 <Divider my="sm" label="Your Account" labelPosition="center" />
-                <NavLink
-                  component={Link}
-                  href="/profile"
-                  label="Profile Settings"
-                  leftSection={<Settings size={18} />}
-                  onClick={close}
-                />
-                <NavLink
-                  component={Link}
-                  href="/profile?tab=orders"
-                  label="Track Orders"
-                  leftSection={<Package size={18} />}
-                  onClick={close}
-                />
-                <NavLink
-                  component={Link}
-                  href="/wishlist"
-                  label="My Wishlist"
-                  leftSection={<Heart size={18} />}
-                  onClick={close}
-                />
-
-                {user.role === 'vendor' && (
+                <Stack gap={4}>
                   <NavLink
                     component={Link}
-                    href="/vendor"
-                    label="Shop Manager"
-                    leftSection={<LayoutGrid size={18} />}
-                    color="indigo"
-                    variant="light"
+                    href="/profile"
+                    label="Profile Settings"
+                    leftSection={<Settings size={18} />}
                     onClick={close}
+                    className="rounded-lg"
                   />
-                )}
-
-                {user.role === 'admin' && (
                   <NavLink
                     component={Link}
-                    href="/admin"
-                    label="Admin Panel"
-                    leftSection={<ShieldCheck size={18} />}
+                    href="/profile?tab=orders"
+                    label="Track Orders"
+                    leftSection={<Package size={18} />}
+                    onClick={close}
+                    className="rounded-lg"
+                  />
+                  <NavLink
+                    component={Link}
+                    href="/wishlist"
+                    label="My Wishlist"
+                    leftSection={<Heart size={18} />}
+                    onClick={close}
+                    className="rounded-lg"
+                  />
+
+                  <NavLink
+                    label="Logout"
                     color="red"
+                    leftSection={<LogOut size={18} />}
+                    onClick={handleLogout}
+                    mt="xl"
                     variant="light"
-                    onClick={close}
+                    className="rounded-lg"
                   />
-                )}
-
-
-                <NavLink
-                  label="Logout"
-                  color="red"
-                  leftSection={<LogOut size={18} />}
-                  onClick={handleLogout}
-                  mt="xl"
-                  variant="light"
-                  className="rounded-lg"
-                />
+                </Stack>
               </>
             )}
           </div>

@@ -168,7 +168,7 @@ export default function VendorSidebar({
           </Tooltip>
 
           <Tooltip
-            label="Exit Admin"
+            label="Exit to Storefront"
             disabled={!isCollapsed}
             position="right"
             offset={20}
@@ -176,7 +176,7 @@ export default function VendorSidebar({
             <NavLink
               component={Link}
               href="/"
-              label={!isCollapsed && 'Exit Admin'}
+              label={!isCollapsed && 'Exit to Storefront'}
               leftSection={
                 <ArrowLeft
                   size={isCollapsed ? 22 : 20}
