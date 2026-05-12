@@ -13,7 +13,57 @@ export interface VendorStats {
   orderCount: number
   unitsSold: number
   lowStockAlerts: number
+  salesTrend: { date: string; amount: number }[]
 }
+
+// export async function getVendorAnalytics(): Promise<VendorStats> {
+//   await connectDB()
+//   const user = await getCurrentUser()
+//   if (!user) throw new Error('Unauthorized')
+
+//   const vendorId = new Types.ObjectId(user._id as string)
+//   const THRESHOLD = 10
+
+//   const stats = await Order.aggregate([
+//     { $unwind: '$items' },
+//     {
+//       $match: {
+//         'items.vendor': vendorId,
+//         paymentStatus: 'paid',
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: null,
+//         totalRevenue: { $sum: '$items.vendorNetEarning' },
+//         totalOrders: { $addToSet: '$_id' },
+//         unitsSold: { $sum: '$items.quantity' },
+//       },
+//     },
+//     {
+//       $project: {
+//         totalRevenue: 1,
+//         orderCount: { $size: '$totalOrders' },
+//         unitsSold: 1,
+//       },
+//     },
+//   ])
+
+//   const lowStock = await Product.countDocuments({
+//     vendor: vendorId,
+//     $or: [
+//       { stock: { $lt: THRESHOLD } },
+//       { 'variants.stock': { $lt: THRESHOLD } }
+//     ]
+//   })
+
+//   return {
+//     revenue: stats[0]?.totalRevenue || 0,
+//     orderCount: stats[0]?.orderCount || 0,
+//     unitsSold: stats[0]?.unitsSold || 0,
+//     lowStockAlerts: lowStock,
+//   }
+// }
 
 export async function getVendorAnalytics(): Promise<VendorStats> {
   await connectDB()
@@ -22,14 +72,10 @@ export async function getVendorAnalytics(): Promise<VendorStats> {
 
   const vendorId = new Types.ObjectId(user._id as string)
 
+  // 1. Fetch General Stats (your existing aggregation)
   const stats = await Order.aggregate([
     { $unwind: '$items' },
-    {
-      $match: {
-        'items.vendor': vendorId,
-        paymentStatus: 'paid',
-      },
-    },
+    { $match: { 'items.vendor': vendorId, paymentStatus: 'paid' } },
     {
       $group: {
         _id: null,
@@ -38,24 +84,47 @@ export async function getVendorAnalytics(): Promise<VendorStats> {
         unitsSold: { $sum: '$items.quantity' },
       },
     },
-    {
-      $project: {
-        totalRevenue: 1,
-        orderCount: { $size: '$totalOrders' },
-        unitsSold: 1,
-      },
-    },
   ])
 
+  // 2. Fetch Trend Data (Last 7 Days)
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+  const trend = await Order.aggregate([
+    {
+      $match: {
+        'items.vendor': vendorId,
+        paymentStatus: 'paid',
+        createdAt: { $gte: sevenDaysAgo },
+      },
+    },
+    { $unwind: '$items' },
+    { $match: { 'items.vendor': vendorId } },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        amount: { $sum: '$items.vendorNetEarning' },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ])
+
+  const salesTrend = trend.map((t) => ({
+    date: new Date(t._id).toLocaleDateString('en-US', { weekday: 'short' }),
+    amount: t.amount,
+  }))
+
+  // 3. Fetch Low Stock
   const lowStock = await Product.countDocuments({
     vendor: vendorId,
-    stock: { $lt: 5 },
+    $or: [{ stock: { $lt: 10 } }, { 'variants.stock': { $lt: 10 } }],
   })
 
   return {
     revenue: stats[0]?.totalRevenue || 0,
-    orderCount: stats[0]?.orderCount || 0,
+    orderCount: stats[0]?.totalOrders?.length || 0,
     unitsSold: stats[0]?.unitsSold || 0,
     lowStockAlerts: lowStock,
+    salesTrend: salesTrend.length > 0 ? salesTrend : [],
   }
 }

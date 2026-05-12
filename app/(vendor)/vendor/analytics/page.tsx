@@ -11,8 +11,9 @@ import {
   Stack,
   Box,
 } from '@mantine/core'
-import { DollarSign, ShoppingBag, Package, AlertCircle } from 'lucide-react'
+import { DollarSign, ShoppingBag, Package, AlertCircle, TrendingUp } from 'lucide-react'
 import { getVendorAnalytics } from '@/app/services/vendor-analytics-service'
+import { SimpleSalesChart } from '@/app/components/vendor/analytics/SalesChart'
 
 export default async function VendorAnalyticsPage() {
   let stats
@@ -48,7 +49,7 @@ export default async function VendorAnalyticsPage() {
       label: 'Low Stock Alerts',
       value: stats.lowStockAlerts,
       icon: AlertCircle,
-      color: 'red',
+      color: stats.lowStockAlerts > 0 ? 'red' : 'gray',
     },
   ]
 
@@ -65,7 +66,7 @@ export default async function VendorAnalyticsPage() {
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
         {data.map((item) => (
-          <Paper key={item.label} p="xl" withBorder radius="md">
+          <Paper key={item.label} p="md" withBorder radius="md">
             <Group justify="space-between" mb="xs">
               <Text size="xs" fw={700} c="dimmed" tt="uppercase">
                 {item.label}
@@ -83,17 +84,32 @@ export default async function VendorAnalyticsPage() {
           </Paper>
         ))}
       </SimpleGrid>
+      <Paper p="xl" withBorder radius="md">
+        <Group justify="space-between" mb="xl">
+          <Stack gap={0}>
+            <Group gap="xs">
+              <TrendingUp size={18} className="text-blue-500" />
+              <Text fw={700}>Weekly Revenue Distribution</Text>
+            </Group>
+            <Text size="xs" c="dimmed">
+              Daily performance overview
+            </Text>
+          </Stack>
+        </Group>
 
-      {/* You can add charts here later using a library like Recharts */}
-      <Paper
-        h={300}
-        withBorder
-        radius="md"
-        className="flex items-center justify-center bg-gray-50/50"
-      >
-        <Text c="dimmed" size="sm">
-          Sales trend visualization will appear here.
-        </Text>
+        {/* The Custom Chart */}
+        <Box mt="xl">
+          {stats.salesTrend && stats.salesTrend.length > 0 ? (
+            <SimpleSalesChart data={stats.salesTrend} />
+          ) : (
+            <Box
+              h={200}
+              className="flex items-center justify-center border-2 border-dashed rounded-md"
+            >
+              <Text c="dimmed">No sales data recorded for this period.</Text>
+            </Box>
+          )}
+        </Box>
       </Paper>
     </Stack>
   )
