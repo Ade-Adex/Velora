@@ -51,6 +51,19 @@ export default async function VendorOrderViewPage({ params }: Props) {
     0,
   )
 
+  const myGrossTotal = myItems.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  )
+
+  const totalCommission = myItems.reduce(
+    (acc, item) => acc + (item.adminCommissionAmount || 0),
+    0,
+  )
+
+  // Get rate from the first item for display (e.g., 10%)
+  const commissionRate = myItems[0]?.adminCommissionRate || 0
+
   return (
     <div className="px-2 py-2">
       <Stack gap="lg">
@@ -90,13 +103,47 @@ export default async function VendorOrderViewPage({ params }: Props) {
               Placed {new Date(order.createdAt).toLocaleDateString()}
             </Text>
           </Box>
-          <Paper withBorder p="xs" px="md" radius="md" bg="blue.0">
-            <Text size="10px" fw={700} c="blue.9" tt="uppercase">
-              Your Earning
-            </Text>
-            <Text fw={900} fz="lg" c="blue.9">
-              ₦{myNetEarnings.toLocaleString()}
-            </Text>
+          <Paper
+            withBorder
+            p="xs"
+            px="md"
+            radius="md"
+            bg="blue.0"
+            style={{ minWidth: '200px' }}
+          >
+            <Stack gap={2}>
+              <Group justify="space-between">
+                <Text size="10px" fw={700} c="blue.9" tt="uppercase">
+                  Net Earning
+                </Text>
+                <Badge size="xs" variant="light" color="blue">
+                  {commissionRate}% Fee
+                </Badge>
+              </Group>
+
+              <Text fw={900} fz="xl" c="blue.9" lh={1.2}>
+                ₦{myNetEarnings.toLocaleString()}
+              </Text>
+
+              <Group
+                gap={4}
+                mt={2}
+                style={{
+                  borderTop: '1px solid rgba(0,0,0,0.05)',
+                  paddingTop: '4px',
+                }}
+              >
+                <Text size="10px" c="dimmed">
+                  Gross: ₦{myGrossTotal.toLocaleString()}
+                </Text>
+                <Text size="10px" c="dimmed">
+                  •
+                </Text>
+                <Text size="10px" c="red.7">
+                  Fee: -₦{totalCommission.toLocaleString()}
+                </Text>
+              </Group>
+            </Stack>
           </Paper>
         </Group>
 
@@ -212,9 +259,15 @@ export default async function VendorOrderViewPage({ params }: Props) {
                       </Badge>
                     </TableTd>
                     <TableTd data-label="Earning">
-                      <Text size="sm" fw={800}>
-                        ₦{item.vendorNetEarning?.toLocaleString()}
-                      </Text>
+                      <Stack gap={0} align="flex-end">
+                        <Text size="sm" fw={800}>
+                          ₦{item.vendorNetEarning?.toLocaleString()}
+                        </Text>
+                        <Text size="10px" c="dimmed">
+                          (₦{item.price.toLocaleString()} ea. -{' '}
+                          {item.adminCommissionRate}%)
+                        </Text>
+                      </Stack>
                     </TableTd>
                   </TableTr>
                 ))}

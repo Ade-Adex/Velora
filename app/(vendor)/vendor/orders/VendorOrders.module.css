@@ -1,47 +1,62 @@
 /* VendorOrders.module.css */
 
+
+/* Hide mobile-only elements on desktop by default */
+.showOnlyMobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
-  .hideOnMobile {
-    display: none;
+  /* STAGE 1: Total Header Kill */
+  .hideOnMobile,
+  .responsiveTable :global(thead) {
+    display: none !important;
   }
 
-  .responsiveTable, 
-  .responsiveTable thead, 
-  .responsiveTable tbody, 
-  .responsiveTable th, 
-  .responsiveTable td, 
-  .responsiveTable tr {
-    display: block;
-    width: 100%;
+  /* STAGE 2: Table to Card Conversion */
+  .responsiveTable,
+  .responsiveTable :global(tbody),
+  .responsiveTable :global(tr),
+  .responsiveTable :global(td) {
+    display: block !important;
+    width: 100% !important;
   }
 
   .responsiveRow {
-    border-bottom: 1px solid var(--mantine-color-gray-2);
-    padding: 15px 10px;
+    border: 1px solid var(--mantine-color-gray-3) !important;
+    border-radius: 12px !important;
+    margin-bottom: 20px !important;
+    padding: 10px !important;
+    background-color: #fff;
+    box-shadow: var(--mantine-shadow-xs);
   }
 
-  .responsiveTable td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: right;
-    padding: 8px 10px !important;
-    border: none !important;
+  /* STAGE 3: Cell Layout */
+  .responsiveTable :global(td) {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 12px 8px !important;
+    border-bottom: 1px solid var(--mantine-color-gray-1) !important;
   }
 
-  /* Create the labels on the left side of the card */
-  .responsiveTable td::before {
+  /* Remove border on action cell */
+  .responsiveTable :global(td):last-child {
+    border-bottom: none !important;
+    padding-top: 15px !important;
+  }
+
+  /* STAGE 4: Labels and Visibility */
+  .responsiveTable :global(td)::before {
     content: attr(data-label);
     font-weight: 700;
-    text-transform: uppercase;
     font-size: 10px;
-    color: var(--mantine-color-dimmed);
-    display: block;
-    text-align: left;
+    text-transform: uppercase;
+    color: var(--mantine-color-gray-5);
   }
 
-  /* Don't show the label for the last cell (actions) */
-  .responsiveTable td:last-child::before {
-    content: none;
+  /* The magic switch for the Gross earnings */
+  .showOnlyMobile {
+    display: block !important;
   }
 }

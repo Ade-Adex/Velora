@@ -21,7 +21,7 @@ import {
   ScrollArea,
   Center,
 } from '@mantine/core'
-import { Package, Eye, Inbox } from 'lucide-react'
+import { Package, Eye, Inbox, Info } from 'lucide-react'
 import { getVendorOrders } from '@/app/services/vendor-service'
 import { getCurrentUser } from '@/app/services/auth-service'
 import { Serialized, IOrder } from '@/app/types'
@@ -67,18 +67,23 @@ export default async function VendorOrdersPage() {
                   Your Products
                 </TableTh>
                 <TableTh
-                  style={{ fontSize: '11px', textTransform: 'uppercase' }}
+                  style={{
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    textAlign: 'right',
+                  }}
                 >
-                  Your Earnings
+                  Earnings
                 </TableTh>
                 <TableTh
                   style={{ fontSize: '11px', textTransform: 'uppercase' }}
                 >
-                  Payment
+                  Payment Status
                 </TableTh>
                 <TableTh />
               </TableTr>
             </TableThead>
+
             <TableTbody>
               {orders.length > 0 ? (
                 orders.map((order) => {
@@ -86,17 +91,22 @@ export default async function VendorOrdersPage() {
                     (item) => item.vendor.toString() === user._id.toString(),
                   )
 
+                  const myGrossTotal = myItems.reduce(
+                    (acc, item) => acc + item.price * item.quantity,
+                    0,
+                  )
                   const myNetEarnings = myItems.reduce(
                     (acc, item) => acc + (item.vendorNetEarning || 0),
                     0,
                   )
 
+                  const commissionRate = myItems[0]?.adminCommissionRate || 0
                   const targetShipmentId = myItems[0]?.shipment?.toString()
 
                   return (
                     <TableTr key={order._id} className={classes.responsiveRow}>
                       <TableTd data-label="Order Details">
-                        <Stack gap={2}>
+                        <Stack gap={0} align="flex-end">
                           <Text size="sm" fw={800}>
                             #{order.orderNumber}
                           </Text>
@@ -114,9 +124,9 @@ export default async function VendorOrdersPage() {
                       </TableTd>
 
                       <TableTd data-label="Your Products">
-                        <Stack gap={6}>
+                        <Stack gap={6} align="flex-end">
                           {myItems.map((item, idx) => (
-                            <Box key={idx}>
+                            <Box key={idx} style={{ textAlign: 'right' }}>
                               <Text size="xs" fw={700}>
                                 {item.quantity}x {item.name}
                               </Text>
@@ -138,18 +148,37 @@ export default async function VendorOrdersPage() {
                         </Stack>
                       </TableTd>
 
-                      <TableTd data-label="Your Earnings">
-                        <Box>
-                          <Text size="sm" fw={800} c="indigo.7">
-                            ₦{myNetEarnings.toLocaleString()}
-                          </Text>
-                          <Text size="10px" c="dimmed">
-                            Net earning
-                          </Text>
-                        </Box>
+                      <TableTd data-label="Earnings">
+                        <Tooltip
+                          label={`Gross: ₦${myGrossTotal.toLocaleString()} (Before ${commissionRate}% Fees)`}
+                        >
+                          <Stack gap={0} align="flex-end">
+                            <Text size="sm" fw={800} c="indigo.7">
+                              ₦{myNetEarnings.toLocaleString()}
+                            </Text>
+                            <Text
+                              size="10px"
+                              fw={600}
+                              c="dimmed"
+                              tt="uppercase"
+                            >
+                              Net Earning
+                            </Text>
+                            {/* Visible on Mobile only via CSS */}
+                            <Text
+                              size="10px"
+                              c="orange.8"
+                              fw={500}
+                              className={classes.showOnlyMobile}
+                            >
+                              Gross: ₦{myGrossTotal.toLocaleString()} (
+                              {commissionRate}% Fee)
+                            </Text>
+                          </Stack>
+                        </Tooltip>
                       </TableTd>
 
-                      <TableTd data-label="Payment">
+                      <TableTd data-label="Payment Status">
                         <Badge
                           color={
                             order.paymentStatus === 'paid' ? 'teal' : 'orange'
@@ -165,29 +194,31 @@ export default async function VendorOrdersPage() {
                       <TableTd>
                         <Group gap="xs" justify="flex-end" wrap="nowrap">
                           {targetShipmentId ? (
-                            <Tooltip label="Update Shipping">
-                              <Link
-                                href={`/vendor/orders/${targetShipmentId}`}
-                                passHref
+                            <Link
+                              href={`/vendor/orders/${targetShipmentId}`}
+                              passHref
+                              legacyBehavior
+                            >
+                              <ActionIcon
+                                color="indigo"
+                                variant="light"
+                                radius="md"
+                                size="lg"
+                                component="a"
                               >
-                                <ActionIcon
-                                  color="indigo"
-                                  variant="light"
-                                  radius="md"
-                                  size="lg"
-                                >
-                                  <Package size={18} />
-                                </ActionIcon>
-                              </Link>
-                            </Tooltip>
+                                <Package size={18} />
+                              </ActionIcon>
+                            </Link>
                           ) : (
                             <Text size="xs" c="red" fw={600}>
                               Pending Shipment
                             </Text>
                           )}
+
                           <Link
                             href={`/vendor/orders/view/${order._id}`}
                             passHref
+                            legacyBehavior
                           >
                             <ActionIcon
                               color="gray"
