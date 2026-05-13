@@ -24,13 +24,22 @@ export interface IVendorProfile {
   isVerified: boolean
   description?: string
   logo?: string
+  banner?: string
+  supportEmail?: string
+  supportPhone?: string
+  website?: string
+  socialLinks?: {
+    facebook?: string
+    instagram?: string
+    twitter?: string
+  }
   rating: number
   reviewsCount: number
   bankDetails?: {
     accountName: string
     accountNumber: string
     bankName: string
-  };
+  }
 }
 
 export interface IUser extends Document {

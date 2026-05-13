@@ -13,10 +13,29 @@ import {
   Group,
   Title,
   Stack,
+  Divider,
+  Badge,
+  Text,
+  ActionIcon,
 } from '@mantine/core'
-import { Store, CreditCard, Save } from 'lucide-react'
+import {
+  Store,
+  CreditCard,
+  Save,
+  Mail,
+  Phone,
+  CheckCircle2,
+  AlertCircle,
+  Globe,
+} from 'lucide-react'
+import {
+  FaInstagram,
+  FaFacebookF,
+  FaXTwitter,
+  FaLinkedinIn,
+} from 'react-icons/fa6'
 import { updateVendorProfile } from '@/app/services/vendor-service'
-import { useSnackbar } from 'notistack' // Import the hook
+import { useSnackbar } from 'notistack'
 import { IVendorProfile, Serialized } from '@/app/types'
 import { useState } from 'react'
 
@@ -24,88 +43,235 @@ interface Props {
   initialData?: Serialized<IVendorProfile>
 }
 
+interface VendorFormValues {
+  shopName: string
+  description: string
+  logo: string
+  banner: string
+  supportEmail: string
+  supportPhone: string
+  website: string
+  bankDetails: {
+    bankName: string
+    accountNumber: string
+    accountName: string
+  }
+  socialLinks: {
+    facebook: string
+    instagram: string
+    twitter: string
+  }
+}
+
 export default function VendorSettingsForm({ initialData }: Props) {
   const [loading, setLoading] = useState(false)
-  const { enqueueSnackbar } = useSnackbar() // Initialize snackbar
+  const { enqueueSnackbar } = useSnackbar()
 
-  const form = useForm({
+  const form = useForm<VendorFormValues>({
     initialValues: {
       shopName: initialData?.shopName || '',
       description: initialData?.description || '',
+      logo: initialData?.logo || '',
+      banner: initialData?.banner || '',
+      supportEmail: initialData?.supportEmail || '',
+      supportPhone: initialData?.supportPhone || '',
+      website: initialData?.website || '',
       bankDetails: {
         bankName: initialData?.bankDetails?.bankName || '',
         accountNumber: initialData?.bankDetails?.accountNumber || '',
         accountName: initialData?.bankDetails?.accountName || '',
       },
+      socialLinks: {
+        facebook: initialData?.socialLinks?.facebook || '',
+        instagram: initialData?.socialLinks?.instagram || '',
+        twitter: initialData?.socialLinks?.twitter || '',
+      },
+    },
+    validate: {
+      shopName: (val) =>
+        val.length < 3 ? 'Professional shop name required' : null,
+      supportEmail: (val) =>
+        /^\S+@\S+$/.test(val) ? null : 'Invalid business email',
     },
   })
 
-  const handleSubmit = async (values: typeof form.values) => {
+  const handleSubmit = async (values: VendorFormValues) => {
     setLoading(true)
     const result = await updateVendorProfile(values)
     setLoading(false)
 
     if (result.success) {
-      enqueueSnackbar('Profile updated successfully!', {
+      enqueueSnackbar('Business profile synced successfully', {
         variant: 'success',
-        anchorOrigin: { vertical: 'top', horizontal: 'right' },
       })
     } else {
-      enqueueSnackbar(result.error || 'Failed to update profile', {
-        variant: 'error',
-        anchorOrigin: { vertical: 'top', horizontal: 'right' },
-      })
+      enqueueSnackbar(result.error || 'Sync failed', { variant: 'error' })
     }
   }
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="xl">
-        <Paper withBorder p="xl" radius="md">
-          <Group mb="lg">
-            <Store size={22} className="text-indigo-600" />
-            <Title order={4}>Business Profile</Title>
+        {/* HEADER: STATUS CARD */}
+        <Paper withBorder p="md" radius="md" bg="var(--mantine-color-gray-0)">
+          <Group justify="space-between">
+            <Stack gap={2}>
+              <Text size="sm" c="dimmed" fw={500}>
+                Store Verification Status
+              </Text>
+              <Group gap="xs">
+                {initialData?.isVerified ? (
+                  <Badge
+                    variant="filled"
+                    color="green"
+                    leftSection={<CheckCircle2 size={12} />}
+                  >
+                    Verified Merchant
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="filled"
+                    color="orange"
+                    leftSection={<AlertCircle size={12} />}
+                  >
+                    Pending Verification
+                  </Badge>
+                )}
+              </Group>
+            </Stack>
+            <Text size="xs" c="dimmed">
+              Last updated: {new Date().toLocaleDateString()}
+            </Text>
           </Group>
-          <Grid>
+        </Paper>
+
+        {/* SECTION 1: IDENTITY & ASSETS */}
+        <Paper withBorder p="xl" radius="md" shadow="xs">
+          <Group mb="md">
+            <Store size={20} className="text-indigo-600" />
+            <Title order={5}>Storefront Branding</Title>
+          </Group>
+          <Divider mb="xl" />
+          <Grid gap="lg">
             <GridCol span={{ base: 12, md: 6 }}>
               <TextInput
-                label="Shop Name"
-                placeholder="Business Name"
+                label="Public Shop Name"
+                required
                 {...form.getInputProps('shopName')}
+                description="This appears on your invoices and product pages"
               />
             </GridCol>
-            <GridCol span={{ base: 12 }}>
+            <GridCol span={{ base: 12, md: 6 }}>
+              <TextInput
+                label="Official Website"
+                placeholder="https://..."
+                {...form.getInputProps('website')}
+              />
+            </GridCol>
+            <GridCol span={{ base: 12, md: 6 }}>
+              <TextInput
+                label="Logo URL"
+                placeholder="Square image recommended"
+                {...form.getInputProps('logo')}
+              />
+            </GridCol>
+            <GridCol span={{ base: 12, md: 6 }}>
+              <TextInput
+                label="Banner URL"
+                placeholder="Wide cover image"
+                {...form.getInputProps('banner')}
+              />
+            </GridCol>
+            <GridCol span={12}>
               <Textarea
-                label="About the Shop"
-                placeholder="Briefly describe your shop..."
-                minRows={3}
+                label="Business Bio"
+                placeholder="Describe your brand to your customers..."
+                minRows={4}
                 {...form.getInputProps('description')}
               />
             </GridCol>
           </Grid>
         </Paper>
 
-        <Paper withBorder p="xl" radius="md">
-          <Group mb="lg">
-            <CreditCard size={22} className="text-green-600" />
-            <Title order={4}>Payout Information</Title>
+        {/* CONTACT & SOCIALS */}
+        <Grid>
+          <GridCol span={{ base: 12, md: 6 }}>
+            <Paper withBorder p="xl" radius="md" h="100%">
+              <Title order={5} mb="lg">
+                Support Details
+              </Title>
+              <Stack>
+                <TextInput
+                  label="Support Email"
+                  leftSection={<Mail size={16} />}
+                  {...form.getInputProps('supportEmail')}
+                />
+                <TextInput
+                  label="Support Phone"
+                  leftSection={<Phone size={16} />}
+                  {...form.getInputProps('supportPhone')}
+                />
+              </Stack>
+            </Paper>
+          </GridCol>
+          <GridCol span={{ base: 12, md: 6 }}>
+            <Paper withBorder p="xl" radius="md" h="100%">
+              <Title order={5} mb="lg">
+                Social Presence
+              </Title>
+              <Stack gap="sm">
+                <TextInput
+                  placeholder="Instagram Profile"
+                  leftSection={<FaInstagram size={16} color="#E4405F" />}
+                  {...form.getInputProps('socialLinks.instagram')}
+                />
+                <TextInput
+                  placeholder="Facebook Page"
+                  leftSection={<FaFacebookF size={16} color="#1877F2" />}
+                  {...form.getInputProps('socialLinks.facebook')}
+                />
+                <TextInput
+                  placeholder="X (Twitter) Handle"
+                  leftSection={<FaXTwitter size={16} />}
+                  {...form.getInputProps('socialLinks.twitter')}
+                />
+              </Stack>
+            </Paper>
+          </GridCol>
+        </Grid>
+
+        {/* SECTION 3: SETTLEMENTS */}
+        <Paper
+          withBorder
+          p="xl"
+          radius="md"
+          shadow="xs"
+          style={{ borderLeft: '4px solid var(--mantine-color-indigo-6)' }}
+        >
+          <Group mb="md">
+            <CreditCard size={20} className="text-indigo-600" />
+            <Title order={5}>Settlement Bank Account</Title>
           </Group>
+          <Text size="xs" c="dimmed" mb="lg">
+            Ensure these details are correct. Settlement is processed every
+            Friday.
+          </Text>
           <Grid>
-            <GridCol span={6}>
+            <GridCol span={{ base: 12, md: 4 }}>
               <TextInput
-                label="Bank Name"
+                label="Financial Institution"
                 {...form.getInputProps('bankDetails.bankName')}
               />
             </GridCol>
-            <GridCol span={6}>
+            <GridCol span={{ base: 12, md: 4 }}>
               <TextInput
                 label="Account Number"
                 {...form.getInputProps('bankDetails.accountNumber')}
               />
             </GridCol>
-            <GridCol span={12}>
+            <GridCol span={{ base: 12, md: 4 }}>
               <TextInput
-                label="Account Name"
+                label="Beneficiary Name"
                 {...form.getInputProps('bankDetails.accountName')}
               />
             </GridCol>
@@ -118,9 +284,10 @@ export default function VendorSettingsForm({ initialData }: Props) {
             loading={loading}
             leftSection={<Save size={18} />}
             color="indigo"
+            size="md"
             radius="md"
           >
-            Update Settings
+            Update Business Profile
           </Button>
         </Group>
       </Stack>

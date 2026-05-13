@@ -111,25 +111,58 @@ export async function updateVendorProfile(
     await connectDB()
     const user = await ensureVendor()
 
-    const updateData: Record<string, unknown> = {}
+    const updateData: Record<string, string | boolean | number | undefined> = {}
+
+    // Core Identity
     if (data.shopName) updateData['vendorProfile.shopName'] = data.shopName
     if (data.description)
       updateData['vendorProfile.description'] = data.description
-    if (data.bankDetails)
-      updateData['vendorProfile.bankDetails'] = data.bankDetails
+    if (data.logo) updateData['vendorProfile.logo'] = data.logo
+    if (data.banner) updateData['vendorProfile.banner'] = data.banner
+    if (data.website) updateData['vendorProfile.website'] = data.website
+
+    // Support
+    if (data.supportEmail)
+      updateData['vendorProfile.supportEmail'] = data.supportEmail
+    if (data.supportPhone)
+      updateData['vendorProfile.supportPhone'] = data.supportPhone
+
+    // Social Links (Nested Dot Notation)
+    if (data.socialLinks) {
+      updateData['vendorProfile.socialLinks.facebook'] =
+        data.socialLinks.facebook
+      updateData['vendorProfile.socialLinks.instagram'] =
+        data.socialLinks.instagram
+      updateData['vendorProfile.socialLinks.twitter'] = data.socialLinks.twitter
+    }
+
+    // Banking
+    if (data.bankDetails) {
+      updateData['vendorProfile.bankDetails.bankName'] =
+        data.bankDetails.bankName
+      updateData['vendorProfile.bankDetails.accountNumber'] =
+        data.bankDetails.accountNumber
+      updateData['vendorProfile.bankDetails.accountName'] =
+        data.bankDetails.accountName
+    }
+
+    // Reset verification if critical business info changes (Optional Security Logic)
+    // if (data.shopName || data.bankDetails) updateData['vendorProfile.isVerified'] = false;
 
     await User.findByIdAndUpdate(user._id, { $set: updateData })
 
     revalidatePath('/vendor/settings')
     return { success: true }
-  } catch (error) {
+  } catch (error: unknown) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Profile update failed',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Business profile update failed',
     }
   }
 }
-
 
 // /app/services/vendor-service.ts (Add this)
 

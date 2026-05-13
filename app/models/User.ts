@@ -27,16 +27,42 @@ const UserSchema = new Schema<IUser>(
       default: 'customer',
     },
     vendorProfile: {
-      shopName: { type: String, unique: true, sparse: true },
+      shopName: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true,
+      },
       isVerified: { type: Boolean, default: false },
-      description: String,
-      logo: String,
+      description: { type: String, trim: true },
+
+      // Branding Assets
+      logo: { type: String }, // URL to image
+      banner: { type: String }, // URL to cover image
+
+      // External Links
+      website: { type: String, trim: true },
+
+      // Support Contacts
+      supportEmail: { type: String, trim: true, lowercase: true },
+      supportPhone: { type: String, trim: true },
+
+      // Social Media Links (Nested Object)
+      socialLinks: {
+        facebook: { type: String, trim: true },
+        instagram: { type: String, trim: true },
+        twitter: { type: String, trim: true },
+      },
+
+      // Metrics
       rating: { type: Number, default: 0 },
       reviewsCount: { type: Number, default: 0 },
+
+      // Payout Information
       bankDetails: {
-        accountName: String,
-        accountNumber: String,
-        bankName: String,
+        accountName: { type: String, trim: true },
+        accountNumber: { type: String, trim: true },
+        bankName: { type: String, trim: true },
       },
     },
     isSuperAdmin: {
