@@ -271,7 +271,6 @@ export default function DashboardClient({
                                 <Menu.Item
                                   component="a"
                                   target="_blank"
-                                  // We use order.shippingAddress.phone as it's the specific contact for this order
                                   href={`https://wa.me/${order.shippingAddress.phone.replace(/\s+/g, '')}?text=Hello ${order.shippingAddress.fullName}, I am the vendor for your order #${order.orderNumber}`}
                                   leftSection={
                                     <MessageCircle
