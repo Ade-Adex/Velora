@@ -25,7 +25,7 @@ export default async function VendorVerificationPage() {
             Review and approve shop applications from new sellers.
           </Text>
 
-          <div>{pendingVendors.length} pending vendors</div>
+          <div className='text-sm font-bold mt-1'>{pendingVendors.length} pending vendors</div>
         </div>
 
         <VendorVerificationTable initialVendors={pendingVendors} />

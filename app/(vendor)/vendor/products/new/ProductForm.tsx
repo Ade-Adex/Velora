@@ -113,7 +113,11 @@ export default function ProductForm({
     }
   }
 
-  const isRestricted = !userStatus.isVerified && !userStatus.isAdmin
+  const hasNoShop = !userStatus.hasShopData && !userStatus.isAdmin
+  const isNotVerified = !userStatus.isVerified && !userStatus.isAdmin
+
+  // 2. The master toggle for the Submit button and the Alert stack
+  const isRestricted = hasNoShop || isNotVerified
 
   return (
     <form onSubmit={form.onSubmit(handleCreate)}>
@@ -153,17 +157,54 @@ export default function ProductForm({
         </Group>
 
         {isRestricted && (
-          <Alert
-            icon={<ShieldAlert size={16} />}
-            title="Verification Pending"
-            color="orange"
-            radius="md"
-          >
-            Your vendor account is awaiting verification. You can&apos;t submit
-            new listings until verified.
-          </Alert>
+          <Stack gap="md">
+            {hasNoShop ? (
+              /* Case 1: Store profile is empty - Primary Blocker for Vendors */
+              <Alert
+                icon={<Settings size={18} />}
+                title="Store Profile Incomplete"
+                color="red"
+                radius="md"
+                variant="light"
+              >
+                <Stack gap="xs">
+                  <Text size="sm">
+                    You haven&apos;t set up your <strong>Store Profile</strong>{' '}
+                    yet. Admins cannot verify your account or view your listings
+                    until your details are complete.
+                  </Text>
+                  <Group>
+                    <Button
+                      component={Link}
+                      href="/vendor/settings"
+                      size="xs"
+                      color="red"
+                      variant="filled"
+                    >
+                      Complete Store Setup
+                    </Button>
+                  </Group>
+                </Stack>
+              </Alert>
+            ) : (
+              /* Case 2: Shop data exists, but Admin has not toggled isVerified to true */
+              <Alert
+                icon={<ShieldAlert size={18} />}
+                title="Verification Pending"
+                color="orange"
+                radius="md"
+              >
+                <Text size="sm">
+                  Your store is currently being reviewed by our team. You can
+                  prepare your listing details now, but the{' '}
+                  <strong>Submit</strong> button will be enabled once an
+                  administrator approves your account.
+                </Text>
+              </Alert>
+            )}
+          </Stack>
         )}
-
+        
         <Grid gap="xl">
           {/* Main Content Column */}
           <Grid.Col span={{ base: 12, md: 8 }}>

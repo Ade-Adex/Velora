@@ -11,12 +11,16 @@ export default async function NewProductPage() {
     getCategoryOptions()
   ])
 
-  const profile = user?.vendorProfile
-  
+   const profile = user?.vendorProfile
+
   const userStatus = {
     isVerified: !!profile?.isVerified,
+    // Checks if essential shop details exist
     hasShopData: !!(profile?.shopName && profile?.bankDetails?.accountNumber),
+    // Admins & SuperAdmins are exempt from vendor restrictions
     isAdmin: user?.role === 'admin' || user?.isSuperAdmin === true,
+    // Track if they are specifically a vendor
+    isVendor: user?.role === 'vendor',
   }
 
   return (
