@@ -19,6 +19,7 @@ import {
   Box,
   Menu,
   rem,
+  Alert,
 } from '@mantine/core'
 import {
   Plus,
@@ -27,6 +28,8 @@ import {
   Eye,
   ExternalLink,
   MessageCircle,
+  AlertTriangle,
+  Store,
 } from 'lucide-react'
 import Link from 'next/link'
 import AdminStats from '@/app/components/admin/AdminStats'
@@ -43,8 +46,43 @@ export default function DashboardClient({
   allOrders,
   stats,
 }: DashboardClientProps) {
+  const hasNoStoreName = !user.vendorProfile?.shopName;
+
   return (
     <Stack gap="xl">
+      {/* 1. Store Details Alert */}
+      {hasNoStoreName && (
+        <Alert
+          variant="light"
+          color="red"
+          title="Action Required: Store Setup Incomplete"
+          icon={<AlertTriangle size={18} />}
+          radius="md"
+          className="border-red-200"
+        >
+          <Stack gap="xs">
+            <Text size="sm">
+              Your store name is not set.{' '}
+              <strong>Administrators cannot verify your account</strong> and
+              customers cannot find your products until you provide your
+              business details.
+            </Text>
+            <Group>
+              <Button
+                component={Link}
+                href="/vendor/settings"
+                variant="filled"
+                color="red"
+                size="xs"
+                leftSection={<Store size={14} />}
+              >
+                Set Store Name Now
+              </Button>
+            </Group>
+          </Stack>
+        </Alert>
+      )}
+
       {/* Header */}
       <Group justify="space-between" align="center">
         <Box>
@@ -394,7 +432,7 @@ export default function DashboardClient({
                     Verification
                   </Text>
                   <Badge color="green" variant="light">
-                    Verified
+                    {user.vendorProfile?.isVerified ? 'Verified' : 'Unverified'}
                   </Badge>
                 </Group>
                 <Group
