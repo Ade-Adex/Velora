@@ -148,7 +148,6 @@ const handleCreate = async (values: ProductFormValues) => {
         <Group justify="space-between" align="flex-start">
           <Stack gap={4} align="flex-start">
             {' '}
-            {/* Ensure stack doesn't stretch children */}
             <Button
               component={Link}
               href="/vendor/products"
@@ -157,19 +156,18 @@ const handleCreate = async (values: ProductFormValues) => {
               p={0}
               h="auto"
               fw={500}
-              justify="flex-start" // Moves content to the far left
+              justify="flex-start"
               styles={{
                 root: {
                   backgroundColor: 'transparent',
                   border: 0,
-                  // Removes the hover gray background
                   '&:hover': {
                     backgroundColor: 'transparent',
-                    textDecoration: 'underline', // Optional: adds a subtle hint on hover
+                    textDecoration: 'underline', 
                   },
                 },
                 inner: {
-                  justifyContent: 'flex-start', // Standardizes alignment inside the button
+                  justifyContent: 'flex-start',
                 },
               }}
             >

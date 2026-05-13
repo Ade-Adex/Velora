@@ -27,7 +27,7 @@ export async function getProducts(limit: number) {
   await connectDB()
   const products = await Product.find({
     isPublished: true,
-    // approvalStatus: 'approved',
+    approvalStatus: 'approved',
   })
     .populate({
       path: 'category',
@@ -48,7 +48,7 @@ export async function getProductBySlug(slug: string) {
   return await Product.findOne({
     slug,
     isPublished: true,
-    // approvalStatus: 'approved',
+    approvalStatus: 'approved',
   })
     .populate({
       path: 'category',
@@ -60,11 +60,11 @@ export async function getProductBySlug(slug: string) {
         },
       },
     })
-    // .populate({
-    //   path: 'vendor',
-    //   model: User,
-    //   select: 'vendorProfile fullName',
-    // })
+    .populate({
+      path: 'vendor',
+      model: User,
+      select: 'vendorProfile fullName',
+    })
     .lean()
 }
 
