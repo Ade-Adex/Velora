@@ -11,7 +11,11 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
-      // Add Cloudinary to allow profile pictures to load
+      {
+        protocol: 'https',
+        hostname: 'velora-mega.vercel.app',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
@@ -22,7 +26,6 @@ const nextConfig: NextConfig = {
         hostname: 'www.cnet.com',
         pathname: '/**',
       },
-      // ... keep your other existing patterns below
       {
         protocol: 'https',
         hostname: 'cellmart.pk',
