@@ -17,8 +17,17 @@ import {
   ScrollArea,
   Avatar,
   Box,
+  Menu,
+  rem,
 } from '@mantine/core'
-import { Plus, MoreHorizontal, TrendingUp } from 'lucide-react'
+import {
+  Plus,
+  MoreHorizontal,
+  TrendingUp,
+  Eye,
+  ExternalLink,
+  MessageCircle,
+} from 'lucide-react'
 import Link from 'next/link'
 import AdminStats from '@/app/components/admin/AdminStats'
 import { IUser, IOrder, StatItem, Serialized } from '@/app/types'
@@ -150,6 +159,9 @@ export default function DashboardClient({
                         0,
                       )
 
+                      const targetShipmentId =
+                        myVendorItems[0]?.shipment?.toString()
+
                       return (
                         <Table.Tr key={order._id}>
                           <Table.Td>
@@ -202,13 +214,101 @@ export default function DashboardClient({
                             </Stack>
                           </Table.Td>
                           <Table.Td>
-                            <ActionIcon
-                              variant="subtle"
-                              color="gray"
-                              radius="xl"
+                            <Menu
+                              shadow="md"
+                              width={200}
+                              position="bottom-end"
+                              transitionProps={{ transition: 'pop' }}
+                              withArrow
                             >
-                              <MoreHorizontal size={16} />
-                            </ActionIcon>
+                              <Menu.Target>
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="gray"
+                                  radius="xl"
+                                  className="hover:bg-gray-100"
+                                >
+                                  <MoreHorizontal size={16} />
+                                </ActionIcon>
+                              </Menu.Target>
+
+                              <Menu.Dropdown>
+                                <Menu.Label>Order Actions</Menu.Label>
+
+                                <Link
+                                  href={`/vendor/orders/view/${order._id}`}
+                                  style={{ textDecoration: 'none' }}
+                                >
+                                  <Menu.Item
+                                    leftSection={
+                                      <Eye
+                                        style={{
+                                          width: rem(14),
+                                          height: rem(14),
+                                        }}
+                                      />
+                                    }
+                                  >
+                                    View Details
+                                  </Menu.Item>
+                                </Link>
+
+                                {/* <Menu.Item
+                                  component="a"
+                                  href={`mailto:${order.user.email}?subject=Regarding Order #${order.orderNumber}`}
+                                  leftSection={
+                                    <MessageCircle
+                                      style={{
+                                        width: rem(14),
+                                        height: rem(14),
+                                      }}
+                                    />
+                                  }
+                                >
+                                  Contact Buyer
+                                </Menu.Item> */}
+
+                                <Menu.Item
+                                  component="a"
+                                  target="_blank"
+                                  // We use order.shippingAddress.phone as it's the specific contact for this order
+                                  href={`https://wa.me/${order.shippingAddress.phone.replace(/\s+/g, '')}?text=Hello ${order.shippingAddress.fullName}, I am the vendor for your order #${order.orderNumber}`}
+                                  leftSection={
+                                    <MessageCircle
+                                      style={{
+                                        width: rem(14),
+                                        height: rem(14),
+                                      }}
+                                    />
+                                  }
+                                >
+                                  Contact on WhatsApp
+                                </Menu.Item>
+
+                                <Menu.Divider />
+
+                                <Menu.Label>Management</Menu.Label>
+
+                                <Link
+                                  href={`/vendor/orders/${targetShipmentId}`}
+                                  style={{ textDecoration: 'none' }}
+                                >
+                                  <Menu.Item
+                                    color="indigo"
+                                    leftSection={
+                                      <ExternalLink
+                                        style={{
+                                          width: rem(14),
+                                          height: rem(14),
+                                        }}
+                                      />
+                                    }
+                                  >
+                                    Update Status
+                                  </Menu.Item>
+                                </Link>
+                              </Menu.Dropdown>
+                            </Menu>
                           </Table.Td>
                         </Table.Tr>
                       )
@@ -257,15 +357,21 @@ export default function DashboardClient({
               <Text size="sm" opacity={0.9} mb="xl">
                 Your store is growing faster than average. Keep it up!
               </Text>
-              <Button
-                variant="white"
-                color="indigo"
-                fullWidth
-                radius="md"
-                fw={700}
+              <Link
+                href="/vendor/analytics"
+                passHref
+                style={{ textDecoration: 'none' }}
               >
-                Full Analytics
-              </Button>
+                <Button
+                  variant="white"
+                  color="indigo"
+                  fullWidth
+                  radius="md"
+                  fw={700}
+                >
+                  Full Analytics
+                </Button>
+              </Link>
             </Paper>
 
             <Paper withBorder p="lg" radius="xl" shadow="xs">

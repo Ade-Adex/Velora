@@ -87,24 +87,22 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
   }
 
   const handleUpdate = async (payload: Partial<IUser>, msg: string) => {
-    // 1. Capture the current state before the update
     const previousUser = useUserStore.getState().user
 
-    startTransition(async () => {
-      const result = await updateUserProfile(payload)
+    // We return this so the caller (the modal) can know when it's finished
+    return new Promise<void>((resolve) => {
+      startTransition(async () => {
+        const result = await updateUserProfile(payload)
 
-      if (result.success && result.user) {
-        // 2. Server succeeded: Update store with the official data from DB
-        // (This replaces the Base64 string with the Cloudinary URL)
-        setUser(result.user)
-        enqueueSnackbar(msg, { variant: 'success' })
-      } else {
-        // 3. Server failed: Revert the store to the previous state
-        if (previousUser) {
-          setUser(previousUser)
+        if (result.success && result.user) {
+          setUser(result.user)
+          enqueueSnackbar(msg, { variant: 'success' })
+        } else {
+          if (previousUser) setUser(previousUser)
+          enqueueSnackbar(result.error || 'Update failed', { variant: 'error' })
         }
-        enqueueSnackbar(result.error || 'Update failed', { variant: 'error' })
-      }
+        resolve()
+      })
     })
   }
 
@@ -154,27 +152,29 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
 
   const openAddressModal = () => {
     modals.open({
+      modalId: 'add-address-modal',
       title: 'Add New Address',
       centered: true,
       children: (
         <AddressForm
-          onSave={(newAddr) => {
+          // We pass isPending here. Note: for better UX with Mantine Modals,
+          // the modal content often needs to be a separate component if
+          // you want it to re-render with isPending automatically.
+          onSave={async (newAddr) => {
             let updated
+            const currentAddresses = user.addresses || []
 
             if (newAddr.isDefault) {
-              // If the new address is default, strip default status from all others
               updated = [
-                ...(user.addresses || []).map((a) => ({
-                  ...a,
-                  isDefault: false,
-                })),
+                ...currentAddresses.map((a) => ({ ...a, isDefault: false })),
                 newAddr,
               ]
             } else {
-              updated = [...(user.addresses || []), newAddr]
+              updated = [...currentAddresses, newAddr]
             }
 
-            handleUpdate({ addresses: updated }, 'Address added!')
+            // Await the update so the modal stays open until the server responds
+            await handleUpdate({ addresses: updated }, 'Address added!')
             modals.closeAll()
           }}
           loading={isPending}
@@ -183,52 +183,51 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     })
   }
 
+  const getRoleBadge = (): {
+    label: string
+    color: string
+    variant: BadgeVariant
+  } => {
+    if (user.isSuperAdmin) {
+      return { label: 'Super Admin', color: 'black', variant: 'filled' }
+    }
 
-const getRoleBadge = (): {
-  label: string
-  color: string
-  variant: BadgeVariant
-} => {
-  if (user.isSuperAdmin) {
-    return { label: 'Super Admin', color: 'black', variant: 'filled' }
+    switch (user.role) {
+      case 'admin':
+        return { label: 'Administrator', color: 'red', variant: 'filled' }
+      case 'editor':
+        return { label: 'Content Editor', color: 'indigo', variant: 'light' }
+      default:
+        return { label: 'Verified Customer', color: 'blue', variant: 'light' }
+    }
   }
 
-  switch (user.role) {
-    case 'admin':
-      return { label: 'Administrator', color: 'red', variant: 'filled' }
-    case 'editor':
-      return { label: 'Content Editor', color: 'indigo', variant: 'light' }
-    default:
-      return { label: 'Verified Customer', color: 'blue', variant: 'light' }
+  const getStatusColor = (status: string) => {
+    const s = status?.toLowerCase()
+    switch (s) {
+      case 'delivered':
+        return 'green'
+      case 'shipped':
+        return 'blue'
+      case 'processing':
+        return 'cyan'
+      case 'pending':
+        return 'orange'
+      case 'cancelled':
+        return 'red'
+      default:
+        return 'gray'
+    }
   }
-}
 
-const getStatusColor = (status: string) => {
-  const s = status?.toLowerCase()
-  switch (s) {
-    case 'delivered':
-      return 'green'
-    case 'shipped':
-      return 'blue'
-    case 'processing':
-      return 'cyan'
-    case 'pending':
-      return 'orange'
-    case 'cancelled':
-      return 'red'
-    default:
-      return 'gray'
-  }
-}
-
-const badge = getRoleBadge()
+  const badge = getRoleBadge()
 
   return (
     <Container size="lg" py="xl">
       <Stack gap="xl">
         <Paper p="xl" radius="md" withBorder className="bg-gray-50/50">
           <Group gap="xl">
-            <Box className="relative group overflow-hidden rounded-full w-[120px] h-[120px] border border-gray-200">
+            <Box className="relative group overflow-hidden rounded-full w-30 h-30 border border-gray-200">
               {user.image ? (
                 <NextImage
                   src={user.image}
@@ -454,7 +453,7 @@ const badge = getRoleBadge()
                             {addr.phone}
                           </Text>
 
-                          {/* --- NEW SECTION: SET DEFAULT ACTION --- */}
+                          {/* --- SET DEFAULT ACTION --- */}
                           {!addr.isDefault && (
                             <>
                               <Divider my="sm" variant="dashed" />
@@ -462,6 +461,8 @@ const badge = getRoleBadge()
                                 variant="subtle"
                                 size="compact-xs"
                                 color="blue"
+                                loading={isPending} // Add this line
+                                disabled={isPending} // Disable other buttons while one is processing
                                 onClick={() => {
                                   const updated = user.addresses?.map(
                                     (a, idx) => ({
@@ -484,19 +485,18 @@ const badge = getRoleBadge()
                           <ActionIcon
                             color="red"
                             variant="subtle"
+                            disabled={isPending} // Disable while processing
                             className="absolute top-1 left-8"
                             onClick={() =>
                               handleUpdate(
                                 {
-                                  addresses: user.addresses?.filter(
-                                    (_, idx) => idx !== i,
-                                  ),
+                                  addresses: user.addresses?.filter((_, idx) => idx !== i),
                                 },
-                                'Address removed',
+                                'Address removed'
                               )
                             }
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={14} className={isPending ? 'animate-pulse' : ''} />
                           </ActionIcon>
                         </Paper>
                       </Grid.Col>
@@ -648,17 +648,17 @@ function OrderTable({ orders }: { orders: Serialized<IOrder>[] }) {
     return 'gray'
   }
 
-   if (orders.length === 0)
-     return (
-       <Stack align="center" py={50} gap="xs">
-         <Package size={40} strokeWidth={1.5} color="gray" />
-         <Text c="dimmed">No orders found yet.</Text>
-         <Button variant="subtle" component={Link} href="/">
-           Start Shopping
-         </Button>
-       </Stack>
+  if (orders.length === 0)
+    return (
+      <Stack align="center" py={50} gap="xs">
+        <Package size={40} strokeWidth={1.5} color="gray" />
+        <Text c="dimmed">No orders found yet.</Text>
+        <Button variant="subtle" component={Link} href="/">
+          Start Shopping
+        </Button>
+      </Stack>
     )
-  
+
   return (
     <ScrollArea>
       <Table verticalSpacing="lg" highlightOnHover>

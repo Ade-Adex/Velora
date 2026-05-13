@@ -24,6 +24,7 @@ const vendorIdString = (user._id as Types.ObjectId).toString()
 const [vendorProducts, allOrders] = await Promise.all([
   Product.find({ vendor: user._id }).lean() as unknown as IProduct[],
   Order.find({ 'items.vendor': user._id })
+    .populate('user', 'fullName email phone')
     .sort({ createdAt: -1 })
     .limit(8)
     .lean() as unknown as IOrder[],
