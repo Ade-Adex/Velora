@@ -36,29 +36,23 @@ const UserSchema = new Schema<IUser>(
       isVerified: { type: Boolean, default: false },
       description: { type: String, trim: true },
 
-      // Branding Assets
-      logo: { type: String }, // URL to image
-      banner: { type: String }, // URL to cover image
+      logo: { type: String },
+      banner: { type: String },
 
-      // External Links
       website: { type: String, trim: true },
 
-      // Support Contacts
       supportEmail: { type: String, trim: true, lowercase: true },
       supportPhone: { type: String, trim: true },
 
-      // Social Media Links (Nested Object)
       socialLinks: {
         facebook: { type: String, trim: true },
         instagram: { type: String, trim: true },
         twitter: { type: String, trim: true },
       },
 
-      // Metrics
       rating: { type: Number, default: 0 },
       reviewsCount: { type: Number, default: 0 },
 
-      // Payout Information
       bankDetails: {
         accountName: { type: String, trim: true },
         accountNumber: { type: String, trim: true },

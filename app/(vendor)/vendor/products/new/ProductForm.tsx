@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   TextInput,
   NumberInput,
@@ -57,61 +57,83 @@ export default function ProductForm({
   categoryOptions,
   userStatus,
 }: ProductFormProps) {
-  const router = useRouter()
-  const { enqueueSnackbar } = useSnackbar()
-  const [loading, setLoading] = useState(false)
+const router = useRouter()
+const { enqueueSnackbar } = useSnackbar()
+const [loading, setLoading] = useState(false)
 
-  const form = useForm<ProductFormValues>({
-    initialValues: {
-      name: '',
-      brand: '',
-      description: '',
-      shortDescription: '',
-      basePrice: 0,
-      discountPrice: 0,
-      category: '',
-      tags: [],
-      mainImage: '',
-      gallery: [],
-      stock: 0,
-      variants: [],
-      specifications: [],
-      seo: { title: '', description: '', keywords: [] },
-      isPublished: false,
-      isFeatured: false,
-      onSale: false,
-      commissionRate: 10,
-    },
-    validate: {
-      name: (v) => (v.length < 2 ? 'Name is too short' : null),
-      category: (v) => (!v ? 'Please select a category' : null),
-      basePrice: (v) => (v <= 0 ? 'Price must be positive' : null),
-      mainImage: (v) => (!v ? 'Main image is required' : null),
-    },
-  })
+const form = useForm<ProductFormValues>({
+  initialValues: {
+    name: '',
+    brand: '',
+    description: '',
+    shortDescription: '',
+    basePrice: 0,
+    discountPrice: 0,
+    category: '',
+    tags: [],
+    mainImage: '',
+    gallery: [],
+    stock: 0,
+    variants: [],
+    specifications: [],
+    seo: { title: '', description: '', keywords: [] },
+    isPublished: false,
+    isFeatured: false,
+    onSale: false,
+    commissionRate: 10,
+  },
+  validate: {
+    name: (v) => (v.length < 2 ? 'Name is too short' : null),
+    category: (v) => (!v ? 'Please select a category' : null),
+    basePrice: (v) => (v <= 0 ? 'Price must be positive' : null),
+    mainImage: (v) => (!v ? 'Main image is required' : null),
+  },
+})
 
-  const handleCreate = async (values: ProductFormValues) => {
-    setLoading(true)
+// --- PERSISTENCE LOGIC START ---
+// 1. Load saved data on mount
+useEffect(() => {
+  const savedDraft = localStorage.getItem('product-draft')
+  if (savedDraft) {
     try {
-      const res = await createProduct(values)
-
-      if (res.success) {
-        enqueueSnackbar('Product submitted for approval', {
-          variant: 'success',
-        })
-        router.push('/vendor/products')
-        router.refresh()
-      } else {
-        enqueueSnackbar(res.message || 'Error creating product', {
-          variant: res.error === 'KYC_INCOMPLETE' ? 'warning' : 'error',
-        })
-      }
-    } catch (err) {
-      enqueueSnackbar('Internal connection error', { variant: 'error' })
-    } finally {
-      setLoading(false)
+      form.setValues(JSON.parse(savedDraft))
+    } catch (e) {
+      console.error('Failed to load draft', e)
     }
   }
+}, [])
+
+// 2. Save data to localStorage whenever form values change
+useEffect(() => {
+  localStorage.setItem('product-draft', JSON.stringify(form.values))
+}, [form.values])
+// --- PERSISTENCE LOGIC END ---
+
+const handleCreate = async (values: ProductFormValues) => {
+  setLoading(true)
+  try {
+    const res = await createProduct(values)
+
+    if (res.success) {
+      enqueueSnackbar('Product submitted for approval', {
+        variant: 'success',
+      })
+      // Clear draft ONLY on successful submission
+      localStorage.removeItem('product-draft')
+
+      router.push('/vendor/products')
+      router.refresh()
+    } else {
+      enqueueSnackbar(res.message || 'Error creating product', {
+        variant: res.error === 'KYC_INCOMPLETE' ? 'warning' : 'error',
+      })
+    }
+  } catch (err) {
+    enqueueSnackbar('Internal connection error', { variant: 'error' })
+  } finally {
+    setLoading(false)
+  }
+}
 
   const hasNoShop = !userStatus.hasShopData && !userStatus.isAdmin
   const isNotVerified = !userStatus.isVerified && !userStatus.isAdmin
@@ -124,7 +146,9 @@ export default function ProductForm({
       <Stack gap="xl" pb={100} className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <Group justify="space-between" align="flex-start">
-          <Stack gap={4}>
+          <Stack gap={4} align="flex-start">
+            {' '}
+            {/* Ensure stack doesn't stretch children */}
             <Button
               component={Link}
               href="/vendor/products"
@@ -132,6 +156,22 @@ export default function ProductForm({
               leftSection={<ArrowLeft size={14} />}
               p={0}
               h="auto"
+              fw={500}
+              justify="flex-start" // Moves content to the far left
+              styles={{
+                root: {
+                  backgroundColor: 'transparent',
+                  border: 0,
+                  // Removes the hover gray background
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    textDecoration: 'underline', // Optional: adds a subtle hint on hover
+                  },
+                },
+                inner: {
+                  justifyContent: 'flex-start', // Standardizes alignment inside the button
+                },
+              }}
             >
               Back to Inventory
             </Button>
@@ -204,7 +244,7 @@ export default function ProductForm({
             )}
           </Stack>
         )}
-        
+
         <Grid gap="xl">
           {/* Main Content Column */}
           <Grid.Col span={{ base: 12, md: 8 }}>
