@@ -17,6 +17,7 @@ import {
   Badge,
   Text,
   ActionIcon,
+  Select
 } from '@mantine/core'
 import {
   Store,
@@ -27,6 +28,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Globe,
+  MapPin,
+  Building2,
 } from 'lucide-react'
 import {
   FaInstagram,
@@ -45,12 +48,20 @@ interface Props {
 
 interface VendorFormValues {
   shopName: string
+  businessType: 'Individual' | 'Registered Business'
   description: string
   logo: string
   banner: string
   supportEmail: string
   supportPhone: string
   website: string
+  // New Address Structure
+  address: {
+    street: string
+    city: string
+    state: string
+    zipCode: string
+  }
   bankDetails: {
     bankName: string
     accountNumber: string
@@ -70,12 +81,19 @@ export default function VendorSettingsForm({ initialData }: Props) {
   const form = useForm<VendorFormValues>({
     initialValues: {
       shopName: initialData?.shopName || '',
+      businessType: initialData?.businessType || 'Individual',
       description: initialData?.description || '',
       logo: initialData?.logo || '',
       banner: initialData?.banner || '',
       supportEmail: initialData?.supportEmail || '',
       supportPhone: initialData?.supportPhone || '',
       website: initialData?.website || '',
+      address: {
+        street: initialData?.address?.street || '',
+        city: initialData?.address?.city || '',
+        state: initialData?.address?.state || '',
+        zipCode: initialData?.address?.zipCode || '',
+      },
       bankDetails: {
         bankName: initialData?.bankDetails?.bankName || '',
         accountNumber: initialData?.bankDetails?.accountNumber || '',
@@ -188,6 +206,46 @@ export default function VendorSettingsForm({ initialData }: Props) {
                 placeholder="Describe your brand to your customers..."
                 minRows={4}
                 {...form.getInputProps('description')}
+              />
+            </GridCol>
+          </Grid>
+        </Paper>
+
+        {/* SECTION: BUSINESS INFO & ADDRESS */}
+        <Paper withBorder p="xl" radius="md" shadow="xs">
+          <Group mb="md">
+            <MapPin size={20} className="text-indigo-600" />
+            <Title order={5}>Business Location & Type</Title>
+          </Group>
+          <Divider mb="xl" />
+          <Grid gap="lg">
+            <GridCol span={{ base: 12, md: 6 }}>
+              <Select
+                label="Business Type"
+                data={['Individual', 'Registered Business']}
+                {...form.getInputProps('businessType')}
+              />
+            </GridCol>
+            <GridCol span={{ base: 12, md: 6 }}>
+              <TextInput
+                label="Street Address"
+                placeholder="123 Business Way"
+                {...form.getInputProps('address.street')}
+              />
+            </GridCol>
+            <GridCol span={{ base: 12, md: 4 }}>
+              <TextInput label="City" {...form.getInputProps('address.city')} />
+            </GridCol>
+            <GridCol span={{ base: 12, md: 4 }}>
+              <TextInput
+                label="State"
+                {...form.getInputProps('address.state')}
+              />
+            </GridCol>
+            <GridCol span={{ base: 12, md: 4 }}>
+              <TextInput
+                label="Zip Code"
+                {...form.getInputProps('address.zipCode')}
               />
             </GridCol>
           </Grid>

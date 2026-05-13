@@ -20,21 +20,40 @@ export interface IAddress {
 }
 
 export interface IVendorProfile {
-  shopName: string
+  shopName?: string 
   isVerified: boolean
   description?: string
   logo?: string
   banner?: string
+
+  // Business Classification
+  businessType?: 'Individual' | 'Registered Business'
+
+  // Contact Info
   supportEmail?: string
   supportPhone?: string
   website?: string
+
+  // Structured Address
+  address?: {
+    street?: string
+    city?: string
+    state?: string
+    country?: string
+    zipCode?: string
+  }
+
   socialLinks?: {
     facebook?: string
     instagram?: string
     twitter?: string
   }
+
+  // Metrics
   rating: number
   reviewsCount: number
+
+  // Financials
   bankDetails?: {
     accountName: string
     accountNumber: string

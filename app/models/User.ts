@@ -33,6 +33,19 @@ const UserSchema = new Schema<IUser>(
         sparse: true,
         trim: true,
       },
+      businessType: {
+        type: String,
+        enum: ['Individual', 'Registered Business'],
+        default: 'Individual',
+      },
+
+      address: {
+        street: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        country: { type: String, trim: true, default: 'Nigeria' },
+        zipCode: { type: String, trim: true },
+      },
       isVerified: { type: Boolean, default: false },
       description: { type: String, trim: true },
 

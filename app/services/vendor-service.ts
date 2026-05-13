@@ -111,15 +111,33 @@ export async function updateVendorProfile(
     await connectDB()
     const user = await ensureVendor()
 
-    const updateData: Record<string, string | boolean | number | undefined> = {}
+    /**
+     * Define the accumulator as a Record where keys are strings
+     * and values can be any of the valid types in your Schema.
+     */
+    const updateData: Record<
+      string,
+      string | boolean | number | undefined | null
+    > = {}
 
-    // Core Identity
+    // Core Identity & Business Type
     if (data.shopName) updateData['vendorProfile.shopName'] = data.shopName
+    if (data.businessType)
+      updateData['vendorProfile.businessType'] = data.businessType
     if (data.description)
       updateData['vendorProfile.description'] = data.description
     if (data.logo) updateData['vendorProfile.logo'] = data.logo
     if (data.banner) updateData['vendorProfile.banner'] = data.banner
     if (data.website) updateData['vendorProfile.website'] = data.website
+
+    // Address (Nested Dot Notation)
+    if (data.address) {
+      updateData['vendorProfile.address.street'] = data.address.street
+      updateData['vendorProfile.address.city'] = data.address.city
+      updateData['vendorProfile.address.state'] = data.address.state
+      updateData['vendorProfile.address.zipCode'] = data.address.zipCode
+      updateData['vendorProfile.address.country'] = data.address.country
+    }
 
     // Support
     if (data.supportEmail)
@@ -127,7 +145,7 @@ export async function updateVendorProfile(
     if (data.supportPhone)
       updateData['vendorProfile.supportPhone'] = data.supportPhone
 
-    // Social Links (Nested Dot Notation)
+    // Social Links
     if (data.socialLinks) {
       updateData['vendorProfile.socialLinks.facebook'] =
         data.socialLinks.facebook
@@ -146,9 +164,7 @@ export async function updateVendorProfile(
         data.bankDetails.accountName
     }
 
-    // Reset verification if critical business info changes (Optional Security Logic)
-    // if (data.shopName || data.bankDetails) updateData['vendorProfile.isVerified'] = false;
-
+    // Using $set with our typed record
     await User.findByIdAndUpdate(user._id, { $set: updateData })
 
     revalidatePath('/vendor/settings')

@@ -22,12 +22,20 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 // Lucide for UI icons
-import { 
-  Check, X, Mail, Phone, Globe, 
-  Building2, CreditCard, ChevronDown, ChevronUp 
+import {
+  Check,
+  X,
+  Mail,
+  Phone,
+  Globe,
+  Building2,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
 } from 'lucide-react'
 // React Icons for Brand Socials
-import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa' 
+import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa'
 import { Serialized, IUser } from '@/app/types'
 import { toggleVendorVerification } from '@/app/services/adminService'
 import { useSnackbar } from 'notistack'
@@ -39,10 +47,14 @@ interface Props {
 /**
  * Sub-component for individual Vendor Rows to manage independent Collapse states
  */
-function VendorRow({ vendor, onAction, loadingId }: { 
-  vendor: Serialized<IUser>, 
-  onAction: (id: string, v: boolean) => void,
-  loadingId: string | null 
+function VendorRow({
+  vendor,
+  onAction,
+  loadingId,
+}: {
+  vendor: Serialized<IUser>
+  onAction: (id: string, v: boolean) => void
+  loadingId: string | null
 }) {
   const [opened, { toggle }] = useDisclosure(false)
   const profile = vendor.vendorProfile
@@ -61,9 +73,16 @@ function VendorRow({ vendor, onAction, loadingId }: {
               {profile?.shopName?.charAt(0) || vendor.fullName.charAt(0)}
             </Avatar>
             <Box>
-              <Text size="sm" fw={600} >
-                {profile?.shopName || 'No Shop Name'}
-              </Text>
+              <Group gap={6}>
+                <Text size="sm" fw={600}>
+                  {profile?.shopName || 'No Shop Name'}
+                </Text>
+                {profile?.businessType && (
+                  <Badge size="xs" variant="outline" color="gray">
+                    {profile.businessType}
+                  </Badge>
+                )}
+              </Group>
               <Text size="xs" c="dimmed">
                 {vendor.fullName}
               </Text>
@@ -144,6 +163,10 @@ function VendorRow({ vendor, onAction, loadingId }: {
                   </Text>
                   <Stack gap={8}>
                     <Text size="sm">
+                      <span style={{ fontWeight: 600 }}>Type:</span>{' '}
+                      {profile?.businessType || 'Not specified'}
+                    </Text>
+                    <Text size="sm">
                       <span style={{ fontWeight: 600 }}>About:</span>{' '}
                       {profile?.description || 'No description provided.'}
                     </Text>
@@ -199,6 +222,11 @@ function VendorRow({ vendor, onAction, loadingId }: {
                     </Group>
                   </Stack>
                 </Grid.Col>
+
+                <Text size="sm">
+                  <span style={{ fontWeight: 600 }}>About:</span>{' '}
+                  {profile?.description || 'No description provided.'}
+                </Text>
 
                 {/* 2. Bank Details */}
                 <Grid.Col span={{ base: 12, md: 4 }}>
