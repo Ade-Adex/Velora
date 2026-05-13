@@ -183,24 +183,26 @@ export default function ProfileClient({ initialUser, initialOrders }: Props) {
     })
   }
 
-  const getRoleBadge = (): {
-    label: string
-    color: string
-    variant: BadgeVariant
-  } => {
-    if (user.isSuperAdmin) {
-      return { label: 'Super Admin', color: 'black', variant: 'filled' }
-    }
-
-    switch (user.role) {
-      case 'admin':
-        return { label: 'Administrator', color: 'red', variant: 'filled' }
-      case 'editor':
-        return { label: 'Content Editor', color: 'indigo', variant: 'light' }
-      default:
-        return { label: 'Verified Customer', color: 'blue', variant: 'light' }
-    }
+const getRoleBadge = (): {
+  label: string
+  color: string
+  variant: BadgeVariant
+} => {
+  if (user.isSuperAdmin) {
+    // Grape/Violet feels more "exclusive" and high-rank than red
+    return { label: 'Super Admin', color: 'grape', variant: 'filled' }
   }
+
+  switch (user.role) {
+    case 'admin':
+      // Blue is the standard "trust" and "system" color
+      return { label: 'Administrator', color: 'blue', variant: 'filled' }
+    case 'editor':
+      return { label: 'Content Editor', color: 'indigo', variant: 'light' }
+    default:
+      return { label: 'Verified Customer', color: 'cyan', variant: 'light' }
+  }
+}
 
   const getStatusColor = (status: string) => {
     const s = status?.toLowerCase()
