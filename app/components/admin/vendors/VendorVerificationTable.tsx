@@ -223,11 +223,42 @@ function VendorRow({
                   </Stack>
                 </Grid.Col>
 
-                <Text size="sm">
-                  <span style={{ fontWeight: 600 }}>About:</span>{' '}
-                  {profile?.description || 'No description provided.'}
-                </Text>
-
+                {/* 2. New Address Section */}
+                <Grid.Col span={{ base: 12, md: 4 }}>
+                  <Text fw={700} size="xs" mb="xs" c="dimmed" tt="uppercase">
+                    Physical Address
+                  </Text>
+                  <Paper
+                    withBorder
+                    p="md"
+                    radius="sm"
+                    style={{ backgroundColor: 'white' }}
+                  >
+                    <Stack gap={4}>
+                      <Group gap="xs" mb={4}>
+                        <MapPin size={16} color="var(--mantine-color-red-6)" />
+                        <Text size="sm" fw={600}>
+                          Registered Location
+                        </Text>
+                      </Group>
+                      {profile?.address ? (
+                        <>
+                          <Text size="sm">{profile.address.street}</Text>
+                          <Text size="sm">
+                            {profile.address.city}, {profile.address.state}
+                          </Text>
+                          <Text size="xs" c="dimmed" fw={500}>
+                            ZIP: {profile.address.zipCode}
+                          </Text>
+                        </>
+                      ) : (
+                        <Text size="sm" c="dimmed" fs="italic">
+                          No address provided
+                        </Text>
+                      )}
+                    </Stack>
+                  </Paper>
+                </Grid.Col>
                 {/* 2. Bank Details */}
                 <Grid.Col span={{ base: 12, md: 4 }}>
                   <Text fw={700} size="xs" mb="xs" c="dimmed" tt="uppercase">
