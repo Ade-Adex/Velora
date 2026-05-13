@@ -364,7 +364,7 @@ export default function VendorVerificationTable({ initialVendors }: Props) {
       >
         <Group justify="space-between">
           <Title order={4}>Vendor Verification Queue</Title>
-          <Badge color="orange" variant="filled" size="lg" radius="sm">
+          <Badge color="orange" variant="filled" size="md" radius="sm">
             {vendors.length} Pending Requests
           </Badge>
         </Group>
