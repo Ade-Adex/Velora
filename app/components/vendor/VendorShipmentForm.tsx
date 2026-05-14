@@ -6,7 +6,7 @@ import { Select, TextInput, Button, Stack, Paper, Text } from '@mantine/core'
 import { updateShipmentStatus } from '@/app/services/logisticsService'
 import { IShipment } from '@/app/types'
 import { useRouter } from 'next/navigation'
-import { useSnackbar } from 'notistack' // Import notistack hook
+import { useSnackbar } from 'notistack' 
 
 interface VendorShipmentFormProps {
   shipmentId: string
@@ -20,11 +20,23 @@ export default function VendorShipmentForm({
   currentTracking,
 }: VendorShipmentFormProps) {
   const router = useRouter()
-  const { enqueueSnackbar } = useSnackbar() // Initialize snackbar
+  const { enqueueSnackbar } = useSnackbar() 
 
   const [status, setStatus] = useState<string>(currentStatus)
   const [tracking, setTracking] = useState<string>(currentTracking)
   const [loading, setLoading] = useState(false)
+
+  const vendorOptions = [
+    { value: 'label_created', label: 'Preparing Package' },
+    { value: 'ready_for_pickup', label: 'Ready for Collection' },
+    { value: 'shipped', label: 'Handed to Carrier' },
+  ]
+
+  const isFinalizedByVendor = [
+    'shipped',
+    'out_for_delivery',
+    'delivered',
+  ].includes(currentStatus)
 
   const handleUpdate = async () => {
     setLoading(true)
@@ -50,37 +62,49 @@ export default function VendorShipmentForm({
     }
   }
 
-  return (
-    <Paper withBorder p="xl" radius="md" shadow="sm">
-      <Stack gap="md">
-        <Text fw={700}>Logistics Update</Text>
-        <Select
-          label="Shipping Status"
-          value={status}
-          onChange={(val) => setStatus(val || 'label_created')}
-          data={[
-            { value: 'label_created', label: 'Label Created' },
-            { value: 'pickup_pending', label: 'Pending Pickup' },
-            { value: 'in_transit', label: 'In Transit' },
-            { value: 'out_for_delivery', label: 'Out for Delivery' },
-            { value: 'delivered', label: 'Delivered' },
-          ]}
-        />
-        <TextInput
-          label="Tracking Number"
-          placeholder="e.g. GIGL-12345"
-          value={tracking}
-          onChange={(e) => setTracking(e.currentTarget.value)}
-        />
-        <Button
-          color="black"
-          onClick={handleUpdate}
-          loading={loading}
-          fullWidth
-        >
-          Save Logistics Info
-        </Button>
-      </Stack>
-    </Paper>
-  )
+return (
+  <Paper withBorder p="xl" radius="md" shadow="sm">
+    <Stack gap="md">
+      <Text fw={700} size="lg">
+        Shipment Fulfillment
+      </Text>
+      <Text size="xs" c="dimmed" mt={-10}>
+        Confirm items are packed and ready for the logistics provider.
+      </Text>
+
+      <Select
+        label="Fulfillment Status"
+        value={status}
+        onChange={(val) => setStatus(val || 'label_created')}
+        data={vendorOptions}
+        disabled={isFinalizedByVendor || loading}
+      />
+
+      <TextInput
+        label="Tracking ID (Air Waybill)"
+        placeholder="Enter carrier tracking number"
+        value={tracking}
+        onChange={(e) => setTracking(e.currentTarget.value)}
+        disabled={isFinalizedByVendor || loading}
+        description="Provided by your logistics partner"
+      />
+
+      <Button
+        color="black"
+        onClick={handleUpdate}
+        loading={loading}
+        fullWidth
+        disabled={isFinalizedByVendor}
+      >
+        {isFinalizedByVendor ? 'Fulfillment Complete' : 'Confirm Dispatch'}
+      </Button>
+
+      {isFinalizedByVendor && (
+        <Text size="xs" c="blue" ta="center" fw={500}>
+          This shipment is now being managed by the carrier.
+        </Text>
+      )}
+    </Stack>
+  </Paper>
+)
 }

@@ -11,8 +11,9 @@ import {
   Group,
   Box,
   ThemeIcon,
+  Divider,
 } from '@mantine/core'
-import { Package, MapPin } from 'lucide-react'
+import { Package, MapPin, Truck } from 'lucide-react'
 import VendorShipmentForm from '@/app/components/vendor/VendorShipmentForm'
 import { IShipment, IOrder } from '@/app/types'
 
@@ -31,11 +32,11 @@ export default async function VendorShipmentPage({ params }: PageProps) {
 
   if (!shipment) notFound()
 
-  const getStatusColor = (status: IShipment['status']) => {
+  const getStatusColor = (status: string) => {
     const map: Record<string, string> = {
       label_created: 'gray',
+      ready_for_pickup: 'orange',
       shipped: 'blue',
-      out_for_delivery: 'indigo',
       delivered: 'green',
     }
     return map[status] || 'gray'
@@ -92,24 +93,42 @@ export default async function VendorShipmentPage({ params }: PageProps) {
               currentStatus={shipment.status}
               currentTracking={shipment.trackingNumber || ''}
             />
-            
           </div>
-          
 
           <div className="space-y-6">
-            <Paper withBorder p="md" radius="md" bg="gray.0">
-              <Group mb="xs" gap="xs">
-                <MapPin size={16} />
-                <Text fw={700} size="sm">
-                  Destination
-                </Text>
-              </Group>
-              <Text size="sm">
-                {shipment.order?.shippingAddress?.addressLine1}
-              </Text>
-              <Text size="xs" c="dimmed">
-                Carrier: {shipment.carrier}
-              </Text>
+            <Paper withBorder p="xl" radius="md">
+              <Stack gap="md">
+                <Group gap="xs">
+                  <MapPin size={18} className="text-indigo-600" />
+                  <Text fw={700} size="sm">
+                    Delivery Destination
+                  </Text>
+                </Group>
+
+                <Box>
+                  <Text size="sm" fw={600}>
+                    {shipment.order?.shippingAddress?.fullName || 'Customer'}
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    {shipment.order?.shippingAddress?.addressLine1}
+                    <br />
+                    {shipment.order?.shippingAddress?.city},{' '}
+                    {shipment.order?.shippingAddress?.state}
+                  </Text>
+                </Box>
+
+                <Divider />
+
+                <Group gap="xs">
+                  <Truck size={18} className="text-gray-500" />
+                  <Text size="sm" fw={600}>
+                    Logistics Provider
+                  </Text>
+                </Group>
+                <Badge variant="outline" color="gray" fullWidth>
+                  {shipment.carrier || 'Standard Shipping'}
+                </Badge>
+              </Stack>
             </Paper>
           </div>
         </div>
