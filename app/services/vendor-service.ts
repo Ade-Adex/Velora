@@ -180,7 +180,6 @@ export async function updateVendorProfile(
   }
 }
 
-// /app/services/vendor-service.ts (Add this)
 
 export async function updateVendorProduct(id: string, data: ProductUpdateDTO) {
   try {

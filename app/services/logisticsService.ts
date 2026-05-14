@@ -8,7 +8,6 @@ import { revalidatePath } from 'next/cache'
 import { IOrder, IOrderItem, IShipment, Serialized } from '@/app/types'
 import mongoose from 'mongoose'
 
-
 export async function initializeShipments(orderId: string): Promise<void> {
   await connectDB()
 
@@ -54,7 +53,6 @@ export async function initializeShipments(orderId: string): Promise<void> {
     )
   }
 }
-
 
 export async function updateShipmentStatus(
   shipmentId: string,
@@ -139,4 +137,56 @@ export async function updateShipmentStatus(
   } finally {
     session.endSession()
   }
+}
+
+/**
+ * Adds a tracking log entry and updates the shipment status
+ */
+export async function addLogisticsUpdate(
+  shipmentId: string,
+  status: IShipment['status'],
+  location: string,
+  description: string,
+): Promise<Serialized<IShipment>> {
+  await connectDB()
+
+  const updatedShipment = await Shipment.findByIdAndUpdate(
+    shipmentId,
+    {
+      $set: { status },
+      $push: {
+        statusHistory: {
+          status,
+          timestamp: new Date(),
+          description: `[${location}] - ${description}`,
+        },
+      },
+    },
+    { new: true },
+  ).lean()
+
+  if (!updatedShipment) throw new Error('Shipment not found')
+
+  revalidatePath('/admin/logistics')
+  revalidatePath(`/admin/logistics/${shipmentId}`)
+
+  return JSON.parse(JSON.stringify(updatedShipment)) as Serialized<IShipment>
+}
+
+/**
+ * Fetches a single shipment with populated details
+ */
+export async function getShipmentDetails(
+  shipmentId: string,
+): Promise<Serialized<IShipment> | null> {
+  await connectDB()
+
+  const shipment = await Shipment.findById(shipmentId)
+    .populate('vendor')
+    .populate('order')
+    .lean()
+
+  if (!shipment) return null
+
+  return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
 }

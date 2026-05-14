@@ -11,13 +11,15 @@ import {
   Package,
   ArrowLeft,
   Settings,
-  ShieldCheck, // Import the new icon
+  ShieldCheck,
+  Truck, // Import the new icon
 } from 'lucide-react'
 import { Stack, Text, Box, ScrollArea, Title, Tooltip } from '@mantine/core'
 
 const navLinks = [
   { label: 'Overview', href: '/admin', icon: LayoutDashboard },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+  { label: 'Logistics', href: '/admin/logistics', icon: Truck },
   { label: 'Products', href: '/admin/products', icon: Package },
   { label: 'Team', href: '/admin/team', icon: Users },
   { label: 'Verifications', href: '/admin/vendors', icon: ShieldCheck },

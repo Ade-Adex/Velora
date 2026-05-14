@@ -270,7 +270,7 @@ export interface IOrder extends Document {
 
 // --- Cart Types (Client Side Store) ---
 export interface CartItem {
-  id: string // Consistently use 'id' to match Zustand store
+  id: string 
   name: string
   price: number
   image: ImageSource
@@ -278,7 +278,7 @@ export interface CartItem {
   variantSku?: string
   slug: string
   brand?: string
-  stock?: number // To prevent adding more than available
+  stock?: number 
 }
 
 export interface StatItem {
@@ -288,14 +288,6 @@ export interface StatItem {
   icon: string;
   color: string;
 }
-
-// export type Serialized<T> = {
-//   [K in keyof T]: T[K] extends Types.ObjectId | Types.ObjectId[] | Date | undefined
-//     ? string
-//     : T[K] extends object
-//     ? Serialized<T[K]>
-//     : T[K];
-// } & { _id: string };
 
 
 export type Serialized<T> = {

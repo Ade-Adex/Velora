@@ -3,7 +3,6 @@ import connectDB from '@/app/lib/mongodb'
 import { Shipment } from '@/app/models/Shipment'
 import { notFound } from 'next/navigation'
 import {
-  Container,
   Stack,
   Title,
   Text,
@@ -93,7 +92,9 @@ export default async function VendorShipmentPage({ params }: PageProps) {
               currentStatus={shipment.status}
               currentTracking={shipment.trackingNumber || ''}
             />
+            
           </div>
+          
 
           <div className="space-y-6">
             <Paper withBorder p="md" radius="md" bg="gray.0">

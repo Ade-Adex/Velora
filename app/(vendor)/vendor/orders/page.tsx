@@ -197,7 +197,6 @@ export default async function VendorOrdersPage() {
                             <Link
                               href={`/vendor/orders/${targetShipmentId}`}
                               passHref
-                              // legacyBehavior
                             >
                               <ActionIcon
                                 color="indigo"
@@ -218,7 +217,6 @@ export default async function VendorOrdersPage() {
                           <Link
                             href={`/vendor/orders/view/${order._id}`}
                             passHref
-                            // legacyBehavior
                           >
                             <ActionIcon
                               color="gray"
