@@ -89,7 +89,8 @@ export async function POST(req: Request) {
         adminCommissionAmount,
         vendorNetEarning: lineTotal - adminCommissionAmount,
         shippingFee: itemShippingPortion,
-        status: 'pending' as const, // Uses the literal type from interface
+        status: 'pending' as const, 
+        vendorStatus: 'label_created' as const,
       }
     })
 

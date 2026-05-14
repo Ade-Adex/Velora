@@ -143,9 +143,29 @@ export default async function SingleOrderPage({ params }: PageProps) {
                         <Text size="sm" fw={700} lineClamp={1}>
                           {item.name}
                         </Text>
-                        <Text size="xs" c="dimmed">
+                        {/* <Text size="xs" c="dimmed">
                           SKU: {item.variantSku || 'N/A'}
-                        </Text>
+                        </Text> */}
+
+                        <Group gap="xs">
+                          {/* New Vendor Status Badge */}
+                          <Badge
+                            size="xs"
+                            variant="outline"
+                            color={
+                              item.vendorStatus === 'shipped'
+                                ? 'green'
+                                : 'orange'
+                            }
+                          >
+                            {item.vendorStatus === 'shipped'
+                              ? 'At Hub'
+                              : 'Pending from Vendor'}
+                          </Badge>
+                          <Text size="xs" c="dimmed">
+                            SKU: {item.variantSku || 'N/A'}
+                          </Text>
+                        </Group>
                         <Text
                           size="xs"
                           fw={600}

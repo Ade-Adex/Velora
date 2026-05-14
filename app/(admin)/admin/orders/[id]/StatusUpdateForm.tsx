@@ -65,11 +65,19 @@ export default function StatusUpdateForm({
             className="mt-1 block w-full border rounded-md p-2"
           >
             <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="shipped">Shipped</option>
+            <option value="confirmed">Confirmed (Awaiting Vendors)</option>
+            <option value="ready_for_consolidation">Ready to Package</option>
+            <option value="shipped">Shipped to Customer</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          {status === 'shipped' && (
+            <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+              <strong>Admin Note:</strong> Changing status to
+              &quot;Shipped&quot; will trigger the final email to the customer
+              with the tracking number.
+            </div>
+          )}
         </div>
 
         {/* Conditional Tracking Input */}

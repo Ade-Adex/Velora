@@ -148,11 +148,41 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                     <td className="px-6 py-4">
                       <Stack gap={4}>
                         <StatusBadge status={order.orderStatus} />
+
+                        {/* Consolidation Progress Indicator */}
+                        <Group gap={4} wrap="nowrap">
+                          <Text
+                            size="10px"
+                            fw={700}
+                            c={
+                              order.items.every(
+                                (i) => i.vendorStatus === 'shipped',
+                              )
+                                ? 'green.7'
+                                : 'orange.7'
+                            }
+                          >
+                            {
+                              order.items.filter(
+                                (i) => i.vendorStatus === 'shipped',
+                              ).length
+                            }
+                            /{order.items.length} READY
+                          </Text>
+                          {order.items.every(
+                            (i) => i.vendorStatus === 'shipped',
+                          ) &&
+                            order.orderStatus === 'confirmed' && (
+                              <Badge size="xs" color="blue" variant="filled">
+                                HUB READY
+                              </Badge>
+                            )}
+                        </Group>
                         {/* If items have different statuses than the main order */}
                         {order.items.some(
                           (i) => i.status !== order.orderStatus,
                         ) && (
-                          <Text size="10px" c="dimmed" >
+                          <Text size="10px" c="dimmed">
                             Partial status updates in items
                           </Text>
                         )}

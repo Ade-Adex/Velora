@@ -226,7 +226,10 @@ export default async function AdminLogisticsPage() {
                       <Box w={200}>
                         <Group justify="space-between" mb={4}>
                           <Badge color={visual.color} size="sm" variant="light">
-                            {shipment.status.replace('_', ' ')}
+                            {/* Fix: Human readable labels */}
+                            {shipment.status === 'delivered'
+                              ? 'At Hub'
+                              : shipment.status.replace('_', ' ')}
                           </Badge>
                           <Text size="xs" fw={700}>
                             {visual.progress}%
@@ -237,7 +240,10 @@ export default async function AdminLogisticsPage() {
                           value={visual.progress}
                           size="xs"
                           radius="xl"
-                          animated={shipment.status === 'in_transit'}
+                          // Animation makes the UI feel "live"
+                          animated={['in_transit', 'out_for_delivery'].includes(
+                            shipment.status,
+                          )}
                         />
                       </Box>
                     </TableTd>

@@ -37,6 +37,12 @@ const OrderSchema = new Schema(
         quantity: { type: Number, required: true, min: 1 },
         price: { type: Number, required: true }, // Price at time of purchase
 
+        vendorStatus: {
+          type: String,
+          enum: ['label_created', 'ready_for_pickup', 'shipped'],
+          default: 'label_created',
+        },
+
         // --- Financial Split per Item ---
         adminCommissionRate: { type: Number, required: true }, // e.g., 10%
         adminCommissionAmount: { type: Number, required: true }, // The ₦ value
@@ -91,6 +97,7 @@ const OrderSchema = new Schema(
       enum: [
         'pending',
         'confirmed',
+        'ready_for_consolidation',
         'processing',
         'shipped',
         'delivered',
@@ -102,21 +109,21 @@ const OrderSchema = new Schema(
 
     // --- ADDED PROFESSIONAL LOGISTICS SUMMARY ---
     trackingNumber: { type: String }, // Primary tracking number for the order
-    shippedAt: { type: Date },       // When the status first moved to 'shipped'
-    deliveredAt: { type: Date },     // When the status moved to 'delivered'
+    shippedAt: { type: Date }, // When the status first moved to 'shipped'
+    deliveredAt: { type: Date }, // When the status moved to 'delivered'
     // --------------------------------------------
 
     updatedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  statusHistory: [
-    {
-      status: String,
-      updatedAt: { type: Date, default: Date.now },
-      updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    }
-  ],
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    statusHistory: [
+      {
+        status: String,
+        updatedAt: { type: Date, default: Date.now },
+        updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+      },
+    ],
 
     // External Integration Fields
     paymentReference: { type: String, index: true }, // Paystack/Flutterwave Ref

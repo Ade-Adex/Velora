@@ -14,13 +14,13 @@ export interface IAddress {
   state: string
   zipCode: string
   country: string
-  fullName: string 
-  phone: string 
+  fullName: string
+  phone: string
   addressLine1: string
 }
 
 export interface IVendorProfile {
-  shopName?: string 
+  shopName?: string
   isVerified: boolean
   description?: string
   logo?: string
@@ -87,8 +87,8 @@ export interface IUser extends Document {
 }
 
 export interface CategoryOption {
-  label: string;
-  value: string;
+  label: string
+  value: string
 }
 
 // --- Product & Category Types ---
@@ -110,10 +110,9 @@ export interface IVariant {
   images?: string[]
 }
 
-
 export interface IReview {
-  user: Types.ObjectId | string | IUser 
-  name: string 
+  user: Types.ObjectId | string | IUser
+  name: string
   rating: number
   comment: string
   createdAt: Date
@@ -125,7 +124,6 @@ export interface IApprovalLog {
   adminId: Types.ObjectId | string
   createdAt: Date
 }
-
 
 // --- Product Data Interface (Pure Data for Forms/UI) ---
 // This interface has NO Mongoose methods, making it safe for useForm
@@ -160,7 +158,7 @@ export interface IProductData {
 // --- Product Document Interface (For Backend/Database Logic) ---
 // We omit 'category' from IProductData so we can redefine it as an ObjectId/ICategory
 export interface IProduct extends Document, Omit<IProductData, 'category'> {
-  category: Types.ObjectId | ICategory 
+  category: Types.ObjectId | ICategory
   vendor: Types.ObjectId | IUser
   approvalStatus: 'pending' | 'approved' | 'rejected'
   approvalLogs: IApprovalLog[]
@@ -174,7 +172,6 @@ export interface IProduct extends Document, Omit<IProductData, 'category'> {
   updatedAt: Date
 }
 
-
 // --- Shipment Types ---
 export interface IShipment extends Document {
   order: Types.ObjectId | string | IOrder
@@ -186,7 +183,7 @@ export interface IShipment extends Document {
   }[]
   trackingNumber?: string
   carrier: string
-  status: 
+  status:
     | 'label_created'
     | 'pickup_pending'
     | 'in_transit'
@@ -215,6 +212,8 @@ export interface IOrderItem {
   image: string
   quantity: number
   price: number
+
+  vendorStatus: 'label_created' | 'ready_for_pickup' | 'shipped'
   // Financials
   adminCommissionRate: number
   adminCommissionAmount: number
@@ -222,7 +221,7 @@ export interface IOrderItem {
   shippingFee: number
   // Logistics link
   shipment?: Types.ObjectId | string | IShipment
-  status: 
+  status:
     | 'pending'
     | 'processing'
     | 'shipped'
@@ -248,6 +247,7 @@ export interface IOrder extends Document {
   orderStatus:
     | 'pending'
     | 'confirmed'
+    | 'ready_for_consolidation'
     | 'processing'
     | 'shipped'
     | 'delivered'
@@ -270,7 +270,7 @@ export interface IOrder extends Document {
 
 // --- Cart Types (Client Side Store) ---
 export interface CartItem {
-  id: string 
+  id: string
   name: string
   price: number
   image: ImageSource
@@ -278,22 +278,25 @@ export interface CartItem {
   variantSku?: string
   slug: string
   brand?: string
-  stock?: number 
+  stock?: number
 }
 
 export interface StatItem {
-  title: string;
-  value: string | number;
-  diff: number;
-  icon: string;
-  color: string;
+  title: string
+  value: string | number
+  diff: number
+  icon: string
+  color: string
 }
 
-
 export type Serialized<T> = {
-  [K in keyof T]: T[K] extends Types.ObjectId | Types.ObjectId[] | Date | undefined
+  [K in keyof T]: T[K] extends
+    | Types.ObjectId
+    | Types.ObjectId[]
+    | Date
+    | undefined
     ? string
     : T[K] extends object
-    ? Serialized<T[K]>
-    : T[K];
-} & { _id: string; id?: string }; 
+      ? Serialized<T[K]>
+      : T[K]
+} & { _id: string; id?: string }
