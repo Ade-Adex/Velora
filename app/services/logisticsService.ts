@@ -193,10 +193,13 @@ export async function addLogisticsUpdate(
     { new: true },
   ).lean()
 
-  // KEY CORRECTION: Sync back to the Order items
-  // If the shipment is 'delivered' (meaning it reached the Hub),
-  // we update the vendorStatus to 'shipped' in the order items.
-  const mappedStatus = status === 'delivered' ? 'shipped' : 'processing'
+  // NEW LOGIC: Sync the exact status to vendorStatus.
+  // When 'delivered' (to Hub), it will match the 'in_transit' logic
+  // we set up in the Admin Table and Single Order pages.
+  // If you specifically want 'delivered' to trigger the "READY" state,
+  // we use 'in_transit' here.
+
+  const mappedStatus = status === 'delivered' ? 'in_transit' : status
 
   await Order.updateOne(
     { _id: shipment.order, 'items.shipment': shipmentId },
@@ -205,7 +208,7 @@ export async function addLogisticsUpdate(
   )
 
   revalidatePath('/admin/logistics')
-  revalidatePath(`/admin/orders/${shipment.order}`) // Also revalidate the order view
+  revalidatePath(`/admin/orders/${shipment.order}`)
 
   return JSON.parse(JSON.stringify(updatedShipment))
 }
