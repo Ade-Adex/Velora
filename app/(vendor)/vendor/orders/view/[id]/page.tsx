@@ -1,10 +1,319 @@
-// /app/(vendor)/vendor/orders/view/[id]/page.tsx
+// // /app/(vendor)/vendor/orders/view/[id]/page.tsx
+
+// export const dynamic = 'force-dynamic'
+
+// import {
+//   Box,
+//   Container,
+//   Stack,
+//   Title,
+//   Text,
+//   Paper,
+//   Group,
+//   Button,
+//   Badge,
+//   SimpleGrid,
+//   Table,
+//   TableThead,
+//   TableTr,
+//   TableTh,
+//   TableTbody,
+//   TableTd,
+//   ScrollArea,
+// } from '@mantine/core'
+// import { ChevronLeft, MapPin, CreditCard, Package, User } from 'lucide-react'
+// import Link from 'next/link'
+// import { getOrderByIdAction } from '@/app/services/order-service'
+// import { getCurrentUser } from '@/app/services/auth-service'
+// import { notFound } from 'next/navigation'
+// import classes from './OrderView.module.css'
+
+// interface Props {
+//   params: Promise<{ id: string }>
+// }
+
+// export default async function VendorOrderViewPage({ params }: Props) {
+//   const { id } = await params
+
+//   const [order, user] = await Promise.all([
+//     getOrderByIdAction(id),
+//     getCurrentUser(),
+//   ])
+
+//   if (!order || !user) return notFound()
+
+//   const myItems = order.items.filter(
+//     (item) => item.vendor.toString() === user._id.toString(),
+//   )
+
+//   const myNetEarnings = myItems.reduce(
+//     (acc, item) => acc + (item.vendorNetEarning || 0),
+//     0,
+//   )
+
+//   const myGrossTotal = myItems.reduce(
+//     (acc, item) => acc + item.price * item.quantity,
+//     0,
+//   )
+
+//   const totalCommission = myItems.reduce(
+//     (acc, item) => acc + (item.adminCommissionAmount || 0),
+//     0,
+//   )
+
+//   // Get rate from the first item for display (e.g., 10%)
+//   const commissionRate = myItems[0]?.adminCommissionRate || 0
+
+//   return (
+//     <div className="px-2 py-2">
+//       <Stack gap="lg">
+//         {/* Header Navigation */}
+//         <Group justify="space-between" align="center">
+//           <Link href="/vendor/orders" style={{ textDecoration: 'none' }}>
+//             <Button
+//               variant="subtle"
+//               color="gray"
+//               size="sm"
+//               leftSection={<ChevronLeft size={16} />}
+//             >
+//               Back
+//             </Button>
+//           </Link>
+//           <Badge
+//             size="lg"
+//             variant="dot"
+//             color={order.paymentStatus === 'paid' ? 'teal' : 'orange'}
+//           >
+//             {order.paymentStatus?.toUpperCase()}
+//           </Badge>
+//         </Group>
+
+//         {/* Order Title and Earnings */}
+//         <Group justify="space-between" align="flex-end" wrap="wrap">
+//           <Box>
+//             <Title
+//               order={2}
+//               fw={900}
+//               lts="-1px"
+//               fz={{ base: 'md', sm: '20px' }}
+//             >
+//               Order #{order.orderNumber.split('-').pop()?.toUpperCase()}
+//             </Title>
+//             <Text c="dimmed" size="xs">
+//               Placed {new Date(order.createdAt).toLocaleDateString()}
+//             </Text>
+//           </Box>
+//           <Paper
+//             withBorder
+//             p="xs"
+//             px="md"
+//             radius="md"
+//             bg="blue.0"
+//             style={{ minWidth: '200px' }}
+//           >
+//             <Stack gap={2}>
+//               <Group justify="space-between">
+//                 <Text size="10px" fw={700} c="blue.9" tt="uppercase">
+//                   Net Earning
+//                 </Text>
+//                 <Badge size="xs" variant="light" color="blue">
+//                   {commissionRate}% Fee
+//                 </Badge>
+//               </Group>
+
+//               <Text fw={900} fz="xl" c="blue.9" lh={1.2}>
+//                 ₦{myNetEarnings.toLocaleString()}
+//               </Text>
+
+//               <Group
+//                 gap={4}
+//                 mt={2}
+//                 style={{
+//                   borderTop: '1px solid rgba(0,0,0,0.05)',
+//                   paddingTop: '4px',
+//                 }}
+//               >
+//                 <Text size="10px" c="dimmed">
+//                   Gross: ₦{myGrossTotal.toLocaleString()}
+//                 </Text>
+//                 <Text size="10px" c="dimmed">
+//                   •
+//                 </Text>
+//                 <Text size="10px" c="red.7">
+//                   Fee: -₦{totalCommission.toLocaleString()}
+//                 </Text>
+//               </Group>
+//             </Stack>
+//           </Paper>
+//         </Group>
+
+//         {/* Info Cards Grid */}
+//         <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+//           <Paper withBorder p="md" radius="md">
+//             <Group gap="xs" mb="xs" c="indigo">
+//               <User size={16} />
+//               <Text fw={700} size="xs" tt="uppercase">
+//                 Customer
+//               </Text>
+//             </Group>
+//             <Text size="sm" fw={600}>
+//               {order.shippingAddress?.fullName}
+//             </Text>
+//             <Text size="xs" c="dimmed" truncate>
+//               {order.user &&
+//               typeof order.user !== 'string' &&
+//               'email' in order.user
+//                 ? order.user.email
+//                 : 'Guest User'}
+//             </Text>
+//           </Paper>
+
+//           <Paper withBorder p="md" radius="md">
+//             <Group gap="xs" mb="xs" c="indigo">
+//               <MapPin size={16} />
+//               <Text fw={700} size="xs" tt="uppercase">
+//                 Shipping To
+//               </Text>
+//             </Group>
+//             <Text size="sm" lineClamp={1}>
+//               {order.shippingAddress?.addressLine1}
+//             </Text>
+//             <Text size="xs" c="dimmed">
+//               {order.shippingAddress?.city}, {order.shippingAddress?.state}
+//             </Text>
+//           </Paper>
+
+//           <Paper withBorder p="md" radius="md">
+//             <Group gap="xs" mb="xs" c="indigo">
+//               <CreditCard size={16} />
+//               <Text fw={700} size="xs" tt="uppercase">
+//                 Payment
+//               </Text>
+//             </Group>
+//             <Text size="sm" tt="capitalize">
+//               {order.paymentMethod || 'Card'}
+//             </Text>
+//             <Text
+//               size="xs"
+//               fw={700}
+//               c={order.paymentStatus === 'paid' ? 'teal' : 'orange'}
+//             >
+//               {order.paymentStatus?.toUpperCase()}
+//             </Text>
+//           </Paper>
+//         </SimpleGrid>
+
+//         {/* Responsive Product Table */}
+//         <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+//           <ScrollArea>
+//             <Table
+//               verticalSpacing="md"
+//               horizontalSpacing="lg"
+//               className={classes.responsiveTable}
+//             >
+//               <TableThead bg="gray.0" className={classes.hideOnMobile}>
+//                 <TableTr>
+//                   <TableTh>
+//                     <Text size="xs" fw={700} tt="uppercase">
+//                       Product
+//                     </Text>
+//                   </TableTh>
+//                   <TableTh>
+//                     <Text size="xs" fw={700} tt="uppercase">
+//                       Quantity
+//                     </Text>
+//                   </TableTh>
+//                   <TableTh>
+//                     <Text size="xs" fw={700} tt="uppercase">
+//                       Status
+//                     </Text>
+//                   </TableTh>
+//                   <TableTh style={{ textAlign: 'right' }}>
+//                     <Text size="xs" fw={700} tt="uppercase">
+//                       Earning
+//                     </Text>
+//                   </TableTh>
+//                 </TableTr>
+//               </TableThead>
+//               <TableTbody>
+//                 {myItems.map((item, idx) => (
+//                   <TableTr key={idx} className={classes.responsiveRow}>
+//                     <TableTd data-label="Product">
+//                       <Group gap="sm" wrap="nowrap">
+//                         <Package size={16} color="gray" />
+//                         <Text size="sm" fw={600} ta="left">
+//                           {item.name}
+//                         </Text>
+//                       </Group>
+//                     </TableTd>
+//                     <TableTd data-label="Quantity">
+//                       <Text size="sm">{item.quantity}</Text>
+//                     </TableTd>
+//                     <TableTd data-label="Status">
+//                       <Badge
+//                         variant="light"
+//                         size="sm"
+//                         color={item.status === 'shipped' ? 'indigo' : 'gray'}
+//                       >
+//                         {item.status}
+//                       </Badge>
+//                     </TableTd>
+//                     <TableTd data-label="Earning">
+//                       <Stack gap={0} align="flex-end">
+//                         <Text size="sm" fw={800}>
+//                           ₦{item.vendorNetEarning?.toLocaleString()}
+//                         </Text>
+//                         <Text size="10px" c="dimmed">
+//                           (₦{item.price.toLocaleString()} ea. -{' '}
+//                           {item.adminCommissionRate}%)
+//                         </Text>
+//                       </Stack>
+//                     </TableTd>
+//                   </TableTr>
+//                 ))}
+//               </TableTbody>
+//             </Table>
+//           </ScrollArea>
+//         </Paper>
+//         {/* Responsive Footer Action */}
+//         <Paper
+//           withBorder
+//           p={{ base: 'lg', sm: 'xl' }}
+//           radius="md"
+//           bg="blue.0"
+//           style={{ borderStyle: 'dashed' }}
+//         >
+//           <Stack align="center" gap="xs">
+//             <Title order={4} ta="center">
+//               Fulfillment Action
+//             </Title>
+//             <Text size="sm" c="dimmed" ta="center" maw={400}>
+//               Update the shipment status to keep your customer informed and
+//               release your funds.
+//             </Text>
+//             <Link
+//               href={`/vendor/orders/${myItems[0]?.shipment}`}
+//               style={{
+//                 textDecoration: 'none',
+//                 width: '100%',
+//                 maxWidth: '300px',
+//               }}
+//             >
+//               <Button color="blue" radius="md" mt="md" fullWidth>
+//                 Update Shipment Details
+//               </Button>
+//             </Link>
+//           </Stack>
+//         </Paper>
+//       </Stack>
+//     </div>
+//   )
+// }
 
 export const dynamic = 'force-dynamic'
 
 import {
   Box,
-  Container,
   Stack,
   Title,
   Text,
@@ -20,12 +329,22 @@ import {
   TableTbody,
   TableTd,
   ScrollArea,
+  Divider,
+  ThemeIcon,
 } from '@mantine/core'
-import { ChevronLeft, MapPin, CreditCard, Package, User } from 'lucide-react'
+import {
+  ChevronLeft,
+  MapPin,
+  CreditCard,
+  Package,
+  User,
+  Truck,
+  ExternalLink,
+} from 'lucide-react'
 import Link from 'next/link'
 import { getOrderByIdAction } from '@/app/services/order-service'
 import { getCurrentUser } from '@/app/services/auth-service'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import classes from './OrderView.module.css'
 
 interface Props {
@@ -40,234 +359,192 @@ export default async function VendorOrderViewPage({ params }: Props) {
     getCurrentUser(),
   ])
 
-  if (!order || !user) return notFound()
+  if (!user) redirect('/login')
+  if (!order) return notFound()
 
+  // Filter items specifically for THIS vendor
   const myItems = order.items.filter(
     (item) => item.vendor.toString() === user._id.toString(),
+  )
+
+  if (myItems.length === 0) return notFound()
+
+  // Group unique shipments for the footer actions
+  const uniqueShipmentIds = Array.from(
+    new Set(myItems.map((item) => item.shipment).filter(Boolean)),
   )
 
   const myNetEarnings = myItems.reduce(
     (acc, item) => acc + (item.vendorNetEarning || 0),
     0,
   )
-
   const myGrossTotal = myItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
   )
-
   const totalCommission = myItems.reduce(
     (acc, item) => acc + (item.adminCommissionAmount || 0),
     0,
   )
 
-  // Get rate from the first item for display (e.g., 10%)
-  const commissionRate = myItems[0]?.adminCommissionRate || 0
+  const getStatusColor = (status: string) => {
+    const map: Record<string, string> = {
+      pending: 'gray',
+      shipped: 'blue',
+      delivered: 'green',
+      cancelled: 'red',
+    }
+    return map[status] || 'gray'
+  }
 
   return (
-    <div className="px-2 py-2">
+    <Box p="md">
       <Stack gap="lg">
-        {/* Header Navigation */}
-        <Group justify="space-between" align="center">
+        {/* Header */}
+        <Group justify="space-between">
           <Link href="/vendor/orders" style={{ textDecoration: 'none' }}>
             <Button
               variant="subtle"
               color="gray"
-              size="sm"
               leftSection={<ChevronLeft size={16} />}
             >
-              Back
+              Back to List
             </Button>
           </Link>
           <Badge
             size="lg"
-            variant="dot"
+            variant="filled"
             color={order.paymentStatus === 'paid' ? 'teal' : 'orange'}
           >
-            {order.paymentStatus?.toUpperCase()}
+            PAYMENT: {order.paymentStatus?.toUpperCase()}
           </Badge>
         </Group>
 
-        {/* Order Title and Earnings */}
-        <Group justify="space-between" align="flex-end" wrap="wrap">
+        {/* Summary Section */}
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
           <Box>
-            <Title
-              order={2}
-              fw={900}
-              lts="-1px"
-              fz={{ base: 'md', sm: '20px' }}
-            >
+            <Title order={2} fw={900} lts="-1px">
               Order #{order.orderNumber.split('-').pop()?.toUpperCase()}
             </Title>
-            <Text c="dimmed" size="xs">
-              Placed {new Date(order.createdAt).toLocaleDateString()}
+            <Text c="dimmed" size="sm">
+              Placed on{' '}
+              {new Date(order.createdAt).toLocaleDateString(undefined, {
+                dateStyle: 'full',
+              })}
             </Text>
           </Box>
+
           <Paper
             withBorder
-            p="xs"
-            px="md"
+            p="md"
             radius="md"
-            bg="blue.0"
-            style={{ minWidth: '200px' }}
+            bg="var(--mantine-color-blue-light)"
           >
-            <Stack gap={2}>
-              <Group justify="space-between">
-                <Text size="10px" fw={700} c="blue.9" tt="uppercase">
-                  Net Earning
-                </Text>
-                <Badge size="xs" variant="light" color="blue">
-                  {commissionRate}% Fee
-                </Badge>
-              </Group>
-
-              <Text fw={900} fz="xl" c="blue.9" lh={1.2}>
-                ₦{myNetEarnings.toLocaleString()}
+            <Group justify="space-between" mb={5}>
+              <Text size="xs" fw={700} c="blue.9">
+                YOUR REVENUE
               </Text>
-
-              <Group
-                gap={4}
-                mt={2}
-                style={{
-                  borderTop: '1px solid rgba(0,0,0,0.05)',
-                  paddingTop: '4px',
-                }}
-              >
-                <Text size="10px" c="dimmed">
-                  Gross: ₦{myGrossTotal.toLocaleString()}
-                </Text>
-                <Text size="10px" c="dimmed">
-                  •
-                </Text>
-                <Text size="10px" c="red.7">
-                  Fee: -₦{totalCommission.toLocaleString()}
-                </Text>
-              </Group>
-            </Stack>
+              <Badge size="xs" color="blue" variant="white">
+                Rate: {myItems[0]?.adminCommissionRate}%
+              </Badge>
+            </Group>
+            <Text fw={900} fz="28px" c="blue.9" lh={1}>
+              ₦{myNetEarnings.toLocaleString()}
+            </Text>
+            <Group gap="xs" mt="sm">
+              <Text size="xs" c="dimmed">
+                Gross: ₦{myGrossTotal.toLocaleString()}
+              </Text>
+              <Text size="xs" c="red.8" fw={600}>
+                Fees: -₦{totalCommission.toLocaleString()}
+              </Text>
+            </Group>
           </Paper>
-        </Group>
+        </SimpleGrid>
 
-        {/* Info Cards Grid */}
+        {/* Shipping & Customer Info */}
         <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
           <Paper withBorder p="md" radius="md">
             <Group gap="xs" mb="xs" c="indigo">
               <User size={16} />
-              <Text fw={700} size="xs" tt="uppercase">
-                Customer
+              <Text fw={700} size="xs">
+                CUSTOMER
               </Text>
             </Group>
             <Text size="sm" fw={600}>
               {order.shippingAddress?.fullName}
             </Text>
-            <Text size="xs" c="dimmed" truncate>
-              {order.user &&
-              typeof order.user !== 'string' &&
-              'email' in order.user
-                ? order.user.email
-                : 'Guest User'}
+            <Text size="xs" c="dimmed">
+              {order.shippingAddress.phone || 'Guest'}
             </Text>
           </Paper>
 
           <Paper withBorder p="md" radius="md">
             <Group gap="xs" mb="xs" c="indigo">
               <MapPin size={16} />
-              <Text fw={700} size="xs" tt="uppercase">
-                Shipping To
+              <Text fw={700} size="xs">
+                SHIPPING ADDRESS
               </Text>
             </Group>
-            <Text size="sm" lineClamp={1}>
-              {order.shippingAddress?.addressLine1}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {order.shippingAddress?.city}, {order.shippingAddress?.state}
+            <Text size="sm" lineClamp={2}>
+              {order.shippingAddress?.addressLine1},{' '}
+              {order.shippingAddress?.city}
             </Text>
           </Paper>
 
           <Paper withBorder p="md" radius="md">
             <Group gap="xs" mb="xs" c="indigo">
               <CreditCard size={16} />
-              <Text fw={700} size="xs" tt="uppercase">
-                Payment
+              <Text fw={700} size="xs">
+                METHOD
               </Text>
             </Group>
             <Text size="sm" tt="capitalize">
-              {order.paymentMethod || 'Card'}
+              {order.paymentMethod}
             </Text>
-            <Text
-              size="xs"
-              fw={700}
-              c={order.paymentStatus === 'paid' ? 'teal' : 'orange'}
-            >
-              {order.paymentStatus?.toUpperCase()}
+            <Text size="xs" c="teal" fw={700}>
+              Secure Transaction
             </Text>
           </Paper>
         </SimpleGrid>
 
-        {/* Responsive Product Table */}
-        <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+        {/* Product Details */}
+        <Paper withBorder radius="md">
           <ScrollArea>
-            <Table
-              verticalSpacing="md"
-              horizontalSpacing="lg"
-              className={classes.responsiveTable}
-            >
-              <TableThead bg="gray.0" className={classes.hideOnMobile}>
+            <Table verticalSpacing="md" horizontalSpacing="lg">
+              <TableThead bg="gray.0">
                 <TableTr>
-                  <TableTh>
-                    <Text size="xs" fw={700} tt="uppercase">
-                      Product
-                    </Text>
-                  </TableTh>
-                  <TableTh>
-                    <Text size="xs" fw={700} tt="uppercase">
-                      Quantity
-                    </Text>
-                  </TableTh>
-                  <TableTh>
-                    <Text size="xs" fw={700} tt="uppercase">
-                      Status
-                    </Text>
-                  </TableTh>
-                  <TableTh style={{ textAlign: 'right' }}>
-                    <Text size="xs" fw={700} tt="uppercase">
-                      Earning
-                    </Text>
-                  </TableTh>
+                  <TableTh>PRODUCT</TableTh>
+                  <TableTh>QTY</TableTh>
+                  <TableTh>STATUS</TableTh>
+                  <TableTh style={{ textAlign: 'right' }}>EARNING</TableTh>
                 </TableTr>
               </TableThead>
               <TableTbody>
                 {myItems.map((item, idx) => (
-                  <TableTr key={idx} className={classes.responsiveRow}>
-                    <TableTd data-label="Product">
-                      <Group gap="sm" wrap="nowrap">
-                        <Package size={16} color="gray" />
-                        <Text size="sm" fw={600} ta="left">
+                  <TableTr key={idx}>
+                    <TableTd>
+                      <Group gap="sm">
+                        <ThemeIcon size="sm" color="gray" variant="light">
+                          <Package size={14} />
+                        </ThemeIcon>
+                        <Text size="sm" fw={600}>
                           {item.name}
                         </Text>
                       </Group>
                     </TableTd>
-                    <TableTd data-label="Quantity">
+                    <TableTd>
                       <Text size="sm">{item.quantity}</Text>
                     </TableTd>
-                    <TableTd data-label="Status">
-                      <Badge
-                        variant="light"
-                        size="sm"
-                        color={item.status === 'shipped' ? 'indigo' : 'gray'}
-                      >
+                    <TableTd>
+                      <Badge variant="dot" color={getStatusColor(item.status)}>
                         {item.status}
                       </Badge>
                     </TableTd>
-                    <TableTd data-label="Earning">
-                      <Stack gap={0} align="flex-end">
-                        <Text size="sm" fw={800}>
-                          ₦{item.vendorNetEarning?.toLocaleString()}
-                        </Text>
-                        <Text size="10px" c="dimmed">
-                          (₦{item.price.toLocaleString()} ea. -{' '}
-                          {item.adminCommissionRate}%)
-                        </Text>
-                      </Stack>
+                    <TableTd style={{ textAlign: 'right' }}>
+                      <Text size="sm" fw={700}>
+                        ₦{item.vendorNetEarning?.toLocaleString()}
+                      </Text>
                     </TableTd>
                   </TableTr>
                 ))}
@@ -275,37 +552,51 @@ export default async function VendorOrderViewPage({ params }: Props) {
             </Table>
           </ScrollArea>
         </Paper>
-        {/* Responsive Footer Action */}
-        <Paper
-          withBorder
-          p={{ base: 'lg', sm: 'xl' }}
-          radius="md"
-          bg="blue.0"
-          style={{ borderStyle: 'dashed' }}
-        >
-          <Stack align="center" gap="xs">
-            <Title order={4} ta="center">
-              Fulfillment Action
-            </Title>
-            <Text size="sm" c="dimmed" ta="center" maw={400}>
-              Update the shipment status to keep your customer informed and
-              release your funds.
+
+        {/* NEW: Multiple Shipment Actions */}
+        <Title order={4} mt="md">
+          Shipment Tasks
+        </Title>
+        <SimpleGrid cols={{ base: 1, sm: 2 }}>
+          {uniqueShipmentIds.length > 0 ? (
+            uniqueShipmentIds.map((shipId) => (
+              <Paper key={String(shipId)} withBorder p="md" radius="md">
+                <Group justify="space-between">
+                  <Group>
+                    <ThemeIcon color="blue" variant="light">
+                      <Truck size={18} />
+                    </ThemeIcon>
+                    <Box>
+                      <Text size="sm" fw={700}>
+                        Fulfillment Task
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        ID: {String(shipId).slice(-6).toUpperCase()}
+                      </Text>
+                    </Box>
+                  </Group>
+                  <Link
+                    href={`/vendor/orders/${shipId}`}
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <Button
+                      size="compact-sm"
+                      variant="light"
+                      rightSection={<ExternalLink size={14} />}
+                    >
+                      Manage
+                    </Button>
+                  </Link>
+                </Group>
+              </Paper>
+            ))
+          ) : (
+            <Text size="sm" c="dimmed italic">
+              No active shipments found for these items.
             </Text>
-            <Link
-              href={`/vendor/orders/${myItems[0]?.shipment}`}
-              style={{
-                textDecoration: 'none',
-                width: '100%',
-                maxWidth: '300px',
-              }}
-            >
-              <Button color="blue" radius="md" mt="md" fullWidth>
-                Update Shipment Details
-              </Button>
-            </Link>
-          </Stack>
-        </Paper>
+          )}
+        </SimpleGrid>
       </Stack>
-    </div>
+    </Box>
   )
 }
