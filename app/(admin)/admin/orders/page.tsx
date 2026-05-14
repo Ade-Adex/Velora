@@ -156,7 +156,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                             fw={700}
                             c={
                               order.items.every(
-                                (i) => i.vendorStatus === 'shipped',
+                                (i) => i.vendorStatus === 'in_transit', 
                               )
                                 ? 'green.7'
                                 : 'orange.7'
@@ -164,13 +164,14 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                           >
                             {
                               order.items.filter(
-                                (i) => i.vendorStatus === 'shipped',
+                                (i) => i.vendorStatus === 'in_transit', 
                               ).length
                             }
                             /{order.items.length} READY
                           </Text>
+
                           {order.items.every(
-                            (i) => i.vendorStatus === 'shipped',
+                            (i) => i.vendorStatus === 'in_transit', 
                           ) &&
                             order.orderStatus === 'confirmed' && (
                               <Badge size="xs" color="blue" variant="filled">
@@ -178,7 +179,8 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                               </Badge>
                             )}
                         </Group>
-                        {/* If items have different statuses than the main order */}
+
+                        {/* Check for partial updates using in_transit */}
                         {order.items.some(
                           (i) => i.status !== order.orderStatus,
                         ) && (

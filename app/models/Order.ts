@@ -39,7 +39,7 @@ const OrderSchema = new Schema(
 
         vendorStatus: {
           type: String,
-          enum: ['label_created', 'ready_for_pickup', 'shipped'],
+          enum: ['label_created', 'ready_for_pickup', 'in_transit'],
           default: 'label_created',
         },
 

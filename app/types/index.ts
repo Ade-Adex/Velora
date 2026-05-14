@@ -213,7 +213,7 @@ export interface IOrderItem {
   quantity: number
   price: number
 
-  vendorStatus: 'label_created' | 'ready_for_pickup' | 'shipped'
+  vendorStatus: 'label_created' | 'ready_for_pickup' | 'in_transit'
   // Financials
   adminCommissionRate: number
   adminCommissionAmount: number

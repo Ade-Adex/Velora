@@ -26,14 +26,14 @@ export default function VendorShipmentForm({
   const [tracking, setTracking] = useState<string>(currentTracking)
   const [loading, setLoading] = useState(false)
 
-  const vendorOptions = [
-    { value: 'label_created', label: 'Preparing Package' },
-    { value: 'ready_for_pickup', label: 'Ready for Collection' },
-    { value: 'shipped', label: 'Handed to Carrier' },
-  ]
+ const vendorOptions = [
+  { value: 'label_created', label: 'Preparing Package' },
+  { value: 'ready_for_pickup', label: 'Ready for Collection' },
+  { value: 'in_transit', label: 'Handed to Carrier' }, 
+]
 
   const isFinalizedByVendor = [
-    'shipped',
+    'in_transit', 
     'out_for_delivery',
     'delivered',
   ].includes(currentStatus)
