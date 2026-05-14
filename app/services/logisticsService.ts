@@ -61,35 +61,27 @@ export async function updateShipmentStatus(
 ): Promise<Serialized<IShipment>> {
   await connectDB()
 
-  // 1. SECURITY & PERMISSION CHECK
-  // Professionally, vendors should only be able to move status to 'shipped'
-  // Admin or Webhooks move it to 'delivered'.
   const VENDOR_RESTRICTED_STATUSES = ['out_for_delivery', 'delivered']
 
-  // 2. START TRANSACTION
   const session = await mongoose.startSession()
   session.startTransaction()
 
   try {
-    // 3. RETRIEVE CURRENT SHIPMENT
     const currentShipment = await Shipment.findById(shipmentId).session(session)
     if (!currentShipment) throw new Error('Shipment record not found')
 
-    // Prevent rolling back a finalized shipment
     if (currentShipment.status === 'delivered') {
       throw new Error(
         'Cannot update a shipment that has already been delivered',
       )
     }
 
-    // 4. PERFORM THE UPDATE
     const shipment = (await Shipment.findByIdAndUpdate(
       shipmentId,
       {
         status,
         trackingNumber: trackingNumber || currentShipment.trackingNumber,
         updatedAt: new Date(),
-        // AUDIT LOGGING: Crucial for professional marketplaces
         $push: {
           statusHistory: {
             status,
@@ -104,15 +96,14 @@ export async function updateShipmentStatus(
     if (!shipment) throw new Error('Update failed')
 
     // 5. UPDATE ORDER ITEM STATUS
-    // We update the status of the specific items tied to this shipment inside the Order document
     await Order.updateOne(
       { _id: shipment.order._id, 'items.shipment': shipmentId },
-     { 
-        $set: { 
+      {
+        $set: {
           'items.$[elem].status': status,
-          // KEY ADDITION: Update vendorStatus to match the shipment's current state
-          'items.$[elem].vendorStatus': status 
-        } 
+          // Syncing vendorStatus ensures the Admin dashboard progress bars update
+          'items.$[elem].vendorStatus': status,
+        },
       },
       {
         arrayFilters: [{ 'elem.shipment': shipmentId }],
@@ -120,29 +111,30 @@ export async function updateShipmentStatus(
       },
     )
 
-    // 6. CALCULATE GLOBAL ORDER PROGRESSION
-    // Fetch the parent order to see if this change affects the overall order state
+    // 6. CALCULATE GLOBAL ORDER PROGRESSION (Updated Logic)
     const parentOrder = (await Order.findById(shipment.order._id).session(
       session,
     )) as IOrder | null
 
     if (parentOrder) {
       const statuses = parentOrder.items.map((item) => item.status)
-
       let newGlobalStatus = parentOrder.orderStatus
 
-      // Logic: If ALL vendor shipments are 'shipped', the Order is 'shipped'
-      // If ALL vendor shipments are 'delivered', the Order is 'delivered'
+      // If ALL items are delivered
       if (statuses.every((s) => s === 'delivered')) {
         newGlobalStatus = 'delivered'
-      } else if (
+      }
+      // If ALL items are at least 'in_transit' (shipped from vendor)
+      else if (
         statuses.every((s) =>
-          ['shipped', 'out_for_delivery', 'delivered'].includes(s),
+          ['in_transit', 'out_for_delivery', 'delivered'].includes(s),
         )
       ) {
         newGlobalStatus = 'shipped'
-      } else if (
-        statuses.some((s) => ['shipped', 'ready_for_pickup'].includes(s))
+      }
+      // If ANY items have moved beyond 'pending'
+      else if (
+        statuses.some((s) => ['in_transit', 'ready_for_pickup'].includes(s))
       ) {
         newGlobalStatus = 'processing'
       }
@@ -156,13 +148,11 @@ export async function updateShipmentStatus(
       }
     }
 
-    // 7. COMMIT & REVALIDATE
     await session.commitTransaction()
 
-    // Revalidate relevant paths so the UI updates instantly everywhere
     revalidatePath(`/vendor/orders/${shipmentId}`)
     revalidatePath(`/admin/orders/${shipment.order._id}`)
-    revalidatePath('/profile/orders') // Customer dashboard
+    revalidatePath('/profile/orders')
 
     return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
   } catch (error) {
@@ -173,7 +163,6 @@ export async function updateShipmentStatus(
     session.endSession()
   }
 }
-
 /**
  * Adds a tracking log entry and updates the shipment status
  */
