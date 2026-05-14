@@ -13,13 +13,9 @@ import {
 import AdminStats from '@/app/components/admin/AdminStats'
 import { Order } from '@/app/models/Order'
 import { User } from '@/app/models/User'
-import { Product } from '@/app/models/Product' // Import Product model
+import { Product } from '@/app/models/Product' 
 import connectDB from '@/app/lib/mongodb'
 import {
-  Banknote,
-  Package,
-  Users,
-  BarChart3,
   ArrowRight,
   PlusCircle,
   Settings2,
@@ -28,23 +24,88 @@ import {
 import Link from 'next/link'
 import { IOrder, StatItem } from '@/app/types'
 
+
+
+const calculateDiff = (current: number, previous: number) => {
+  if (previous === 0) return current > 0 ? 100 : 0
+  return parseFloat((((current - previous) / previous) * 100).toFixed(1))
+}
+
+
 export default async function AdminDashboardPage() {
   await connectDB()
 
-  // Define your low stock threshold
   const LOW_STOCK_THRESHOLD = 5
 
-  // Fetch metrics dynamically
-  const [totalOrders, totalUsers, ordersData, lowStockCount] =
-    await Promise.all([
-      Order.countDocuments(),
-      User.countDocuments({ role: 'customer' }),
-      Order.find().select('totals.grandTotal').lean(),
-      Product.countDocuments({ stock: { $lte: LOW_STOCK_THRESHOLD } }), // Dynamic count
-    ])
+  const now = new Date()
+  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
 
+  const [
+    totalOrders,
+    totalUsers,
+    totalVendors,
+    ordersData,
+    lowStockCount,
+    prevOrders,
+    prevUsers,
+    prevVendors,
+    prevOrdersData,
+  ] = await Promise.all([
+    Order.countDocuments(),
+    User.countDocuments({ role: 'customer' }),
+    User.countDocuments({ role: 'vendor' }),
+    Order.find().select('totals.grandTotal').lean(),
+    Product.countDocuments({ stock: { $lte: LOW_STOCK_THRESHOLD } }),
+
+    // Previous Month Data
+    Order.countDocuments({
+      createdAt: { $lt: startOfCurrentMonth, $gte: startOfLastMonth },
+    }),
+    User.countDocuments({
+      role: 'customer',
+      createdAt: { $lt: startOfCurrentMonth, $gte: startOfLastMonth },
+    }),
+    User.countDocuments({
+      role: 'vendor',
+      createdAt: { $lt: startOfCurrentMonth, $gte: startOfLastMonth },
+    }),
+    Order.find({
+      createdAt: { $lt: startOfCurrentMonth, $gte: startOfLastMonth },
+    })
+      .select('totals.grandTotal')
+      .lean(),
+  ])
+
+  // Revenue Calculations
   const totalRevenue = ordersData.reduce(
-    (acc, order) => acc + (order.totals?.grandTotal || 0),
+    (acc, o) => acc + (o.totals?.grandTotal || 0),
+    0,
+  )
+  const prevRevenue = prevOrdersData.reduce(
+    (acc, o) => acc + (o.totals?.grandTotal || 0),
+    0,
+  )
+
+  // Current Month Activity (to compare against previous month growth)
+  const currentMonthOrders = await Order.countDocuments({
+    createdAt: { $gte: startOfCurrentMonth },
+  })
+  const currentMonthUsers = await User.countDocuments({
+    role: 'customer',
+    createdAt: { $gte: startOfCurrentMonth },
+  })
+  const currentMonthVendors = await User.countDocuments({
+    role: 'vendor',
+    createdAt: { $gte: startOfCurrentMonth },
+  })
+  const currentMonthRevData = await Order.find({
+    createdAt: { $gte: startOfCurrentMonth },
+  })
+    .select('totals.grandTotal')
+    .lean()
+  const currentMonthRevenue = currentMonthRevData.reduce(
+    (acc, o) => acc + (o.totals?.grandTotal || 0),
     0,
   )
 
@@ -52,29 +113,29 @@ export default async function AdminDashboardPage() {
     {
       title: 'Revenue',
       value: `₦${totalRevenue.toLocaleString()}`,
-      diff: 12.5,
+      diff: calculateDiff(currentMonthRevenue, prevRevenue),
       icon: 'bank',
       color: 'green',
     },
     {
       title: 'Orders',
       value: totalOrders,
-      diff: 5.2,
+      diff: calculateDiff(currentMonthOrders, prevOrders),
       icon: 'package',
       color: 'blue',
     },
     {
       title: 'Customers',
       value: totalUsers,
-      diff: -1.4,
+      diff: calculateDiff(currentMonthUsers, prevUsers),
       icon: 'users',
       color: 'violet',
     },
     {
-      title: 'Avg. Sale',
-      value: `₦${(totalRevenue / (totalOrders || 1)).toFixed(0)}`,
-      diff: 3.8,
-      icon: 'chart',
+      title: 'Vendors',
+      value: totalVendors,
+      diff: calculateDiff(currentMonthVendors, prevVendors),
+      icon: 'vendor',
       color: 'orange',
     },
   ]

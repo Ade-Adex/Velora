@@ -285,7 +285,7 @@ export interface StatItem {
   title: string;
   value: string | number;
   diff: number;
-  icon: string; // Keep this as a string
+  icon: string;
   color: string;
 }
 

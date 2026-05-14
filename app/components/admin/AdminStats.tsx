@@ -21,6 +21,7 @@ import {
   BarChart3,
   HelpCircle,
   LucideIcon,
+  Store,
 } from 'lucide-react'
 import { StatItem } from '@/app/types'
 
@@ -32,6 +33,7 @@ const IconMap: Record<string, LucideIcon> = {
   users: Users,
   bank: Banknote,
   chart: BarChart3,
+  vendor: Store,
 }
 
 interface AdminStatsProps {
