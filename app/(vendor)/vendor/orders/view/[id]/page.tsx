@@ -19,7 +19,6 @@ import {
   TableTbody,
   TableTd,
   ScrollArea,
-  Divider,
   ThemeIcon,
 } from '@mantine/core'
 import {
@@ -35,7 +34,6 @@ import Link from 'next/link'
 import { getOrderByIdAction } from '@/app/services/order-service'
 import { getCurrentUser } from '@/app/services/auth-service'
 import { notFound, redirect } from 'next/navigation'
-import classes from './OrderView.module.css'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -64,6 +62,7 @@ export default async function VendorOrderViewPage({ params }: Props) {
     new Set(myItems.map((item) => item.shipment).filter(Boolean)),
   )
 
+  // Financial Calculations using your exact Model names
   const myNetEarnings = myItems.reduce(
     (acc, item) => acc + (item.vendorNetEarning || 0),
     0,
@@ -77,14 +76,28 @@ export default async function VendorOrderViewPage({ params }: Props) {
     0,
   )
 
-  const getStatusColor = (status: string) => {
-    const map: Record<string, string> = {
-      pending: 'gray',
-      shipped: 'blue',
-      delivered: 'green',
-      cancelled: 'red',
-    }
-    return map[status] || 'gray'
+  // --- DISBURSAL COMPUTE LOGIC ---
+  // A vendor's payout is unlocked if all of THEIR specific items are marked 'delivered'.
+  // This protects against multi-vendor orders holding up your cash flow.
+  const allMyItemsDelivered = myItems.every(
+    (item) => item.status === 'delivered',
+  )
+  const hasAnyCancelledItems = myItems.some(
+    (item) => item.status === 'cancelled',
+  )
+
+  let payoutStatusLabel = 'Escrow: Awaiting Delivery'
+  let revenueCardBg = 'var(--mantine-color-blue-light)'
+  let revenueBadgeColor = 'blue'
+
+  if (allMyItemsDelivered) {
+    payoutStatusLabel = 'Disbursed to Wallet'
+    revenueCardBg = 'var(--mantine-color-teal-light)'
+    revenueBadgeColor = 'teal'
+  } else if (hasAnyCancelledItems && myNetEarnings === 0) {
+    payoutStatusLabel = 'Order Cancelled'
+    revenueCardBg = 'var(--mantine-color-red-light)'
+    revenueBadgeColor = 'red'
   }
 
   return (
@@ -124,23 +137,32 @@ export default async function VendorOrderViewPage({ params }: Props) {
             </Text>
           </Box>
 
+          {/* Dynamic Money Card connected to item.status state */}
           <Paper
             withBorder
             p="md"
             radius="md"
-            bg="var(--mantine-color-blue-light)"
+            bg={revenueCardBg}
+            style={{ transition: 'all 0.2s ease' }}
           >
             <Group justify="space-between" mb={5}>
-              <Text size="xs" fw={700} c="blue.9">
+              <Text size="xs" fw={700} c={`${revenueBadgeColor}.9`}>
                 YOUR REVENUE
               </Text>
-              <Badge size="xs" color="blue" variant="white">
-                Rate: {myItems[0]?.adminCommissionRate}%
+              <Badge
+                size="xs"
+                color={revenueBadgeColor}
+                variant="filled"
+                tt="uppercase"
+              >
+                {payoutStatusLabel}
               </Badge>
             </Group>
-            <Text fw={900} fz="28px" c="blue.9" lh={1}>
+
+            <Text fw={900} fz="28px" c={`${revenueBadgeColor}.9`} lh={1}>
               ₦{myNetEarnings.toLocaleString()}
             </Text>
+
             <Group gap="xs" mt="sm">
               <Text size="xs" c="dimmed">
                 Gross: ₦{myGrossTotal.toLocaleString()}
@@ -198,7 +220,7 @@ export default async function VendorOrderViewPage({ params }: Props) {
           </Paper>
         </SimpleGrid>
 
-        {/* Product Details */}
+        {/* Product Details Table */}
         <Paper withBorder radius="md">
           <ScrollArea>
             <Table verticalSpacing="md" horizontalSpacing="lg">
@@ -211,39 +233,69 @@ export default async function VendorOrderViewPage({ params }: Props) {
                 </TableTr>
               </TableThead>
               <TableTbody>
-                {myItems.map((item, idx) => (
-                  <TableTr key={idx}>
-                    <TableTd>
-                      <Group gap="sm">
-                        <ThemeIcon size="sm" color="gray" variant="light">
-                          <Package size={14} />
-                        </ThemeIcon>
-                        <Text size="sm" fw={600}>
-                          {item.name}
+                {myItems.map((item, idx) => {
+                  const currentStatus = item.status?.toLowerCase()
+                  const currentVendorStatus = item.vendorStatus?.toLowerCase()
+
+                  let badgeColor = 'gray'
+                  let badgeLabel: string = item.status || 'Pending'
+
+                  if (
+                    currentStatus === 'in_transit' &&
+                    currentVendorStatus !== 'in_transit'
+                  ) {
+                    badgeColor = 'indigo'
+                    badgeLabel = 'In Transit'
+                  } else if (currentVendorStatus === 'in_transit') {
+                    badgeColor = 'teal'
+                    badgeLabel = 'Received at Hub'
+                  } else if (currentStatus === 'delivered') {
+                    badgeColor = 'green'
+                    badgeLabel = 'Delivered'
+                  } else if (
+                    ['failed_attempt', 'returned'].includes(currentStatus)
+                  ) {
+                    badgeColor = 'red'
+                    badgeLabel = currentStatus.replace('_', ' ')
+                  } else if (currentStatus === 'cancelled') {
+                    badgeColor = 'red'
+                    badgeLabel = 'Cancelled'
+                  }
+
+                  return (
+                    <TableTr key={idx}>
+                      <TableTd>
+                        <Group gap="sm">
+                          <ThemeIcon size="sm" color="gray" variant="light">
+                            <Package size={14} />
+                          </ThemeIcon>
+                          <Text size="sm" fw={600}>
+                            {item.name}
+                          </Text>
+                        </Group>
+                      </TableTd>
+                      <TableTd>
+                        <Text size="sm">{item.quantity}</Text>
+                      </TableTd>
+                      <TableTd>
+                        <Badge variant="dot" color={badgeColor} tt="uppercase">
+                          {badgeLabel}
+                        </Badge>
+                      </TableTd>
+                      <TableTd style={{ textAlign: 'right' }}>
+                        <Text size="sm" fw={700}>
+                          ₦{item.vendorNetEarning?.toLocaleString()}
                         </Text>
-                      </Group>
-                    </TableTd>
-                    <TableTd>
-                      <Text size="sm">{item.quantity}</Text>
-                    </TableTd>
-                    <TableTd>
-                      <Badge variant="dot" color={getStatusColor(item.status)}>
-                        {item.status}
-                      </Badge>
-                    </TableTd>
-                    <TableTd style={{ textAlign: 'right' }}>
-                      <Text size="sm" fw={700}>
-                        ₦{item.vendorNetEarning?.toLocaleString()}
-                      </Text>
-                    </TableTd>
-                  </TableTr>
-                ))}
+                      </TableTd>
+                    </TableTr>
+                  )
+                })}
               </TableTbody>
             </Table>
           </ScrollArea>
         </Paper>
 
-        {/* NEW: Multiple Shipment Actions */}
+        {/* Shipment Tasks Tracker */}
         <Title order={4} mt="md">
           Shipment Tasks
         </Title>

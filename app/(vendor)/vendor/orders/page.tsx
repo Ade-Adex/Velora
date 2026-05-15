@@ -125,26 +125,52 @@ export default async function VendorOrdersPage() {
 
                       <TableTd data-label="Your Products">
                         <Stack gap={6} align="flex-end">
-                          {myItems.map((item, idx) => (
-                            <Box key={idx} style={{ textAlign: 'right' }}>
-                              <Text size="xs" fw={700}>
-                                {item.quantity}x {item.name}
-                              </Text>
-                              <Badge
-                                size="xs"
-                                variant="light"
-                                color={
-                                  ['shipped', 'delivered'].includes(
-                                    item.status?.toLowerCase(),
-                                  )
-                                    ? 'indigo'
-                                    : 'gray'
-                                }
-                              >
-                                {item.status}
-                              </Badge>
-                            </Box>
-                          ))}
+                          {myItems.map((item, idx) => {
+                            const currentStatus = item.status?.toLowerCase()
+                            const currentVendorStatus =
+                              item.vendorStatus?.toLowerCase()
+
+                            // FIX: Type it as a plain string so it can accept any UI-friendly text wrapper
+                            let badgeColor = 'gray'
+                            let badgeLabel: string = item.status || 'Pending'
+
+                            if (
+                              currentStatus === 'in_transit' &&
+                              currentVendorStatus !== 'in_transit'
+                            ) {
+                              badgeColor = 'indigo'
+                              badgeLabel = 'In Transit'
+                            } else if (currentVendorStatus === 'in_transit') {
+                              badgeColor = 'teal'
+                              badgeLabel = 'Received at Hub'
+                            } else if (currentStatus === 'delivered') {
+                              badgeColor = 'green'
+                              badgeLabel = 'Delivered to Client' // Works perfectly now!
+                            } else if (
+                              ['failed_attempt', 'returned'].includes(
+                                currentStatus,
+                              )
+                            ) {
+                              badgeColor = 'red'
+                              badgeLabel = currentStatus.replace('_', ' ')
+                            }
+
+                            return (
+                              <Box key={idx} style={{ textAlign: 'right' }}>
+                                <Text size="xs" fw={700}>
+                                  {item.quantity}x {item.name}
+                                </Text>
+                                <Badge
+                                  size="xs"
+                                  variant="light"
+                                  color={badgeColor}
+                                  tt="uppercase"
+                                >
+                                  {badgeLabel}
+                                </Badge>
+                              </Box>
+                            )
+                          })}
                         </Stack>
                       </TableTd>
 

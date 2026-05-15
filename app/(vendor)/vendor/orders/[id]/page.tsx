@@ -1,4 +1,6 @@
 // /app/(vendor)/vendor/orders/[id]/page.tsx
+
+
 import connectDB from '@/app/lib/mongodb'
 import { Shipment } from '@/app/models/Shipment'
 import { notFound } from 'next/navigation'
@@ -32,14 +34,32 @@ export default async function VendorShipmentPage({ params }: PageProps) {
 
   if (!shipment) notFound()
 
+  // 1. UPDATED STATUS COLOR MAPPING
   const getStatusColor = (status: string) => {
     const map: Record<string, string> = {
       label_created: 'gray',
       ready_for_pickup: 'orange',
-      shipped: 'blue',
-      delivered: 'green',
+      in_transit: 'indigo', // Vendor clicked ship, moving network-wide
+      delivered: 'teal', // Arrived safely at Admin Hub
+      out_for_delivery: 'blue', // Global delivery phase
+      failed_attempt: 'red',
+      returned: 'pink',
     }
-    return map[status] || 'gray'
+    return map[status?.toLowerCase()] || 'gray'
+  }
+
+  // 2. USER FRIENDLY LABEL MAPPING
+  const getStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      label_created: 'Label Created',
+      ready_for_pickup: 'Ready For Pickup',
+      in_transit: 'In Transit',
+      delivered: 'Arrived at Hub',
+      out_for_delivery: 'Out For Delivery',
+      failed_attempt: 'Failed Attempt',
+      returned: 'Returned',
+    }
+    return map[status?.toLowerCase()] || status.replace('_', ' ')
   }
 
   return (
@@ -55,12 +75,15 @@ export default async function VendorShipmentPage({ params }: PageProps) {
                 Shipment ID: {String(shipment._id).toUpperCase()}
               </Text>
             </Stack>
+
+            {/* Dynamic context badge using your new state variables */}
             <Badge
-              size="xl"
+              size="lg"
               variant="filled"
               color={getStatusColor(shipment.status)}
+              tt="uppercase"
             >
-              {shipment.status.replace('_', ' ')}
+              {getStatusLabel(shipment.status)}
             </Badge>
           </Group>
         </Box>
