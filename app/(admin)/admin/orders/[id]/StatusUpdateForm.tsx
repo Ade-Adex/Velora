@@ -1,109 +1,113 @@
-//  /app/(dashboard)/admin/orders/[id]/StatusUpdateForm.tsx
+// //  /app/(dashboard)/admin/orders/[id]/StatusUpdateForm.tsx
 
-'use client'
+// 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+// import { useState } from 'react'
+// import { useSnackbar } from 'notistack'
 
-export default function StatusUpdateForm({
-  orderId,
-  currentStatus,
-}: {
-  orderId: string
-  currentStatus: string
-}) {
-  const [status, setStatus] = useState(currentStatus)
-  const [tracking, setTracking] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+// export default function StatusUpdateForm({
+//   orderId,
+//   currentStatus,
+// }: {
+//   orderId: string
+//   currentStatus: string
+// }) {
+//   const [status, setStatus] = useState(currentStatus)
+//   const [tracking, setTracking] = useState('')
+//   const [loading, setLoading] = useState(false)
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+//   const { enqueueSnackbar } = useSnackbar()
 
-    try {
-      const res = await fetch('/api/orders/update-status', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId,
-          status,
-          trackingNumber: tracking,
-        }),
-      })
+//   const handleUpdate = async (e: React.FormEvent) => {
+//     e.preventDefault()
+//     setLoading(true)
 
-      if (res.ok) {
-        alert('Order updated successfully!')
-        router.refresh() // Updates the UI with new data
-      } else {
-        const data = await res.json()
-        alert(`Error: ${data.error}`)
-      }
-    } catch (err) {
-      alert('Failed to connect to server')
-    } finally {
-      setLoading(false)
-    }
-  }
+//     try {
+//       const res = await fetch('/api/orders/update-status', {
+//         method: 'PATCH',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//           orderId,
+//           status,
+//           trackingNumber: tracking,
+//         }),
+//       })
 
-  return (
-    <form
-      onSubmit={handleUpdate}
-      className="p-6 bg-white border rounded-lg shadow-sm"
-    >
-      <h3 className="text-lg font-semibold mb-4">Manage Order Fulfillment</h3>
+//       if (res.ok) {
+//         enqueueSnackbar(`Order updated successfully!`, {
+//           variant: 'success',
+//         })
 
-      <div className="space-y-4">
-        {/* Status Dropdown */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Order Status
-          </label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="mt-1 block w-full border rounded-md p-2"
-          >
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed (Awaiting Vendors)</option>
-            <option value="ready_for_consolidation">Ready to Package</option>
-            <option value="shipped">Shipped to Customer</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          {status === 'shipped' && (
-            <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-              <strong>Admin Note:</strong> Changing status to
-              &quot;Shipped&quot; will trigger the final email to the customer
-              with the tracking number.
-            </div>
-          )}
-        </div>
+//         // router.refresh()
+//       } else {
+//         const data = await res.json()
+//         enqueueSnackbar(`Error: ${data.error}`, { variant: 'error' })
+//       }
+//     } catch (err) {
+//       enqueueSnackbar(`Failed to connect to server`, { variant: 'error' })
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
 
-        {/* Conditional Tracking Input */}
-        {status === 'shipped' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Tracking Number (Courier ID)
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. GIGL-12345"
-              value={tracking}
-              onChange={(e) => setTracking(e.target.value)}
-              className="mt-1 block w-full border rounded-md p-2"
-              required={status === 'shipped'}
-            />
-          </div>
-        )}
+//   return (
+//     <form
+//       onSubmit={handleUpdate}
+//       className="p-6 bg-white border rounded-lg shadow-sm"
+//     >
+//       <h3 className="text-lg font-semibold mb-4">Manage Order Fulfillment</h3>
 
-        <button
-          disabled={loading}
-          className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 disabled:bg-gray-400"
-        >
-          {loading ? 'Updating...' : 'Save Changes'}
-        </button>
-      </div>
-    </form>
-  )
-}
+//       <div className="space-y-4">
+//         {/* Status Dropdown */}
+//         <div>
+//           <label className="block text-sm font-medium text-gray-700">
+//             Order Status
+//           </label>
+//           <select
+//             value={status}
+//             onChange={(e) => setStatus(e.target.value)}
+//             className="mt-1 block w-full border rounded-md p-2"
+//           >
+//             <option value="pending">Pending</option>
+//             <option value="confirmed">Confirmed (Awaiting Vendors)</option>
+//             <option value="ready_for_consolidation">Ready to Package</option>
+//             <option value="shipped">Shipped to Customer</option>
+//             <option value="delivered">Delivered</option>
+//             <option value="cancelled">Cancelled</option>
+//           </select>
+//           {status === 'shipped' && (
+//             <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+//               <strong>Admin Note:</strong> Changing status to
+//               &quot;Shipped&quot; will trigger the final email to the customer
+//               with the tracking number.
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Conditional Tracking Input */}
+//         {status === 'shipped' && (
+//           <div>
+//             <label className="block text-sm font-medium text-gray-700">
+//               Tracking Number (Courier ID)
+//             </label>
+//             <input
+//               type="text"
+//               placeholder="e.g. GIGL-12345"
+//               value={tracking}
+//               onChange={(e) => setTracking(e.target.value)}
+//               className="mt-1 block w-full border rounded-md p-2"
+//               required={status === 'shipped'}
+//             />
+//           </div>
+//         )}
+
+//         <button
+//           disabled={loading}
+//           className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 disabled:bg-gray-400"
+//         >
+//           {loading ? 'Updating...' : 'Save Changes'}
+//         </button>
+//       </div>
+//     </form>
+//   )
+// }
