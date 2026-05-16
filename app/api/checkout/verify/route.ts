@@ -181,6 +181,8 @@
 
 
 
+
+
 // /app/api/checkout/verify/route.ts
 
 import connectDB from '@/app/lib/mongodb'
@@ -188,6 +190,7 @@ import { pusherServer } from '@/app/lib/pusherServer'
 import { Order } from '@/app/models/Order'
 import { Product } from '@/app/models/Product'
 import { initializeShipments } from '@/app/services/logisticsService' 
+import { saveNotificationToDb } from '@/app/services/notificationService' // Added Service Import
 import { IOrder, IProduct } from '@/app/types'
 import mongoose, { ClientSession } from 'mongoose'
 import { revalidatePath } from 'next/cache'
@@ -308,60 +311,74 @@ export async function GET(req: Request) {
       await session.commitTransaction()
       session.endSession()
 
-      // --- TARGETED REALTIME DISPATCH BLOCK ---
+      // --- TARGETED REALTIME & DB DISPATCH BLOCK ---
       try {
         const timestamp = new Date().toISOString()
         const pusherPromises: Promise<unknown>[] = []
 
-        // 1. Dispatch System Alert to Admin Shell
+        // 1. Persist and Dispatch System Alert to Admin Shell
+        const adminDoc = await saveNotificationToDb({
+          recipientRole: 'admin',
+          title: 'New Paid Order',
+          message: `Order #${updatedOrder?.orderNumber || orderId} has been successfully verified via Paystack.`,
+          associatedOrder: orderId,
+        })
+
         pusherPromises.push(
           pusherServer.trigger(
             'private-admin-system-channel',
             'admin-notification',
             {
-              id: `admin-${orderId}-${Date.now()}`,
-              title: 'New Paid Order',
-              message: `Order #${updatedOrder?.orderNumber || orderId} has been successfully verified via Paystack.`,
+              id: adminDoc._id.toString(),
+              title: adminDoc.title,
+              message: adminDoc.message,
               read: false,
               createdAt: timestamp,
             },
           ),
         )
 
-        // 2. Identify unique vendors from line items and dispatch personalized alerts
+        // 2. Identify unique vendors from line items, persist to DB, and dispatch alerts
         if (updatedOrder?.items) {
           const uniqueVendorIds = new Set<string>()
 
           for (const item of updatedOrder.items) {
-            // Pulling directly from item.vendor based on your IOrderItem interface
             if (item.vendor) {
               uniqueVendorIds.add(item.vendor.toString())
             }
           }
 
-          // Trigger real-time notifications to each specific vendor's secure shell channel
-          uniqueVendorIds.forEach((vendorId) => {
+          // Trigger notifications for each unique vendor found
+          for (const vendorId of uniqueVendorIds) {
+            const vendorDoc = await saveNotificationToDb({
+              recipientId: vendorId,
+              recipientRole: 'vendor',
+              title: 'New Order Received!',
+              message: `You have new item allocations ready for dispatch under order #${updatedOrder.orderNumber || orderId}.`,
+              associatedOrder: orderId,
+            })
+
             pusherPromises.push(
               pusherServer.trigger(
                 `private-user-${vendorId}`,
                 'new-notification',
                 {
-                  id: `vendor-${orderId}-${vendorId}-${Date.now()}`,
-                  title: 'New Order Received!',
-                  message: `You have new item allocations ready for dispatch under order #${updatedOrder.orderNumber || orderId}.`,
+                  id: vendorDoc._id.toString(),
+                  title: vendorDoc.title,
+                  message: vendorDoc.message,
                   read: false,
                   createdAt: timestamp,
                 },
               ),
             )
-          })
+          }
         }
 
-        // Execute all real-time events concurrently out of the database lock
+        // Execute all real-time events concurrently outside the core database transaction lock
         await Promise.all(pusherPromises)
       } catch (pusherError) {
         console.error(
-          'Pusher background notification failed safely:',
+          'Notification handling layer failed safely:',
           pusherError,
         )
       }
