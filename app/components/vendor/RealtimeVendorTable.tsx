@@ -20,7 +20,7 @@ import {
 import Link from 'next/link'
 import { pusherClient } from '@/app/lib/pusher'
 import { IOrder, IUser, Serialized } from '@/app/types'
-import classes from './VendorOrders.module.css'
+import classes from '@/app/(vendor)/vendor/orders/VendorOrders.module.css'
 
 interface RealtimeVendorTableProps {
   initialOrders: Serialized<IOrder>[]
