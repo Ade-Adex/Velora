@@ -153,17 +153,72 @@ export async function GET(req: Request) {
           ),
         )
 
+        // // 2. Identify unique vendors strictly using your model types
+        // if (updatedOrder?.items && updatedOrder.items.length > 0) {
+        //   const uniqueVendorIds = new Set<string>()
+
+        //   for (const item of updatedOrder.items) {
+        //     // Check if vendor exists, then extract its ID string safely
+        //     if (item.vendor) {
+        //       const vendorId =
+        //         typeof item.vendor === 'object' && '_id' in item.vendor
+        //           ? (item.vendor as { _id: unknown })._id?.toString()
+        //           : item.vendor.toString()
+
+        //       if (vendorId) {
+        //         uniqueVendorIds.add(vendorId)
+        //       }
+        //     }
+        //   }
+
+        //   // Trigger notifications for each unique vendor found
+        //   for (const vendorId of uniqueVendorIds) {
+        //     const vendorDoc = await saveNotificationToDb({
+        //       recipientId: vendorId,
+        //       recipientRole: 'vendor',
+        //       title: 'New Order Received!',
+        //       message: `You have new item allocations ready for dispatch under order #${updatedOrder.orderNumber || orderId}.`,
+        //       associatedOrder: orderId,
+        //     })
+
+        //     pusherPromises.push(
+        //       pusherServer.trigger(
+        //         `private-user-${vendorId}`,
+        //         'new-notification',
+        //         {
+        //           id: vendorDoc._id.toString(),
+        //           title: vendorDoc.title,
+        //           message: vendorDoc.message,
+        //           read: false,
+        //           createdAt: timestamp,
+        //         },
+        //       ),
+        //     )
+        //   }
+        // }
+
         // 2. Identify unique vendors strictly using your model types
         if (updatedOrder?.items && updatedOrder.items.length > 0) {
           const uniqueVendorIds = new Set<string>()
 
           for (const item of updatedOrder.items) {
-            // Check if vendor exists, then extract its ID string safely
-            if (item.vendor) {
+            // Safely check if item.product is populated to match our IProduct model
+            const isProductPopulated =
+              item.product &&
+              typeof item.product === 'object' &&
+              '_id' in item.product
+
+            // Use type assertion to IProduct safely now that we checked its structure
+            const productRef = isProductPopulated
+              ? (item.product as unknown as IProduct)
+              : null
+            const vendorRef = item.vendor || productRef?.vendor
+
+            if (vendorRef) {
               const vendorId =
-                typeof item.vendor === 'object' && '_id' in item.vendor
-                  ? (item.vendor as { _id: unknown })._id?.toString()
-                  : item.vendor.toString()
+                typeof vendorRef === 'object' && '_id' in vendorRef
+                  ? (vendorRef as { _id: unknown })._id?.toString()
+                  : vendorRef.toString()
 
               if (vendorId) {
                 uniqueVendorIds.add(vendorId)
@@ -196,7 +251,6 @@ export async function GET(req: Request) {
             )
           }
         }
-
         // 3. Keep vendor/admin dashboard list items accurately in sync
         pusherPromises.push(
           pusherServer.trigger('global-orders-channel', 'order-updated', {}),
