@@ -1,22 +1,274 @@
+// // // /app/services/logisticsService.ts
+// // 'use server' // Critical for calling from Client Components
+
+// // import connectDB from '@/app/lib/mongodb'
+// // import { Order } from '@/app/models/Order'
+// // import { Shipment } from '@/app/models/Shipment'
+// // import { revalidatePath } from 'next/cache'
+// // import { IOrder, IOrderItem, IShipment, Serialized } from '@/app/types'
+// // import mongoose from 'mongoose'
+// // import { pusherServer } from '@/app/lib/pusher'
+
+// // export async function initializeShipments(orderId: string): Promise<void> {
+// //   await connectDB()
+
+// //   // Cast the found document to IOrder
+// //   const order = (await Order.findById(orderId)) as IOrder | null
+// //   if (!order) return
+
+// //   // Type the accumulator: Record<string, IOrderItem[]>
+// //   const vendorGroups = order.items.reduce<Record<string, IOrderItem[]>>(
+// //     (groups, item) => {
+// //       const vendorId = item.vendor.toString()
+// //       if (!groups[vendorId]) {
+// //         groups[vendorId] = []
+// //       }
+// //       groups[vendorId].push(item)
+// //       return groups
+// //     },
+// //     {},
+// //   )
+
+// //   // Iterate through the grouped items
+// //   for (const vendorId in vendorGroups) {
+// //     const items = vendorGroups[vendorId]
+
+// //     // Create the shipment with strict property mapping
+// //     const newShipment = (await Shipment.create({
+// //       order: order._id,
+// //       vendor: vendorId,
+// //       orderItems: items.map((i: IOrderItem) => ({
+// //         productId: i.product,
+// //         quantity: i.quantity,
+// //         name: i.name,
+// //       })),
+// //       carrier: 'Velora Logistics',
+// //       status: 'label_created',
+// //     })) as IShipment
+
+// //     // Link the items in the Order model back to this shipment using arrayFilters
+// //     await Order.updateOne(
+// //       { _id: orderId, 'items.vendor': vendorId },
+// //       { $set: { 'items.$[elem].shipment': newShipment._id } },
+// //       { arrayFilters: [{ 'elem.vendor': vendorId }] },
+// //     )
+// //   }
+// // }
+
+// // export async function updateShipmentStatus(
+// //   shipmentId: string,
+// //   status: string,
+// //   trackingNumber?: string,
+// // ): Promise<Serialized<IShipment>> {
+// //   await connectDB()
+
+// //   const VENDOR_RESTRICTED_STATUSES = ['out_for_delivery', 'delivered']
+
+// //   const session = await mongoose.startSession()
+// //   session.startTransaction()
+
+// //   try {
+// //     const currentShipment = await Shipment.findById(shipmentId).session(session)
+// //     if (!currentShipment) throw new Error('Shipment record not found')
+
+// //     if (currentShipment.status === 'delivered') {
+// //       throw new Error(
+// //         'Cannot update a shipment that has already been delivered',
+// //       )
+// //     }
+
+// //     const shipment = (await Shipment.findByIdAndUpdate(
+// //       shipmentId,
+// //       {
+// //         status,
+// //         trackingNumber: trackingNumber || currentShipment.trackingNumber,
+// //         updatedAt: new Date(),
+// //         $push: {
+// //           statusHistory: {
+// //             status,
+// //             timestamp: new Date(),
+// //             description: `Status updated to ${status.replace('_', ' ')} via Marketplace Portal.`,
+// //           },
+// //         },
+// //       },
+// //       { new: true, session },
+// //     ).populate('order')) as (IShipment & { order: IOrder }) | null
+
+// //     if (!shipment) throw new Error('Update failed')
+
+// //     // 5. UPDATE ORDER ITEM STATUS
+// //     await Order.updateOne(
+// //       { _id: shipment.order._id, 'items.shipment': shipmentId },
+// //       {
+// //         $set: {
+// //           'items.$[elem].status': status,
+// //           // Syncing vendorStatus ensures the Admin dashboard progress bars update
+// //           'items.$[elem].vendorStatus': status,
+// //         },
+// //       },
+// //       {
+// //         arrayFilters: [{ 'elem.shipment': shipmentId }],
+// //         session,
+// //       },
+// //     )
+
+// //     // 6. CALCULATE GLOBAL ORDER PROGRESSION (Updated Logic)
+// //     const parentOrder = (await Order.findById(shipment.order._id).session(
+// //       session,
+// //     )) as IOrder | null
+
+// //     if (parentOrder) {
+// //       const statuses = parentOrder.items.map((item) => item.status)
+// //       let newGlobalStatus = parentOrder.orderStatus
+
+// //       // If ALL items are delivered
+// //       if (statuses.every((s) => s === 'delivered')) {
+// //         newGlobalStatus = 'delivered'
+// //       }
+// //       // If ALL items are at least 'in_transit' (shipped from vendor)
+// //       else if (
+// //         statuses.every((s) =>
+// //           ['in_transit', 'out_for_delivery', 'delivered'].includes(s),
+// //         )
+// //       ) {
+// //         newGlobalStatus = 'shipped'
+// //       }
+// //       // If ANY items have moved beyond 'pending'
+// //       else if (
+// //         statuses.some((s) => ['in_transit', 'ready_for_pickup'].includes(s))
+// //       ) {
+// //         newGlobalStatus = 'processing'
+// //       }
+
+// //       if (newGlobalStatus !== parentOrder.orderStatus) {
+// //         await Order.findByIdAndUpdate(
+// //           parentOrder._id,
+// //           { orderStatus: newGlobalStatus },
+// //           { session },
+// //         )
+// //       }
+// //     }
+
+// //     await session.commitTransaction()
+
+// //     // --- BROADCAST THE LOGISTICS CHANGE REAL TIME ---
+// //     try {
+// //       await pusherServer.trigger(
+// //         'logistics-fleet-channel',
+// //         'shipment-status-updated',
+// //         {
+// //           shipmentId,
+// //           status,
+// //           updatedAt: new Date(),
+// //         },
+// //       )
+// //     } catch (e) {
+// //       console.error('Logistics streaming channel error:', e)
+// //     }
+
+// //     revalidatePath(`/vendor/orders/${shipmentId}`)
+// //     revalidatePath(`/admin/orders/${shipment.order._id}`)
+// //     revalidatePath('/profile/orders')
+
+// //     return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
+// //   } catch (error) {
+// //     await session.abortTransaction()
+// //     console.error('Shipment Status Update Failed:', error)
+// //     throw error
+// //   } finally {
+// //     session.endSession()
+// //   }
+// // }
+// // /**
+// //  * Adds a tracking log entry and updates the shipment status
+// //  */
+// // export async function addLogisticsUpdate(
+// //   shipmentId: string,
+// //   status: IShipment['status'],
+// //   location: string,
+// //   description: string,
+// // ) {
+// //   await connectDB()
+
+// //   // Find shipment to get parent order
+// //   const shipment = await Shipment.findById(shipmentId)
+// //   if (!shipment) throw new Error('Shipment not found')
+
+// //   const updatedShipment = await Shipment.findByIdAndUpdate(
+// //     shipmentId,
+// //     {
+// //       $set: { status },
+// //       $push: {
+// //         statusHistory: {
+// //           status,
+// //           timestamp: new Date(),
+// //           description: `[${location}] - ${description}`,
+// //         },
+// //       },
+// //     },
+// //     { new: true },
+// //   ).lean()
+
+// //   // NEW LOGIC: Sync the exact status to vendorStatus.
+// //   // When 'delivered' (to Hub), it will match the 'in_transit' logic
+// //   // we set up in the Admin Table and Single Order pages.
+// //   // If you specifically want 'delivered' to trigger the "READY" state,
+// //   // we use 'in_transit' here.
+
+// //   const mappedStatus = status === 'delivered' ? 'in_transit' : status
+
+// //   await Order.updateOne(
+// //     { _id: shipment.order, 'items.shipment': shipmentId },
+// //     { $set: { 'items.$[elem].vendorStatus': mappedStatus } },
+// //     { arrayFilters: [{ 'elem.shipment': shipmentId }] },
+// //   )
+
+// //   revalidatePath('/admin/logistics')
+// //   revalidatePath(`/admin/orders/${shipment.order}`)
+
+// //   return JSON.parse(JSON.stringify(updatedShipment))
+// // }
+
+// // /**
+// //  * Fetches a single shipment with populated details
+// //  */
+// // export async function getShipmentDetails(
+// //   shipmentId: string,
+// // ): Promise<Serialized<IShipment> | null> {
+// //   await connectDB()
+
+// //   const shipment = await Shipment.findById(shipmentId)
+// //     .populate('vendor')
+// //     .populate('order')
+// //     .lean()
+
+// //   if (!shipment) return null
+
+// //   return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
+// // }
+
 // // /app/services/logisticsService.ts
-// 'use server' // Critical for calling from Client Components
+// 'use server'
 
 // import connectDB from '@/app/lib/mongodb'
+// import { pusherServer } from '@/app/lib/pusherServer'
 // import { Order } from '@/app/models/Order'
 // import { Shipment } from '@/app/models/Shipment'
-// import { revalidatePath } from 'next/cache'
 // import { IOrder, IOrderItem, IShipment, Serialized } from '@/app/types'
-// import mongoose from 'mongoose'
-// import { pusherServer } from '@/app/lib/pusher'
+// import mongoose, { ClientSession } from 'mongoose'
+// import { revalidatePath } from 'next/cache'
 
-// export async function initializeShipments(orderId: string): Promise<void> {
+// export async function initializeShipments(
+//   orderId: string,
+//   session?: ClientSession,
+// ): Promise<void> {
 //   await connectDB()
 
-//   // Cast the found document to IOrder
-//   const order = (await Order.findById(orderId)) as IOrder | null
+//   const order = (await Order.findById(orderId).session(
+//     session || null,
+//   )) as IOrder | null
 //   if (!order) return
 
-//   // Type the accumulator: Record<string, IOrderItem[]>
 //   const vendorGroups = order.items.reduce<Record<string, IOrderItem[]>>(
 //     (groups, item) => {
 //       const vendorId = item.vendor.toString()
@@ -29,28 +281,33 @@
 //     {},
 //   )
 
-//   // Iterate through the grouped items
 //   for (const vendorId in vendorGroups) {
 //     const items = vendorGroups[vendorId]
 
-//     // Create the shipment with strict property mapping
-//     const newShipment = (await Shipment.create({
-//       order: order._id,
-//       vendor: vendorId,
-//       orderItems: items.map((i: IOrderItem) => ({
-//         productId: i.product,
-//         quantity: i.quantity,
-//         name: i.name,
-//       })),
-//       carrier: 'Velora Logistics',
-//       status: 'label_created',
-//     })) as IShipment
+//     const [newShipment] = await Shipment.create(
+//       [
+//         {
+//           order: order._id,
+//           vendor: vendorId,
+//           orderItems: items.map((i: IOrderItem) => ({
+//             productId: i.product,
+//             quantity: i.quantity,
+//             name: i.name,
+//           })),
+//           carrier: 'Velora Logistics',
+//           status: 'label_created',
+//         },
+//       ],
+//       session ? { session } : {},
+//     )
 
-//     // Link the items in the Order model back to this shipment using arrayFilters
 //     await Order.updateOne(
 //       { _id: orderId, 'items.vendor': vendorId },
 //       { $set: { 'items.$[elem].shipment': newShipment._id } },
-//       { arrayFilters: [{ 'elem.vendor': vendorId }] },
+//       {
+//         arrayFilters: [{ 'elem.vendor': vendorId }],
+//         ...(session ? { session } : {}),
+//       },
 //     )
 //   }
 // }
@@ -61,8 +318,6 @@
 //   trackingNumber?: string,
 // ): Promise<Serialized<IShipment>> {
 //   await connectDB()
-
-//   const VENDOR_RESTRICTED_STATUSES = ['out_for_delivery', 'delivered']
 
 //   const session = await mongoose.startSession()
 //   session.startTransaction()
@@ -96,45 +351,33 @@
 
 //     if (!shipment) throw new Error('Update failed')
 
-//     // 5. UPDATE ORDER ITEM STATUS
 //     await Order.updateOne(
 //       { _id: shipment.order._id, 'items.shipment': shipmentId },
 //       {
 //         $set: {
 //           'items.$[elem].status': status,
-//           // Syncing vendorStatus ensures the Admin dashboard progress bars update
 //           'items.$[elem].vendorStatus': status,
 //         },
 //       },
-//       {
-//         arrayFilters: [{ 'elem.shipment': shipmentId }],
-//         session,
-//       },
+//       { arrayFilters: [{ 'elem.shipment': shipmentId }], session },
 //     )
 
-//     // 6. CALCULATE GLOBAL ORDER PROGRESSION (Updated Logic)
 //     const parentOrder = (await Order.findById(shipment.order._id).session(
 //       session,
 //     )) as IOrder | null
+//     let newGlobalStatus = parentOrder?.orderStatus
 
 //     if (parentOrder) {
 //       const statuses = parentOrder.items.map((item) => item.status)
-//       let newGlobalStatus = parentOrder.orderStatus
-
-//       // If ALL items are delivered
 //       if (statuses.every((s) => s === 'delivered')) {
 //         newGlobalStatus = 'delivered'
-//       }
-//       // If ALL items are at least 'in_transit' (shipped from vendor)
-//       else if (
+//       } else if (
 //         statuses.every((s) =>
 //           ['in_transit', 'out_for_delivery', 'delivered'].includes(s),
 //         )
 //       ) {
 //         newGlobalStatus = 'shipped'
-//       }
-//       // If ANY items have moved beyond 'pending'
-//       else if (
+//       } else if (
 //         statuses.some((s) => ['in_transit', 'ready_for_pickup'].includes(s))
 //       ) {
 //         newGlobalStatus = 'processing'
@@ -151,19 +394,16 @@
 
 //     await session.commitTransaction()
 
-//     // --- BROADCAST THE LOGISTICS CHANGE REAL TIME ---
+//     // --- REALTIME BROADCAST ---
 //     try {
-//       await pusherServer.trigger(
-//         'logistics-fleet-channel',
-//         'shipment-status-updated',
-//         {
-//           shipmentId,
-//           status,
-//           updatedAt: new Date(),
-//         },
-//       )
+//       await pusherServer.trigger('global-orders-channel', 'order-updated', {
+//         orderId: shipment.order._id.toString(),
+//         shipmentId,
+//         status,
+//         globalStatus: newGlobalStatus,
+//       })
 //     } catch (e) {
-//       console.error('Logistics streaming channel error:', e)
+//       console.error('Logistics live pipeline stream failure:', e)
 //     }
 
 //     revalidatePath(`/vendor/orders/${shipmentId}`)
@@ -173,15 +413,12 @@
 //     return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
 //   } catch (error) {
 //     await session.abortTransaction()
-//     console.error('Shipment Status Update Failed:', error)
 //     throw error
 //   } finally {
 //     session.endSession()
 //   }
 // }
-// /**
-//  * Adds a tracking log entry and updates the shipment status
-//  */
+
 // export async function addLogisticsUpdate(
 //   shipmentId: string,
 //   status: IShipment['status'],
@@ -190,7 +427,6 @@
 // ) {
 //   await connectDB()
 
-//   // Find shipment to get parent order
 //   const shipment = await Shipment.findById(shipmentId)
 //   if (!shipment) throw new Error('Shipment not found')
 
@@ -209,12 +445,6 @@
 //     { new: true },
 //   ).lean()
 
-//   // NEW LOGIC: Sync the exact status to vendorStatus.
-//   // When 'delivered' (to Hub), it will match the 'in_transit' logic
-//   // we set up in the Admin Table and Single Order pages.
-//   // If you specifically want 'delivered' to trigger the "READY" state,
-//   // we use 'in_transit' here.
-
 //   const mappedStatus = status === 'delivered' ? 'in_transit' : status
 
 //   await Order.updateOne(
@@ -223,29 +453,43 @@
 //     { arrayFilters: [{ 'elem.shipment': shipmentId }] },
 //   )
 
+//   try {
+//     await pusherServer.trigger('global-orders-channel', 'order-updated', {
+//       orderId: shipment.order.toString(),
+//       shipmentId,
+//       status: mappedStatus,
+//     })
+//   } catch (e) {
+//     console.error('Logistics update transmission error:', e)
+//   }
+
 //   revalidatePath('/admin/logistics')
 //   revalidatePath(`/admin/orders/${shipment.order}`)
 
 //   return JSON.parse(JSON.stringify(updatedShipment))
 // }
 
-// /**
-//  * Fetches a single shipment with populated details
-//  */
 // export async function getShipmentDetails(
 //   shipmentId: string,
 // ): Promise<Serialized<IShipment> | null> {
 //   await connectDB()
-
 //   const shipment = await Shipment.findById(shipmentId)
 //     .populate('vendor')
 //     .populate('order')
 //     .lean()
-
 //   if (!shipment) return null
-
 //   return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
 // }
+
+
+
+
+
+
+
+
+
+
 
 // /app/services/logisticsService.ts
 'use server'
@@ -254,10 +498,60 @@ import connectDB from '@/app/lib/mongodb'
 import { pusherServer } from '@/app/lib/pusherServer'
 import { Order } from '@/app/models/Order'
 import { Shipment } from '@/app/models/Shipment'
+import { Notification } from '@/app/models/Notification'
 import { IOrder, IOrderItem, IShipment, Serialized } from '@/app/types'
 import mongoose, { ClientSession } from 'mongoose'
 import { revalidatePath } from 'next/cache'
 
+/**
+ * Shared utility to dispatch standard notification alerts across database & pusher real-time layers
+ */
+
+async function sendSystemNotification(
+  recipientId: string,
+  role: 'admin' | 'vendor' | 'customer',
+  title: string,
+  message: string,
+  orderId: string,
+  session?: ClientSession
+) {
+  try {
+    const [alert] = await Notification.create(
+      [
+        {
+          recipient: recipientId,
+          recipientRole: role,
+          title,
+          message,
+          associatedOrder: orderId,
+        },
+      ],
+      session ? { session } : {}
+    )
+
+    // --- ALIGNED WITH YOUR SHELL SUBSCRIPTIONS ---
+    let channelName = `private-user-${recipientId}`
+    let eventName = 'new-notification'
+
+    if (role === 'admin') {
+      channelName = 'private-admin-system-channel'
+      eventName = 'admin-notification'
+    }
+
+    await pusherServer.trigger(channelName, eventName, {
+      id: alert._id.toString(),
+      title,
+      message,
+      read: false,
+      createdAt: alert.createdAt,
+    })
+  } catch (err) {
+    console.error(`Pusher notification delivery signaling exception:`, err)
+  }
+}
+/**
+ * Initial setup: Runs during checkout completion to group order items by their vendor workspaces
+ */
 export async function initializeShipments(
   orderId: string,
   session?: ClientSession,
@@ -296,6 +590,13 @@ export async function initializeShipments(
           })),
           carrier: 'Velora Logistics',
           status: 'label_created',
+          statusHistory: [
+            {
+              status: 'label_created',
+              timestamp: new Date(),
+              description: 'Shipment label initialized after checkout completion.',
+            },
+          ],
         },
       ],
       session ? { session } : {},
@@ -312,10 +613,16 @@ export async function initializeShipments(
   }
 }
 
-export async function updateShipmentStatus(
+/**
+ * VENDOR ACTION
+ * Triggered from /app/(vendor)/vendor/orders/[id]/page.tsx via VendorShipmentForm
+ * Updates tracking records and marks the parcel as moving toward your processing facility
+ */
+export async function vendorUpdateShipmentStatus(
   shipmentId: string,
-  status: string,
-  trackingNumber?: string,
+  status: 'in_transit' | 'out_for_delivery',
+  trackingNumber: string,
+  updatedByUserId: string
 ): Promise<Serialized<IShipment>> {
   await connectDB()
 
@@ -324,91 +631,78 @@ export async function updateShipmentStatus(
 
   try {
     const currentShipment = await Shipment.findById(shipmentId).session(session)
-    if (!currentShipment) throw new Error('Shipment record not found')
-
-    if (currentShipment.status === 'delivered') {
-      throw new Error(
-        'Cannot update a shipment that has already been delivered',
-      )
-    }
+    if (!currentShipment) throw new Error('Shipment record could not be found')
 
     const shipment = (await Shipment.findByIdAndUpdate(
       shipmentId,
       {
         status,
-        trackingNumber: trackingNumber || currentShipment.trackingNumber,
+        trackingNumber,
         updatedAt: new Date(),
         $push: {
           statusHistory: {
             status,
             timestamp: new Date(),
-            description: `Status updated to ${status.replace('_', ' ')} via Marketplace Portal.`,
+            description: `Package picked up by courier. Tracking ID: ${trackingNumber}. Moving toward Central Hub.`,
+            updatedBy: updatedByUserId,
           },
         },
       },
       { new: true, session },
     ).populate('order')) as (IShipment & { order: IOrder }) | null
 
-    if (!shipment) throw new Error('Update failed')
+    if (!shipment) throw new Error('Shipment status update process failed')
 
+    // Update specific vendor items inside the master customer order document
     await Order.updateOne(
       { _id: shipment.order._id, 'items.shipment': shipmentId },
       {
         $set: {
-          'items.$[elem].status': status,
+          'items.$[elem].status': 'in_transit',
           'items.$[elem].vendorStatus': status,
         },
       },
       { arrayFilters: [{ 'elem.shipment': shipmentId }], session },
     )
 
-    const parentOrder = (await Order.findById(shipment.order._id).session(
-      session,
-    )) as IOrder | null
+    const parentOrder = (await Order.findById(shipment.order._id).session(session)) as IOrder | null
     let newGlobalStatus = parentOrder?.orderStatus
 
     if (parentOrder) {
-      const statuses = parentOrder.items.map((item) => item.status)
-      if (statuses.every((s) => s === 'delivered')) {
-        newGlobalStatus = 'delivered'
-      } else if (
-        statuses.every((s) =>
-          ['in_transit', 'out_for_delivery', 'delivered'].includes(s),
-        )
-      ) {
-        newGlobalStatus = 'shipped'
-      } else if (
-        statuses.some((s) => ['in_transit', 'ready_for_pickup'].includes(s))
-      ) {
+      const itemStatuses = parentOrder.items.map((item) => item.status)
+      if (itemStatuses.some((s) => ['in_transit', 'ready_for_pickup'].includes(s))) {
         newGlobalStatus = 'processing'
       }
 
       if (newGlobalStatus !== parentOrder.orderStatus) {
-        await Order.findByIdAndUpdate(
-          parentOrder._id,
-          { orderStatus: newGlobalStatus },
-          { session },
-        )
+        await Order.findByIdAndUpdate(parentOrder._id, { orderStatus: newGlobalStatus }, { session })
       }
     }
 
     await session.commitTransaction()
 
-    // --- REALTIME BROADCAST ---
+    // Stream real-time dashboard events to listening admin views
     try {
-      await pusherServer.trigger('global-orders-channel', 'order-updated', {
-        orderId: shipment.order._id.toString(),
+      await pusherServer.trigger('logistics-fleet-channel', 'shipment-status-updated', {
         shipmentId,
         status,
-        globalStatus: newGlobalStatus,
       })
     } catch (e) {
-      console.error('Logistics live pipeline stream failure:', e)
+      console.error('Realtime broadcast error:', e)
     }
 
+    // Ping Customer 
+    await sendSystemNotification(
+      shipment.order.user.toString(),
+      'customer',
+      'Your shipment is on its way!',
+      `Vendor has dispatched items under Tracking: ${trackingNumber} to our central facility.`,
+      shipment.order._id.toString()
+    )
+
     revalidatePath(`/vendor/orders/${shipmentId}`)
+    revalidatePath(`/admin/logistics`)
     revalidatePath(`/admin/orders/${shipment.order._id}`)
-    revalidatePath('/profile/orders')
 
     return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
   } catch (error) {
@@ -419,56 +713,105 @@ export async function updateShipmentStatus(
   }
 }
 
+/**
+ * ADMIN HUB ACTION
+ * Triggered from /app/(admin)/admin/logistics/page.tsx via LogisticsActionMenu
+ * Handles arrival receipts ('delivered' -> Arrived at Hub), or sorting exception markers
+ */
 export async function addLogisticsUpdate(
   shipmentId: string,
-  status: IShipment['status'],
+  status: 'delivered' | 'failed_attempt' | 'returned',
   location: string,
   description: string,
-) {
+): Promise<Serialized<IShipment>> {
   await connectDB()
 
-  const shipment = await Shipment.findById(shipmentId)
-  if (!shipment) throw new Error('Shipment not found')
-
-  const updatedShipment = await Shipment.findByIdAndUpdate(
-    shipmentId,
-    {
-      $set: { status },
-      $push: {
-        statusHistory: {
-          status,
-          timestamp: new Date(),
-          description: `[${location}] - ${description}`,
-        },
-      },
-    },
-    { new: true },
-  ).lean()
-
-  const mappedStatus = status === 'delivered' ? 'in_transit' : status
-
-  await Order.updateOne(
-    { _id: shipment.order, 'items.shipment': shipmentId },
-    { $set: { 'items.$[elem].vendorStatus': mappedStatus } },
-    { arrayFilters: [{ 'elem.shipment': shipmentId }] },
-  )
+  const session = await mongoose.startSession()
+  session.startTransaction()
 
   try {
-    await pusherServer.trigger('global-orders-channel', 'order-updated', {
-      orderId: shipment.order.toString(),
+    const currentShipment = await Shipment.findById(shipmentId).session(session)
+    if (!currentShipment) throw new Error('Target shipment context not found')
+
+    const shipment = (await Shipment.findByIdAndUpdate(
       shipmentId,
-      status: mappedStatus,
-    })
-  } catch (e) {
-    console.error('Logistics update transmission error:', e)
+      {
+        $set: { status },
+        $push: {
+          statusHistory: {
+            status,
+            timestamp: new Date(),
+            description: `[${location}] - ${description}`,
+          },
+        },
+      },
+      { new: true, session },
+    ).populate('order')) as (IShipment & { order: IOrder }) | null
+
+    if (!shipment) throw new Error('Failed to append logistics log history')
+
+    // Map intermediate vendor status safely so it doesn't break master customer status flows
+    const mappedOrderArrayStatus = status === 'delivered' ? 'in_transit' : status
+
+    await Order.updateOne(
+      { _id: shipment.order._id, 'items.shipment': shipmentId },
+      { $set: { 'items.$[elem].vendorStatus': status, 'items.$[elem].status': mappedOrderArrayStatus } },
+      { arrayFilters: [{ 'elem.shipment': shipmentId }], session },
+    )
+
+    const parentOrder = (await Order.findById(shipment.order._id).session(session)) as IOrder | null
+    let newGlobalStatus = parentOrder?.orderStatus
+
+    if (parentOrder) {
+      const allVendorShipments = await Shipment.find({ order: parentOrder._id }).session(session)
+      const allArrivedAtHub = allVendorShipments.every(s => s.status === 'delivered')
+
+      if (allArrivedAtHub) {
+        newGlobalStatus = 'ready_for_consolidation' // Transition order out of general processing once sorting hub clears items
+      }
+
+      if (newGlobalStatus !== parentOrder.orderStatus) {
+        await Order.findByIdAndUpdate(parentOrder._id, { orderStatus: newGlobalStatus }, { session })
+      }
+    }
+
+    await session.commitTransaction()
+
+    // Trigger instant client updates over your WebSockets to refresh the Admin dashboard rows seamlessly
+    try {
+      await pusherServer.trigger('logistics-fleet-channel', 'shipment-status-updated', {
+        shipmentId,
+        status,
+      })
+    } catch (e) {
+      console.error('Pusher event deployment error:', e)
+    }
+
+    // Context updates for both Vendors and Buyers on receipt checking status actions
+    await sendSystemNotification(
+      shipment.vendor.toString(),
+      'vendor',
+      status === 'delivered' ? 'Package Arrived at Hub' : 'Shipment Exception at Hub',
+      `Your parcel for Order #${shipment.order.orderNumber} is marked as: ${description}`,
+      shipment.order._id.toString()
+    )
+
+    revalidatePath('/admin/logistics')
+    revalidatePath(`/admin/orders/${shipment.order._id}`)
+    revalidatePath(`/vendor/orders/${shipmentId}`)
+
+    return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
+  } catch (error) {
+    await session.abortTransaction()
+    throw error
+  } finally {
+    session.endSession()
   }
-
-  revalidatePath('/admin/logistics')
-  revalidatePath(`/admin/orders/${shipment.order}`)
-
-  return JSON.parse(JSON.stringify(updatedShipment))
 }
 
+/**
+ * Standard detail data fetcher layout matching internal components
+ */
 export async function getShipmentDetails(
   shipmentId: string,
 ): Promise<Serialized<IShipment> | null> {

@@ -1,16 +1,10 @@
 // /app/models/Shipment.ts
-
 import { Schema, model, models } from 'mongoose'
 
 const ShipmentSchema = new Schema(
   {
-    // Link to parent order
     order: { type: Schema.Types.ObjectId, ref: 'Order', required: true },
-
-    // The specific vendor this shipment belongs to
     vendor: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-
-    // The specific items from the order included in this package
     orderItems: [
       {
         productId: { type: Schema.Types.ObjectId, ref: 'Product' },
@@ -19,36 +13,37 @@ const ShipmentSchema = new Schema(
       },
     ],
 
-    // Logistics Details
     trackingNumber: { type: String, unique: true, sparse: true },
-    carrier: { type: String, default: 'Velora Logistics' }, // e.g., GIG, DHL, Local Courier
+    carrier: { type: String, default: 'Velora Logistics' },
 
+    // REALIGNED STATUSES TO REFLECT THE CENTRALIZED HUB SYSTEM
     status: {
       type: String,
       enum: [
-        'label_created',
-        'pickup_pending',
-        'in_transit',
-        'out_for_delivery',
-        'delivered',
+        'label_created', // Vendor packed the package
+        'handed_over_to_courier', // Vendor dispatched package to logistics courier
+        'in_transit_to_hub', // Logistics is transporting item to Velora Central Hub
+        'received_at_hub', // Admin accepted and checked the item at the hub
+        'rejected_at_hub', // Admin rejected item at the hub (damaged, wrong item, etc)
+        'out_for_delivery', // Hub dispatched item directly to the buyer
+        'delivered', // Received by client
         'failed_attempt',
-        'returned',
+        'returned_to_vendor',
       ],
       default: 'label_created',
     },
 
-    // Timeline for tracking
     statusHistory: [
       {
         status: String,
         timestamp: { type: Date, default: Date.now },
-        description: String, // e.g., "Package arrived at Ogbomoso Hub"
+        description: String,
+        updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
       },
     ],
 
     estimatedDelivery: Date,
     actualDelivery: Date,
-
     shippingLabelUrl: String,
     notes: String,
   },

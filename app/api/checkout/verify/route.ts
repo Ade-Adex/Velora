@@ -181,8 +181,6 @@
 
 
 
-
-
 // /app/api/checkout/verify/route.ts
 
 import connectDB from '@/app/lib/mongodb'
@@ -263,7 +261,6 @@ export async function GET(req: Request) {
         throw new VerificationError('order_not_found')
       }
 
-      // If already processed by a previous webhook or click, short-circuit gracefully
       if (existingOrder.paymentStatus === 'paid') {
         await session.abortTransaction()
         session.endSession()
@@ -291,7 +288,7 @@ export async function GET(req: Request) {
         }
       }
 
-      // Update Order Status cleanly
+      // Update Order Status and fully populate products to read vendor identifiers
       const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
         {
@@ -300,38 +297,76 @@ export async function GET(req: Request) {
           orderStatus: 'confirmed',
         },
         { session, new: true },
-      ).populate('items.product')
+      ).populate({
+        path: 'items.product',
+        model: Product,
+      })
 
-      // Execute shipment registration using the shared transaction session
+      // Execute shipment registration
       await initializeShipments(orderId, session)
 
       await session.commitTransaction()
       session.endSession()
 
-      // --- LIVE DATA DISPATCH (Out of the database transaction block) ---
+      // --- TARGETED REALTIME DISPATCH BLOCK ---
       try {
-        await Promise.all([
-          pusherServer.trigger('global-orders-channel', 'order-created', {
-            orderId,
-            orderStatus: 'confirmed',
-            paymentStatus: 'paid',
-            orderNumber: updatedOrder?.orderNumber,
-          }),
-          pusherServer.trigger('admin-orders-channel', 'new-order', {
-            orderId,
-            message: 'A new order has been paid and confirmed!',
-          }),
-          pusherServer.trigger('vendor-orders-channel', 'vendor-update', {
-            orderId,
-            message: 'New inventory allocation ready for dispatch.',
-          }),
-        ])
+        const timestamp = new Date().toISOString()
+        const pusherPromises: Promise<unknown>[] = []
+
+        // 1. Dispatch System Alert to Admin Shell
+        pusherPromises.push(
+          pusherServer.trigger(
+            'private-admin-system-channel',
+            'admin-notification',
+            {
+              id: `admin-${orderId}-${Date.now()}`,
+              title: 'New Paid Order',
+              message: `Order #${updatedOrder?.orderNumber || orderId} has been successfully verified via Paystack.`,
+              read: false,
+              createdAt: timestamp,
+            },
+          ),
+        )
+
+        // 2. Identify unique vendors from line items and dispatch personalized alerts
+        if (updatedOrder?.items) {
+          const uniqueVendorIds = new Set<string>()
+
+          for (const item of updatedOrder.items) {
+            // Pulling directly from item.vendor based on your IOrderItem interface
+            if (item.vendor) {
+              uniqueVendorIds.add(item.vendor.toString())
+            }
+          }
+
+          // Trigger real-time notifications to each specific vendor's secure shell channel
+          uniqueVendorIds.forEach((vendorId) => {
+            pusherPromises.push(
+              pusherServer.trigger(
+                `private-user-${vendorId}`,
+                'new-notification',
+                {
+                  id: `vendor-${orderId}-${vendorId}-${Date.now()}`,
+                  title: 'New Order Received!',
+                  message: `You have new item allocations ready for dispatch under order #${updatedOrder.orderNumber || orderId}.`,
+                  read: false,
+                  createdAt: timestamp,
+                },
+              ),
+            )
+          })
+        }
+
+        // Execute all real-time events concurrently out of the database lock
+        await Promise.all(pusherPromises)
       } catch (pusherError) {
-        // Log pusher errors out but don't break the customer user flow experience!
-        console.error('Pusher background notification failed:', pusherError)
+        console.error(
+          'Pusher background notification failed safely:',
+          pusherError,
+        )
       }
 
-      // Clear route caches so dashboard components render fresh data immediately
+      // Clear route caches so dashboard views update seamlessly
       revalidatePath('/admin/orders')
       revalidatePath('/vendor/orders')
 

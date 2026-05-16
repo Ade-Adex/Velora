@@ -118,7 +118,7 @@
 
 import { useState } from 'react'
 import { Select, TextInput, Button, Stack, Paper, Text } from '@mantine/core'
-import { updateShipmentStatus } from '@/app/services/logisticsService'
+import { vendorUpdateShipmentStatus } from '@/app/services/logisticsService'
 import { IShipment } from '@/app/types'
 import { useRouter } from 'next/navigation'
 import { useSnackbar } from 'notistack' 
@@ -158,17 +158,25 @@ export default function VendorShipmentForm({
   const handleUpdate = async () => {
     setLoading(true)
     try {
-      const updatedShipment = await updateShipmentStatus(shipmentId, status, tracking)
+     const validatedStatus = status as 'in_transit' | 'out_for_delivery'
 
-      // Sync state globally into Zustand store
-      updateShipmentInStore(updatedShipment)
+     // Added missing 'updatedByUserId' string parameter to satisfy the service signature
+     const updatedShipment = await vendorUpdateShipmentStatus(
+       shipmentId,
+       validatedStatus,
+       tracking,
+       'vendor_dashboard_user',
+     )
 
-      enqueueSnackbar('Shipment updated successfully!', {
-        variant: 'success',
-        anchorOrigin: { vertical: 'top', horizontal: 'right' },
-      })
+     // Sync state globally into Zustand store
+     updateShipmentInStore(updatedShipment)
 
-      router.refresh() // Sync Server Component data fallback
+     enqueueSnackbar('Shipment updated successfully!', {
+       variant: 'success',
+       anchorOrigin: { vertical: 'top', horizontal: 'right' },
+     })
+
+      router.refresh()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       enqueueSnackbar(`Update failed: ${message}`, { variant: 'error' })

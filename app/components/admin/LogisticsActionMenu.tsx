@@ -1,13 +1,14 @@
 // // /app/components/admin/LogisticsActionMenu.tsx
-
 // 'use client'
 
 // import { ActionIcon, Menu } from '@mantine/core'
 // import { MoreVertical, CheckCircle, AlertTriangle, Undo2 } from 'lucide-react'
 // import { useTransition } from 'react'
 // import { useSnackbar } from 'notistack'
+// import { useRouter } from 'next/navigation' // Add this
 // import { addLogisticsUpdate } from '@/app/services/logisticsService'
 // import { IShipment } from '@/app/types'
+// import { useShipmentStore } from '@/app/store/useShipmentStore'
 
 // interface Props {
 //   shipmentId: string
@@ -17,11 +18,20 @@
 // export default function LogisticsActionMenu({ shipmentId, currentStatus }: Props) {
 //   const [isPending, startTransition] = useTransition()
 //   const { enqueueSnackbar } = useSnackbar()
+//   const router = useRouter() // Initialize router
+//   const updateShipmentInStore = useShipmentStore((state) => state.updateShipmentInStore)
 
 //   const handleUpdate = (status: IShipment['status'], description: string) => {
 //     startTransition(async () => {
 //       try {
-//         await addLogisticsUpdate(shipmentId, status, 'Logistics Hub', description)
+//         const updatedShipment = await addLogisticsUpdate(shipmentId, status, 'Logistics Hub', description)
+        
+//         // Push the update into the global state store instantly
+//         updateShipmentInStore(updatedShipment)
+
+//         // Force Next.js to pull fresh Server Component data immediately
+//         router.refresh()
+
 //         enqueueSnackbar(`Shipment marked as ${status.replace('_', ' ')}`, { variant: 'success' })
 //       } catch (error) {
 //         enqueueSnackbar('Failed to update status', { variant: 'error' })
@@ -60,6 +70,7 @@
 //         <Menu.Item
 //           leftSection={<AlertTriangle size={14} />}
 //           color="red"
+//           disabled={currentStatus === 'failed_attempt'}
 //           onClick={() =>
 //             handleUpdate(
 //               'failed_attempt',
@@ -73,6 +84,7 @@
 //         <Menu.Item
 //           leftSection={<Undo2 size={14} />}
 //           color="pink"
+//           disabled={currentStatus === 'returned'}
 //           onClick={() =>
 //             handleUpdate('returned', 'Initiating return to vendor')
 //           }
@@ -86,7 +98,6 @@
 
 
 
-
 // /app/components/admin/LogisticsActionMenu.tsx
 'use client'
 
@@ -94,7 +105,7 @@ import { ActionIcon, Menu } from '@mantine/core'
 import { MoreVertical, CheckCircle, AlertTriangle, Undo2 } from 'lucide-react'
 import { useTransition } from 'react'
 import { useSnackbar } from 'notistack'
-import { useRouter } from 'next/navigation' // Add this
+import { useRouter } from 'next/navigation' 
 import { addLogisticsUpdate } from '@/app/services/logisticsService'
 import { IShipment } from '@/app/types'
 import { useShipmentStore } from '@/app/store/useShipmentStore'
@@ -107,10 +118,14 @@ interface Props {
 export default function LogisticsActionMenu({ shipmentId, currentStatus }: Props) {
   const [isPending, startTransition] = useTransition()
   const { enqueueSnackbar } = useSnackbar()
-  const router = useRouter() // Initialize router
+  const router = useRouter() 
   const updateShipmentInStore = useShipmentStore((state) => state.updateShipmentInStore)
 
-  const handleUpdate = (status: IShipment['status'], description: string) => {
+  // Tightened the type here to match what addLogisticsUpdate expects
+  const handleUpdate = (
+    status: 'delivered' | 'failed_attempt' | 'returned', 
+    description: string
+  ) => {
     startTransition(async () => {
       try {
         const updatedShipment = await addLogisticsUpdate(shipmentId, status, 'Logistics Hub', description)
