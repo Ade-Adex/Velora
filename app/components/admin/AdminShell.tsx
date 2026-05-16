@@ -285,6 +285,7 @@ import { useUserStore } from '@/app/store/useUserStore'
 import { IUser, Serialized } from '@/app/types'
 import { Bell, Inbox, Check } from 'lucide-react'
 import { pusherClient } from '@/app/lib/pusherClient'
+import { getAdminNotifications, markAdminNotificationsRead } from '@/app/services/notificationService'
 
 interface NotificationItem {
   id: string
@@ -301,10 +302,12 @@ export default function AdminShell({
   children: React.ReactNode
   user: Serialized<IUser>
 }) {
-  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure()
+  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] =
+    useDisclosure()
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true)
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false)
-  
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false)
+
   // Notification States
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const unreadCount = notifications.filter((n) => !n.read).length
@@ -322,14 +325,12 @@ export default function AdminShell({
   }
 
   // Fetch initial system/admin notifications on mount
+  // Fetch initial system/admin notifications using Server Action
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch('/api/admin/notifications')
-        if (res.ok) {
-          const data: NotificationItem[] = await res.json()
-          setNotifications(data)
-        }
+        const data = await getAdminNotifications()
+        setNotifications(data)
       } catch (err) {
         console.error('Failed to load admin notifications:', err)
       }
@@ -342,7 +343,6 @@ export default function AdminShell({
   useEffect(() => {
     if (!user?._id) return
 
-    // Standard channel for site administrators/system alerts
     const channelName = 'private-admin-system-channel'
     const channel = pusherClient.subscribe(channelName)
 
@@ -358,11 +358,11 @@ export default function AdminShell({
     }
   }, [user?._id])
 
-  // Mark all admin notifications as read
+  // Mark all admin notifications as read using Server Action
   const markAllAsRead = async () => {
     try {
-      const res = await fetch('/api/admin/notifications/read', { method: 'POST' })
-      if (res.ok) {
+      const success = await markAdminNotificationsRead()
+      if (success) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
       }
     } catch (err) {
@@ -436,7 +436,11 @@ export default function AdminShell({
                 </ActionIcon>
               </Indicator>
 
-              <UserMenu user={user} onLogout={handleLogout} variant="dashboard" />
+              <UserMenu
+                user={user}
+                onLogout={handleLogout}
+                variant="dashboard"
+              />
             </Group>
           </Group>
         </AppShell.Header>
@@ -494,13 +498,23 @@ export default function AdminShell({
                     radius="md"
                     bg={notif.read ? 'white' : 'red.0'}
                     style={{
-                      borderColor: notif.read ? undefined : 'var(--mantine-color-red-2)',
-                      transition: 'background-color 0.2s ease'
+                      borderColor: notif.read
+                        ? undefined
+                        : 'var(--mantine-color-red-2)',
+                      transition: 'background-color 0.2s ease',
                     }}
                   >
-                    <Group justify="space-between" wrap="nowrap" align="flex-start">
+                    <Group
+                      justify="space-between"
+                      wrap="nowrap"
+                      align="flex-start"
+                    >
                       <Stack gap={2} style={{ flex: 1 }}>
-                        <Text size="sm" fw={notif.read ? 700 : 800} c={notif.read ? 'gray.8' : 'red.9'}>
+                        <Text
+                          size="sm"
+                          fw={notif.read ? 700 : 800}
+                          c={notif.read ? 'gray.8' : 'red.9'}
+                        >
                           {notif.title}
                         </Text>
                         <Text size="xs" c="gray.6">
@@ -512,7 +526,11 @@ export default function AdminShell({
                           w={8}
                           h={8}
                           bg="red.6"
-                          style={{ borderRadius: '50%', flexShrink: 0, marginTop: 6 }}
+                          style={{
+                            borderRadius: '50%',
+                            flexShrink: 0,
+                            marginTop: 6,
+                          }}
                         />
                       )}
                     </Group>

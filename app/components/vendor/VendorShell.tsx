@@ -132,6 +132,7 @@ import { IUser, Serialized } from '@/app/types'
 import { PanelLeftClose, PanelLeft, Bell, Inbox, Check } from 'lucide-react'
 import { useUserStore } from '@/app/store/useUserStore'
 import { pusherClient } from '@/app/lib/pusherClient'
+import { getVendorNotifications, markVendorNotificationsRead } from '@/app/services/notificationService'
 
 interface NotificationItem {
   id: string
@@ -148,9 +149,11 @@ export default function VendorShell({
   children: React.ReactNode
   user: Serialized<IUser>
 }) {
-  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure()
+  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] =
+    useDisclosure()
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true)
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false)
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false)
   const isMobile = useMediaQuery('(max-width: 48em)')
 
   // Notification States
@@ -158,7 +161,7 @@ export default function VendorShell({
   const unreadCount = notifications.filter((n) => !n.read).length
 
   const logout = useUserStore((state) => state.logout)
-  
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
@@ -169,28 +172,25 @@ export default function VendorShell({
     }
   }
 
-  // Fetch initial notifications for this specific vendor
+  // Fetch initial notifications using Server Action
   useEffect(() => {
     const fetchNotifications = async () => {
+      if (!user?._id) return
       try {
-        const res = await fetch('/api/vendor/notifications')
-        if (res.ok) {
-          const data: NotificationItem[] = await res.json()
-          setNotifications(data)
-        }
+        const data = await getVendorNotifications(user._id)
+        setNotifications(data)
       } catch (err) {
         console.error('Failed to load notifications:', err)
       }
     }
 
     fetchNotifications()
-  }, [])
+  }, [user?._id])
 
   // Listen to User-Specific Realtime Notifications via Pusher
   useEffect(() => {
     if (!user?._id) return
 
-    // Dynamic channel matched specifically to this logged-in vendor id
     const channelName = `private-user-${user._id}`
     const channel = pusherClient.subscribe(channelName)
 
@@ -206,11 +206,12 @@ export default function VendorShell({
     }
   }, [user?._id])
 
-  // Mark all visible notifications as read
+  // Mark all visible notifications as read using Server Action
   const markAllAsRead = async () => {
+    if (!user?._id) return
     try {
-      const res = await fetch('/api/vendor/notifications/read', { method: 'POST' })
-      if (res.ok) {
+      const success = await markVendorNotificationsRead(user._id)
+      if (success) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
       }
     } catch (err) {
@@ -342,13 +343,23 @@ export default function VendorShell({
                   radius="md"
                   bg={notif.read ? 'white' : 'blue.0'}
                   style={{
-                    borderColor: notif.read ? undefined : 'var(--mantine-color-blue-2)',
-                    transition: 'background-color 0.2s ease'
+                    borderColor: notif.read
+                      ? undefined
+                      : 'var(--mantine-color-blue-2)',
+                    transition: 'background-color 0.2s ease',
                   }}
                 >
-                  <Group justify="space-between" wrap="nowrap" align="flex-start">
+                  <Group
+                    justify="space-between"
+                    wrap="nowrap"
+                    align="flex-start"
+                  >
                     <Stack gap={2} style={{ flex: 1 }}>
-                      <Text size="sm" fw={notif.read ? 700 : 800} c={notif.read ? 'gray.8' : 'indigo.9'}>
+                      <Text
+                        size="sm"
+                        fw={notif.read ? 700 : 800}
+                        c={notif.read ? 'gray.8' : 'indigo.9'}
+                      >
                         {notif.title}
                       </Text>
                       <Text size="xs" c="gray.6">
@@ -360,7 +371,11 @@ export default function VendorShell({
                         w={8}
                         h={8}
                         bg="blue.6"
-                        style={{ borderRadius: '50%', flexShrink: 0, marginTop: 6 }}
+                        style={{
+                          borderRadius: '50%',
+                          flexShrink: 0,
+                          marginTop: 6,
+                        }}
                       />
                     )}
                   </Group>
