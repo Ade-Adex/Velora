@@ -1,20 +1,12 @@
 // /app/lib/pusherClient.ts
-'use client'
 
-import PusherClient from 'pusher-js'
+import Pusher from 'pusher-js'
 
-// Safely describe the shape Turbopack might use under the hood
-interface TurbopackPusher {
-  default?: typeof PusherClient
-}
-
-const PusherCtor =
-  (PusherClient as unknown as TurbopackPusher).default || PusherClient
-
-export const pusherClient = new PusherCtor(
-  process.env.NEXT_PUBLIC_PUSHER_KEY!,
-  {
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    forceTLS: true,
-  },
-)
+// Ensure the code safely skips constructor initialization if executed on the server side
+export const pusherClient =
+  typeof window !== 'undefined'
+    ? new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        // If using standard user authentication or custom endpoints, add them here
+      })
+    : (null as unknown as Pusher)
