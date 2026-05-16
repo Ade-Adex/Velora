@@ -1,22 +1,22 @@
 // /app/components/admin/RealtimeAdminTable.tsx
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { pusherClient } from '@/app/lib/pusherClient'
+import { IOrder, IUser, Serialized } from '@/app/types'
 import {
-  Table,
+  ActionIcon,
   Badge,
   Button,
-  Paper,
-  Text,
   Group,
+  Paper,
   Stack,
-  ActionIcon,
+  Table,
+  Text,
 } from '@mantine/core'
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react'
 import Link from 'next/link'
-import { pusherClient } from '@/app/lib/pusher'
-import { IOrder, IUser, Serialized } from '@/app/types'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 // Define explicit component prop contracts
 interface PopulatedAdminOrder extends Omit<Serialized<IOrder>, 'user'> {

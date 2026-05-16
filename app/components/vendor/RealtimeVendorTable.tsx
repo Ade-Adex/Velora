@@ -1,33 +1,35 @@
 // /app/components/vendor/RealtimeVendorTable.tsx
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import classes from '@/app/(vendor)/vendor/orders/VendorOrders.module.css'
+import { pusherClient } from '@/app/lib/pusherClient'
+import { IOrder, IUser, Serialized } from '@/app/types'
 import {
-  Table,
+  Button,
   Paper,
   ScrollArea,
-  TableThead,
-  TableTr,
-  TableTh,
+  Stack,
+  Table,
   TableTbody,
   TableTd,
+  TableTh,
+  TableThead,
+  TableTr,
   Text,
-  Stack,
-  Group,
-  Button,
 } from '@mantine/core'
 import Link from 'next/link'
-import { pusherClient } from '@/app/lib/pusher'
-import { IOrder, IUser, Serialized } from '@/app/types'
-import classes from '@/app/(vendor)/vendor/orders/VendorOrders.module.css'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 interface RealtimeVendorTableProps {
   initialOrders: Serialized<IOrder>[]
   user: Serialized<IUser>
 }
 
-export function RealtimeVendorTable({ initialOrders, user }: RealtimeVendorTableProps) {
+export function RealtimeVendorTable({
+  initialOrders,
+  user,
+}: RealtimeVendorTableProps) {
   const router = useRouter()
 
   useEffect(() => {

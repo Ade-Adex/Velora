@@ -247,24 +247,26 @@
 //   return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
 // }
 
-
-
-
 // /app/services/logisticsService.ts
 'use server'
 
 import connectDB from '@/app/lib/mongodb'
+import { pusherServer } from '@/app/lib/pusherServer'
 import { Order } from '@/app/models/Order'
 import { Shipment } from '@/app/models/Shipment'
-import { revalidatePath } from 'next/cache'
 import { IOrder, IOrderItem, IShipment, Serialized } from '@/app/types'
 import mongoose, { ClientSession } from 'mongoose'
-import { pusherServer } from '@/app/lib/pusher'
+import { revalidatePath } from 'next/cache'
 
-export async function initializeShipments(orderId: string, session?: ClientSession): Promise<void> {
+export async function initializeShipments(
+  orderId: string,
+  session?: ClientSession,
+): Promise<void> {
   await connectDB()
 
-  const order = (await Order.findById(orderId).session(session || null)) as IOrder | null
+  const order = (await Order.findById(orderId).session(
+    session || null,
+  )) as IOrder | null
   if (!order) return
 
   const vendorGroups = order.items.reduce<Record<string, IOrderItem[]>>(
@@ -282,22 +284,30 @@ export async function initializeShipments(orderId: string, session?: ClientSessi
   for (const vendorId in vendorGroups) {
     const items = vendorGroups[vendorId]
 
-    const [newShipment] = await Shipment.create([{
-      order: order._id,
-      vendor: vendorId,
-      orderItems: items.map((i: IOrderItem) => ({
-        productId: i.product,
-        quantity: i.quantity,
-        name: i.name,
-      })),
-      carrier: 'Velora Logistics',
-      status: 'label_created',
-    }], session ? { session } : {})
+    const [newShipment] = await Shipment.create(
+      [
+        {
+          order: order._id,
+          vendor: vendorId,
+          orderItems: items.map((i: IOrderItem) => ({
+            productId: i.product,
+            quantity: i.quantity,
+            name: i.name,
+          })),
+          carrier: 'Velora Logistics',
+          status: 'label_created',
+        },
+      ],
+      session ? { session } : {},
+    )
 
     await Order.updateOne(
       { _id: orderId, 'items.vendor': vendorId },
       { $set: { 'items.$[elem].shipment': newShipment._id } },
-      { arrayFilters: [{ 'elem.vendor': vendorId }], ...(session ? { session } : {}) },
+      {
+        arrayFilters: [{ 'elem.vendor': vendorId }],
+        ...(session ? { session } : {}),
+      },
     )
   }
 }
@@ -317,7 +327,9 @@ export async function updateShipmentStatus(
     if (!currentShipment) throw new Error('Shipment record not found')
 
     if (currentShipment.status === 'delivered') {
-      throw new Error('Cannot update a shipment that has already been delivered')
+      throw new Error(
+        'Cannot update a shipment that has already been delivered',
+      )
     }
 
     const shipment = (await Shipment.findByIdAndUpdate(
@@ -350,21 +362,33 @@ export async function updateShipmentStatus(
       { arrayFilters: [{ 'elem.shipment': shipmentId }], session },
     )
 
-    const parentOrder = (await Order.findById(shipment.order._id).session(session)) as IOrder | null
+    const parentOrder = (await Order.findById(shipment.order._id).session(
+      session,
+    )) as IOrder | null
     let newGlobalStatus = parentOrder?.orderStatus
 
     if (parentOrder) {
       const statuses = parentOrder.items.map((item) => item.status)
       if (statuses.every((s) => s === 'delivered')) {
         newGlobalStatus = 'delivered'
-      } else if (statuses.every((s) => ['in_transit', 'out_for_delivery', 'delivered'].includes(s))) {
+      } else if (
+        statuses.every((s) =>
+          ['in_transit', 'out_for_delivery', 'delivered'].includes(s),
+        )
+      ) {
         newGlobalStatus = 'shipped'
-      } else if (statuses.some((s) => ['in_transit', 'ready_for_pickup'].includes(s))) {
+      } else if (
+        statuses.some((s) => ['in_transit', 'ready_for_pickup'].includes(s))
+      ) {
         newGlobalStatus = 'processing'
       }
 
       if (newGlobalStatus !== parentOrder.orderStatus) {
-        await Order.findByIdAndUpdate(parentOrder._id, { orderStatus: newGlobalStatus }, { session })
+        await Order.findByIdAndUpdate(
+          parentOrder._id,
+          { orderStatus: newGlobalStatus },
+          { session },
+        )
       }
     }
 
@@ -445,9 +469,14 @@ export async function addLogisticsUpdate(
   return JSON.parse(JSON.stringify(updatedShipment))
 }
 
-export async function getShipmentDetails(shipmentId: string): Promise<Serialized<IShipment> | null> {
+export async function getShipmentDetails(
+  shipmentId: string,
+): Promise<Serialized<IShipment> | null> {
   await connectDB()
-  const shipment = await Shipment.findById(shipmentId).populate('vendor').populate('order').lean()
+  const shipment = await Shipment.findById(shipmentId)
+    .populate('vendor')
+    .populate('order')
+    .lean()
   if (!shipment) return null
   return JSON.parse(JSON.stringify(shipment)) as Serialized<IShipment>
 }

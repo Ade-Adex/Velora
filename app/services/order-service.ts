@@ -108,22 +108,19 @@
 //   return JSON.parse(JSON.stringify(order))
 // }
 
-
-
-
-
-
 // /app/services/order-service.ts
 'use server'
 
 import connectDB from '@/app/lib/mongodb'
+import { pusherServer } from '@/app/lib/pusherServer'
 import { Order } from '@/app/models/Order'
-import { Serialized, IOrder } from '@/app/types'
+import { IOrder, Serialized } from '@/app/types'
 import { UpdateQuery } from 'mongoose'
 import { revalidatePath } from 'next/cache'
-import { pusherServer } from '@/app/lib/pusher'
 
-export async function getOrderByIdAction(orderId: string): Promise<Serialized<IOrder> | null> {
+export async function getOrderByIdAction(
+  orderId: string,
+): Promise<Serialized<IOrder> | null> {
   try {
     await connectDB()
     const order = await Order.findById(orderId).populate('items.product').lean()
@@ -195,12 +192,16 @@ export async function updateOrderStatus(
   return JSON.parse(JSON.stringify(updatedOrder))
 }
 
-export async function confirmBankTransfer(orderId: string, adminNotes?: string) {
+export async function confirmBankTransfer(
+  orderId: string,
+  adminNotes?: string,
+) {
   await connectDB()
 
   const order = await Order.findById(orderId)
   if (!order) throw new Error('Order not found')
-  if (order.paymentMethod !== 'transfer') throw new Error('Order is not a bank transfer')
+  if (order.paymentMethod !== 'transfer')
+    throw new Error('Order is not a bank transfer')
 
   order.paymentStatus = 'paid'
   order.orderStatus = 'confirmed'

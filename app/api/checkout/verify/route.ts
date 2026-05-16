@@ -172,22 +172,16 @@
 //   }
 // }
 
-
-
-
-
-
-
 // /app/api/checkout/verify/route.ts
-import { NextResponse } from 'next/server'
-import mongoose, { ClientSession } from 'mongoose'
-import { revalidatePath } from 'next/cache'
 import connectDB from '@/app/lib/mongodb'
+import { pusherServer } from '@/app/lib/pusherServer'
 import { Order } from '@/app/models/Order'
 import { Product } from '@/app/models/Product'
-import { IOrder, IProduct } from '@/app/types'
 import { initializeShipments } from '@/app/services/logisticsService' // Fixed file name matching your codebase
-import { pusherServer } from '@/app/lib/pusher'
+import { IOrder, IProduct } from '@/app/types'
+import mongoose, { ClientSession } from 'mongoose'
+import { revalidatePath } from 'next/cache'
+import { NextResponse } from 'next/server'
 
 interface PaystackVerifyResponse {
   status: boolean
