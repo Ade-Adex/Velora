@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import {
   Table,
   Badge,
@@ -156,7 +158,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                             fw={700}
                             c={
                               order.items.every(
-                                (i) => i.vendorStatus === 'in_transit', 
+                                (i) => i.vendorStatus === 'in_transit',
                               )
                                 ? 'green.7'
                                 : 'orange.7'
@@ -164,14 +166,14 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                           >
                             {
                               order.items.filter(
-                                (i) => i.vendorStatus === 'in_transit', 
+                                (i) => i.vendorStatus === 'in_transit',
                               ).length
                             }
                             /{order.items.length} READY
                           </Text>
 
                           {order.items.every(
-                            (i) => i.vendorStatus === 'in_transit', 
+                            (i) => i.vendorStatus === 'in_transit',
                           ) &&
                             order.orderStatus === 'confirmed' && (
                               <Badge size="xs" color="blue" variant="filled">
@@ -318,11 +320,11 @@ function StatusBadge({ status }: { status: string }) {
     confirmed: 'cyan',
     processing: 'yellow',
     shipped: 'blue',
-    'in transit': 'indigo', 
-    'out for delivery': 'teal', 
+    'in transit': 'indigo',
+    'out for delivery': 'teal',
     delivered: 'green',
     cancelled: 'red',
-    returned: 'pink', 
+    returned: 'pink',
   }
   const label = status.replace(/[_-]/g, ' ').toUpperCase()
 

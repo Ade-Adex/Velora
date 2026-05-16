@@ -6,6 +6,7 @@ import connectDB from '@/app/lib/mongodb'
 import { Order } from '@/app/models/Order'
 import { Serialized, IOrder } from '@/app/types'
 import { UpdateQuery } from 'mongoose'
+import { revalidatePath } from 'next/cache'
 
 export async function getOrderByIdAction(
   orderId: string,
@@ -32,7 +33,7 @@ export async function updateOrderStatus(
   await connectDB()
 
   /**
-   * We define the update object using Mongoose's UpdateQuery type 
+   * We define the update object using Mongoose's UpdateQuery type
    * constrained by our IOrder interface. No 'any' allowed.
    */
   const updateData: UpdateQuery<IOrder> = {
@@ -65,13 +66,16 @@ export async function updateOrderStatus(
     }
   }
 
-  const updatedOrder = await Order.findByIdAndUpdate(
-    orderId,
-    updateData,
-    { new: true, runValidators: true }
-  ).populate('updatedBy', 'fullName email')
+  const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
+    new: true,
+    runValidators: true,
+  }).populate('updatedBy', 'fullName email')
 
   if (!updatedOrder) throw new Error('Order not found')
+
+  // Revalidate both dashboards when status changes
+  revalidatePath('/admin/orders')
+  revalidatePath('/vendor/orders')
 
   return JSON.parse(JSON.stringify(updatedOrder))
 }
@@ -93,6 +97,10 @@ export async function confirmBankTransfer(
   if (adminNotes) order.notes = adminNotes
 
   await order.save()
+
+  // Revalidate lists after manual transfer approval
+  revalidatePath('/admin/orders')
+  revalidatePath('/vendor/orders')
 
   // Professional Step: Here is where you would trigger a "Payment Received" Email via Resend
   // await sendPaymentConfirmationEmail(order.userEmail, order.orderNumber);
