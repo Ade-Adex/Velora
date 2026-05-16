@@ -172,12 +172,24 @@
 //   }
 // }
 
+
+
+
+
+
+
+
+
+
+
+
 // /app/api/checkout/verify/route.ts
+
 import connectDB from '@/app/lib/mongodb'
 import { pusherServer } from '@/app/lib/pusherServer'
 import { Order } from '@/app/models/Order'
 import { Product } from '@/app/models/Product'
-import { initializeShipments } from '@/app/services/logisticsService' // Fixed file name matching your codebase
+import { initializeShipments } from '@/app/services/logisticsService' 
 import { IOrder, IProduct } from '@/app/types'
 import mongoose, { ClientSession } from 'mongoose'
 import { revalidatePath } from 'next/cache'
@@ -233,7 +245,7 @@ export async function GET(req: Request) {
 
     if (!data.status || data.data.status !== 'success') {
       return NextResponse.redirect(
-        new URL(`/orders/failed?id=${orderId}`, req.url),
+        new URL(`/orders/failed?id=${orderId}&error=payment_unsuccessful`, req.url),
       )
     }
 
@@ -251,6 +263,7 @@ export async function GET(req: Request) {
         throw new VerificationError('order_not_found')
       }
 
+      // If already processed by a previous webhook or click, short-circuit gracefully
       if (existingOrder.paymentStatus === 'paid') {
         await session.abortTransaction()
         session.endSession()
@@ -259,6 +272,7 @@ export async function GET(req: Request) {
         )
       }
 
+      // Atomic stock reduction pass
       for (const item of existingOrder.items) {
         const updatedProduct = (await Product.findOneAndUpdate(
           {
@@ -277,6 +291,7 @@ export async function GET(req: Request) {
         }
       }
 
+      // Update Order Status cleanly
       const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
         {
@@ -287,13 +302,13 @@ export async function GET(req: Request) {
         { session, new: true },
       ).populate('items.product')
 
-      // PASS SESSION FOR ATOMIC REGISTRATION
+      // Execute shipment registration using the shared transaction session
       await initializeShipments(orderId, session)
 
       await session.commitTransaction()
       session.endSession()
 
-      // --- LIVE DATA DISPATCH ---
+      // --- LIVE DATA DISPATCH (Out of the database transaction block) ---
       try {
         await Promise.all([
           pusherServer.trigger('global-orders-channel', 'order-created', {
@@ -312,9 +327,11 @@ export async function GET(req: Request) {
           }),
         ])
       } catch (pusherError) {
+        // Log pusher errors out but don't break the customer user flow experience!
         console.error('Pusher background notification failed:', pusherError)
       }
 
+      // Clear route caches so dashboard components render fresh data immediately
       revalidatePath('/admin/orders')
       revalidatePath('/vendor/orders')
 
@@ -329,16 +346,17 @@ export async function GET(req: Request) {
         innerError instanceof VerificationError
           ? innerError.code
           : 'process_failed'
-      console.error('Inner Verification Error:', innerError)
+          
+      console.error('Transaction Aborted. Verification Error Context:', innerError)
 
       return NextResponse.redirect(
         new URL(`/orders/failed?id=${orderId}&error=${errorCode}`, req.url),
       )
     }
   } catch (error) {
-    console.error('Network/System Error:', error)
+    console.error('Network/System Outage Error:', error)
     return NextResponse.redirect(
-      new URL('/cart?error=verification_failed', req.url),
+      new URL(`/cart?error=verification_failed&id=${orderId}`, req.url),
     )
   }
 }
