@@ -47,22 +47,25 @@ export function RealtimeVendorTable({
    setOrders(initialOrders)
  }
 
-  useEffect(() => {
-    const channel = pusherClient.subscribe('global-orders-channel')
+useEffect(() => {
+  if (!user?._id) return
 
-    const handleUpdate = () => {
-      // Triggers Next.js Server Components data re-fetch seamlessly
-      router.refresh()
-    }
+  const channelName = `private-vendor-${user._id.toString()}`
+  const channel = pusherClient.subscribe(channelName)
 
-    channel.bind('order-created', handleUpdate)
-    channel.bind('order-updated', handleUpdate)
+  const handleUpdate = () => {
+    router.refresh()
+  }
 
-    return () => {
-      channel.unbind_all()
-      channel.unsubscribe()
-    }
-  }, [router])
+  channel.bind('order-created', handleUpdate)
+  channel.bind('order-updated', handleUpdate)
+
+  return () => {
+    channel.unbind('order-created', handleUpdate)
+    channel.unbind('order-updated', handleUpdate)
+    pusherClient.unsubscribe(channelName)
+  }
+}, [router, user?._id])
 
   return (
     <Paper withBorder radius="lg" shadow="xs">

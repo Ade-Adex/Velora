@@ -153,62 +153,48 @@ export async function GET(req: Request) {
           ),
         )
 
-        // // 2. Identify unique vendors strictly using your model types
-        // if (updatedOrder?.items && updatedOrder.items.length > 0) {
-        //   const uniqueVendorIds = new Set<string>()
+        // 2. Persist and Dispatch System Alert to the Purchasing Customer
+        if (updatedOrder?.user) {
+          const customerId =
+            typeof updatedOrder.user === 'object' && '_id' in updatedOrder.user
+              ? (updatedOrder.user as { _id: unknown })._id?.toString()
+              : updatedOrder.user.toString()
 
-        //   for (const item of updatedOrder.items) {
-        //     // Check if vendor exists, then extract its ID string safely
-        //     if (item.vendor) {
-        //       const vendorId =
-        //         typeof item.vendor === 'object' && '_id' in item.vendor
-        //           ? (item.vendor as { _id: unknown })._id?.toString()
-        //           : item.vendor.toString()
+          if (customerId) {
+            const customerDoc = await saveNotificationToDb({
+              recipientId: customerId,
+              recipientRole: 'customer',
+              title: 'Order Confirmed!',
+              message: `Your payment for order #${updatedOrder.orderNumber || orderId} was successful. We are preparing your items!`,
+              associatedOrder: orderId,
+            })
 
-        //       if (vendorId) {
-        //         uniqueVendorIds.add(vendorId)
-        //       }
-        //     }
-        //   }
+            pusherPromises.push(
+              pusherServer.trigger(
+                `private-user-${customerId}`,
+                'new-notification',
+                {
+                  id: customerDoc._id.toString(),
+                  title: customerDoc.title,
+                  message: customerDoc.message,
+                  read: false,
+                  createdAt: timestamp,
+                },
+              ),
+            )
+          }
+        }
 
-        //   // Trigger notifications for each unique vendor found
-        //   for (const vendorId of uniqueVendorIds) {
-        //     const vendorDoc = await saveNotificationToDb({
-        //       recipientId: vendorId,
-        //       recipientRole: 'vendor',
-        //       title: 'New Order Received!',
-        //       message: `You have new item allocations ready for dispatch under order #${updatedOrder.orderNumber || orderId}.`,
-        //       associatedOrder: orderId,
-        //     })
-
-        //     pusherPromises.push(
-        //       pusherServer.trigger(
-        //         `private-user-${vendorId}`,
-        //         'new-notification',
-        //         {
-        //           id: vendorDoc._id.toString(),
-        //           title: vendorDoc.title,
-        //           message: vendorDoc.message,
-        //           read: false,
-        //           createdAt: timestamp,
-        //         },
-        //       ),
-        //     )
-        //   }
-        // }
-
-        // 2. Identify unique vendors strictly using your model types
+        // 3. Identify unique vendors strictly using your model types
         if (updatedOrder?.items && updatedOrder.items.length > 0) {
           const uniqueVendorIds = new Set<string>()
 
           for (const item of updatedOrder.items) {
-            // Safely check if item.product is populated to match our IProduct model
             const isProductPopulated =
               item.product &&
               typeof item.product === 'object' &&
               '_id' in item.product
 
-            // Use type assertion to IProduct safely now that we checked its structure
             const productRef = isProductPopulated
               ? (item.product as unknown as IProduct)
               : null
@@ -251,9 +237,12 @@ export async function GET(req: Request) {
             )
           }
         }
-        // 3. Keep vendor/admin dashboard list items accurately in sync
+
+        // 4. Keep vendor/admin dashboard list items accurately in sync
         pusherPromises.push(
-          pusherServer.trigger('global-orders-channel', 'order-updated', {}),
+          pusherServer.trigger('global-orders-channel', 'order-updated', {
+            orderId,
+          }),
         )
 
         // Execute all real-time events concurrently outside the core database transaction lock

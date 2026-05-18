@@ -1,5 +1,5 @@
-
 // // /app/components/admin/AdminShell.tsx
+
 // 'use client'
 
 // import { useState, useEffect } from 'react'
@@ -11,6 +11,7 @@
 // import { IUser, Serialized } from '@/app/types'
 // import { Bell, Inbox, Check } from 'lucide-react'
 // import { pusherClient } from '@/app/lib/pusherClient'
+// import { getAdminNotifications, markAdminNotificationsRead } from '@/app/services/notificationService'
 
 // interface NotificationItem {
 //   id: string
@@ -27,10 +28,12 @@
 //   children: React.ReactNode
 //   user: Serialized<IUser>
 // }) {
-//   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure()
+//   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] =
+//     useDisclosure()
 //   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true)
-//   const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false)
-  
+//   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+//     useDisclosure(false)
+
 //   // Notification States
 //   const [notifications, setNotifications] = useState<NotificationItem[]>([])
 //   const unreadCount = notifications.filter((n) => !n.read).length
@@ -48,14 +51,12 @@
 //   }
 
 //   // Fetch initial system/admin notifications on mount
+//   // Fetch initial system/admin notifications using Server Action
 //   useEffect(() => {
 //     const fetchNotifications = async () => {
 //       try {
-//         const res = await fetch('/api/admin/notifications')
-//         if (res.ok) {
-//           const data = await res.json()
-//           setNotifications(data)
-//         }
+//         const data = await getAdminNotifications()
+//         setNotifications(data)
 //       } catch (err) {
 //         console.error('Failed to load admin notifications:', err)
 //       }
@@ -68,7 +69,6 @@
 //   useEffect(() => {
 //     if (!user?._id) return
 
-//     // Standard channel for site administrators/system alerts
 //     const channelName = 'private-admin-system-channel'
 //     const channel = pusherClient.subscribe(channelName)
 
@@ -84,11 +84,11 @@
 //     }
 //   }, [user?._id])
 
-//   // Mark all admin notifications as read
+//   // Mark all admin notifications as read using Server Action
 //   const markAllAsRead = async () => {
 //     try {
-//       const res = await fetch('/api/admin/notifications/read', { method: 'POST' })
-//       if (res.ok) {
+//       const success = await markAdminNotificationsRead()
+//       if (success) {
 //         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
 //       }
 //     } catch (err) {
@@ -142,7 +142,6 @@
 //             </Group>
 
 //             <Group gap="lg">
-//               {/* Notification Bell wrapped with an Indicator */}
 //               <Indicator
 //                 color="red"
 //                 size={16}
@@ -163,7 +162,11 @@
 //                 </ActionIcon>
 //               </Indicator>
 
-//               <UserMenu user={user} onLogout={handleLogout} variant="dashboard" />
+//               <UserMenu
+//                 user={user}
+//                 onLogout={handleLogout}
+//                 variant="dashboard"
+//               />
 //             </Group>
 //           </Group>
 //         </AppShell.Header>
@@ -182,7 +185,6 @@
 //         </AppShell.Main>
 //       </AppShell>
 
-//       {/* Admin Notification Drawer */}
 //       <Drawer
 //         opened={drawerOpened}
 //         onClose={closeDrawer}
@@ -193,7 +195,6 @@
 //         }
 //         position="right"
 //         size="md"
-//         // scrollAreaComponent={ScrollArea.Autohide}
 //         overlayProps={{ backgroundOpacity: 0.3, blur: 4 }}
 //       >
 //         <Stack gap="md" h="100%">
@@ -223,13 +224,23 @@
 //                     radius="md"
 //                     bg={notif.read ? 'white' : 'red.0'}
 //                     style={{
-//                       borderColor: notif.read ? undefined : 'var(--mantine-color-red-2)',
-//                       transition: 'background-color 0.2s ease'
+//                       borderColor: notif.read
+//                         ? undefined
+//                         : 'var(--mantine-color-red-2)',
+//                       transition: 'background-color 0.2s ease',
 //                     }}
 //                   >
-//                     <Group justify="space-between" wrap="nowrap" align="flex-start">
+//                     <Group
+//                       justify="space-between"
+//                       wrap="nowrap"
+//                       align="flex-start"
+//                     >
 //                       <Stack gap={2} style={{ flex: 1 }}>
-//                         <Text size="sm" fw={notif.read ? 700 : 800} c={notif.read ? 'gray.8' : 'red.9'}>
+//                         <Text
+//                           size="sm"
+//                           fw={notif.read ? 700 : 800}
+//                           c={notif.read ? 'gray.8' : 'red.9'}
+//                         >
 //                           {notif.title}
 //                         </Text>
 //                         <Text size="xs" c="gray.6">
@@ -241,7 +252,11 @@
 //                           w={8}
 //                           h={8}
 //                           bg="red.6"
-//                           style={{ borderRadius: '50%', flexShrink: 0, marginTop: 6 }}
+//                           style={{
+//                             borderRadius: '50%',
+//                             flexShrink: 0,
+//                             marginTop: 6,
+//                           }}
 //                         />
 //                       )}
 //                     </Group>
@@ -271,9 +286,6 @@
 //   )
 // }
 
-
-
-// /app/components/admin/AdminShell.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -302,11 +314,9 @@ export default function AdminShell({
   children: React.ReactNode
   user: Serialized<IUser>
 }) {
-  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] =
-    useDisclosure()
+  const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure()
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true)
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
-    useDisclosure(false)
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false)
 
   // Notification States
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
@@ -325,7 +335,6 @@ export default function AdminShell({
   }
 
   // Fetch initial system/admin notifications on mount
-  // Fetch initial system/admin notifications using Server Action
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -347,7 +356,11 @@ export default function AdminShell({
     const channel = pusherClient.subscribe(channelName)
 
     const handleNewNotification = (newNotif: NotificationItem) => {
-      setNotifications((prev) => [newNotif, ...prev])
+      setNotifications((prev) => {
+        // Critical addition: prevent memory stack leakage/duplicates in UI lists
+        if (prev.some((n) => n.id === newNotif.id)) return prev
+        return [newNotif, ...prev]
+      })
     }
 
     channel.bind('admin-notification', handleNewNotification)
@@ -377,39 +390,18 @@ export default function AdminShell({
         navbar={{
           width: desktopOpened ? 280 : 80,
           breakpoint: 'md',
-          collapsed: {
-            mobile: !mobileOpened,
-          },
+          collapsed: { mobile: !mobileOpened },
         }}
         padding="md"
         transitionDuration={300}
         transitionTimingFunction="ease"
-        styles={{
-          main: { background: '#f8f9fa' },
-        }}
+        styles={{ main: { background: '#f8f9fa' } }}
       >
-        <AppShell.Header
-          withBorder={false}
-          bg="black"
-          c="white"
-          className="shadow-md"
-        >
+        <AppShell.Header withBorder={false} bg="black" c="white" className="shadow-md">
           <Group h="100%" px="md" justify="space-between">
             <Group>
-              <Burger
-                opened={desktopOpened}
-                onClick={toggleDesktop}
-                visibleFrom="md"
-                size="sm"
-                color="white"
-              />
-              <Burger
-                opened={mobileOpened}
-                onClick={toggleMobile}
-                hiddenFrom="md"
-                size="sm"
-                color="white"
-              />
+              <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="md" size="sm" color="white" />
+              <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="md" size="sm" color="white" />
               <Text fw={900} lts="-1px" size="xl">
                 VELORA<span className="text-red-500">.</span>
               </Text>
@@ -425,32 +417,17 @@ export default function AdminShell({
                 withBorder
                 processing
               >
-                <ActionIcon
-                  variant="subtle"
-                  color="white"
-                  radius="xl"
-                  size="lg"
-                  onClick={openDrawer}
-                >
+                <ActionIcon variant="subtle" color="white" radius="xl" size="lg" onClick={openDrawer}>
                   <Bell size={20} />
                 </ActionIcon>
               </Indicator>
 
-              <UserMenu
-                user={user}
-                onLogout={handleLogout}
-                variant="dashboard"
-              />
+              <UserMenu user={user} onLogout={handleLogout} variant="dashboard" />
             </Group>
           </Group>
         </AppShell.Header>
 
-        <AppShell.Navbar
-          p="0"
-          bg="black"
-          withBorder={false}
-          className="transition-all overflow-hidden"
-        >
+        <AppShell.Navbar p="0" bg="black" withBorder={false} className="transition-all overflow-hidden">
           <AdminSidebar onClose={closeMobile} isExpanded={desktopOpened} />
         </AppShell.Navbar>
 
@@ -489,7 +466,7 @@ export default function AdminShell({
 
           {notifications.length > 0 ? (
             <ScrollArea h="calc(100vh - 140px)" offsetScrollbars>
-              <Stack gap="xs">
+              <Stack gap="xs" pr="xs">
                 {notifications.map((notif) => (
                   <Paper
                     key={notif.id}
@@ -498,17 +475,11 @@ export default function AdminShell({
                     radius="md"
                     bg={notif.read ? 'white' : 'red.0'}
                     style={{
-                      borderColor: notif.read
-                        ? undefined
-                        : 'var(--mantine-color-red-2)',
+                      borderColor: notif.read ? undefined : 'var(--mantine-color-red-2)',
                       transition: 'background-color 0.2s ease',
                     }}
                   >
-                    <Group
-                      justify="space-between"
-                      wrap="nowrap"
-                      align="flex-start"
-                    >
+                    <Group justify="space-between" wrap="nowrap" align="flex-start">
                       <Stack gap={2} style={{ flex: 1 }}>
                         <Text
                           size="sm"
