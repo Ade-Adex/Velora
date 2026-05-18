@@ -16,6 +16,8 @@ import {
   IOrderItem,
 } from '@/app/types'
 import { revalidatePath } from 'next/cache'
+import { unstable_noStore as noStore } from 'next/cache' // <-- Add this import at the top
+
 
 
 
@@ -80,7 +82,34 @@ export async function getVendorProductById(id: string): Promise<Serialized<IProd
  * Fetches orders containing items from this vendor,
  * filtering out items belonging to other sellers.
  */
+// export async function getVendorOrders(): Promise<Serialized<IOrder>[]> {
+//   await connectDB()
+//   const user = await ensureVendor()
+
+//   const orders = await Order.find({ 'items.vendor': user._id })
+//     .sort({ createdAt: -1 })
+//     .lean()
+
+//   const filteredOrders = orders.map((order) => {
+//     const typedOrder = order as unknown as IOrder
+//     return {
+//       ...order,
+//       items: typedOrder.items.filter(
+//         (item: IOrderItem) => item.vendor.toString() === user._id.toString(),
+//       ),
+//     }
+//   })
+
+//   return JSON.parse(JSON.stringify(filteredOrders))
+// }
+
+
+/**
+ * Fetches orders containing items from this vendor,
+ * filtering out items belonging to other sellers.
+ */
 export async function getVendorOrders(): Promise<Serialized<IOrder>[]> {
+  noStore() // <-- Force Next.js to treat this execution as strictly dynamic every time
   await connectDB()
   const user = await ensureVendor()
 
