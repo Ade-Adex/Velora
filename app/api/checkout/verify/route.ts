@@ -127,12 +127,149 @@ export async function GET(req: Request) {
       await session.commitTransaction()
       session.endSession()
 
+      // // --- TARGETED REALTIME & DB DISPATCH BLOCK ---
+      // try {
+      //   const timestamp = new Date().toISOString()
+      //   const pusherPromises: Promise<unknown>[] = []
+
+      //   // 1. ADMIN DISPATCH: Alert & Table Update
+      //   const adminDoc = await saveNotificationToDb({
+      //     recipientRole: 'admin',
+      //     title: 'New Paid Order',
+      //     message: `Order #${updatedOrder?.orderNumber || orderId} has been successfully verified via Paystack.`,
+      //     associatedOrder: orderId,
+      //   })
+
+      //   pusherPromises.push(
+      //     pusherServer.trigger(
+      //       'private-admin-system-channel',
+      //       'admin-notification',
+      //       {
+      //         id: adminDoc._id.toString(),
+      //         title: adminDoc.title,
+      //         message: adminDoc.message,
+      //         read: false,
+      //         createdAt: timestamp,
+      //       },
+      //     ),
+      //   )
+
+      //   // 2. CUSTOMER DISPATCH: Dropdown Notification & UI View Sync
+      //   if (updatedOrder?.user) {
+      //     const customerId =
+      //       typeof updatedOrder.user === 'object' && '_id' in updatedOrder.user
+      //         ? (updatedOrder.user as { _id: unknown })._id?.toString()
+      //         : updatedOrder.user.toString()
+
+      //     if (customerId) {
+      //       const customerDoc = await saveNotificationToDb({
+      //         recipientId: customerId,
+      //         recipientRole: 'customer',
+      //         title: 'Order Confirmed!',
+      //         message: `Your payment for order #${updatedOrder.orderNumber || orderId} was successful. We are preparing your items!`,
+      //         associatedOrder: orderId,
+      //       })
+
+      //       // Trigger drop-down / bell notification alert
+      //       pusherPromises.push(
+      //         pusherServer.trigger(
+      //           `private-user-${customerId}`,
+      //           'new-notification',
+      //           {
+      //             id: customerDoc._id.toString(),
+      //             title: customerDoc.title,
+      //             message: customerDoc.message,
+      //             read: false,
+      //             createdAt: timestamp,
+      //           },
+      //         ),
+      //       )
+
+      //       // Trigger dedicated customer data re-validation channel
+      //       pusherPromises.push(
+      //         pusherServer.trigger(
+      //           `private-customer-${customerId}`,
+      //           'order-updated',
+      //           { orderId },
+      //         ),
+      //       )
+      //     }
+      //   }
+
+      //   // 3. VENDOR DISPATCH: Dropdown Notification & Table Data Sync per Vendor
+      //   if (updatedOrder?.items && updatedOrder.items.length > 0) {
+      //     const uniqueVendorIds = new Set<string>()
+
+      //     for (const item of updatedOrder.items) {
+      //       const isProductPopulated =
+      //         item.product &&
+      //         typeof item.product === 'object' &&
+      //         '_id' in item.product
+
+      //       const productRef = isProductPopulated
+      //         ? (item.product as unknown as IProduct)
+      //         : null
+      //       const vendorRef = item.vendor || productRef?.vendor
+
+      //       if (vendorRef) {
+      //         const vendorId =
+      //           typeof vendorRef === 'object' && '_id' in vendorRef
+      //             ? (vendorRef as { _id: unknown })._id?.toString()
+      //             : vendorRef.toString()
+
+      //         if (vendorId) {
+      //           uniqueVendorIds.add(vendorId)
+      //         }
+      //       }
+      //     }
+
+      //     for (const vendorId of uniqueVendorIds) {
+      //       const vendorDoc = await saveNotificationToDb({
+      //         recipientId: vendorId,
+      //         recipientRole: 'vendor',
+      //         title: 'New Order Received!',
+      //         message: `You have new item allocations ready for dispatch under order #${updatedOrder.orderNumber || orderId}.`,
+      //         associatedOrder: orderId,
+      //       })
+
+      //       // Trigger drop-down / bell notification alert
+      //       pusherPromises.push(
+      //         pusherServer.trigger(
+      //           `private-user-${vendorId}`,
+      //           'new-notification',
+      //           {
+      //             id: vendorDoc._id.toString(),
+      //             title: vendorDoc.title,
+      //             message: vendorDoc.message,
+      //             read: false,
+      //             createdAt: timestamp,
+      //           },
+      //         ),
+      //       )
+
+      //       // Trigger dedicated vendor table refresh channel
+      //       pusherPromises.push(
+      //         pusherServer.trigger(
+      //           `private-vendor-${vendorId}`,
+      //           'order-created',
+      //           { orderId },
+      //         ),
+      //       )
+      //     }
+      //   }
+
+      //   // Execute all real-time events concurrently outside the core database transaction lock
+      //   await Promise.all(pusherPromises)
+      // } catch (pusherError) {
+      //   console.error('Notification handling layer failed safely:', pusherError)
+      // }
+
       // --- TARGETED REALTIME & DB DISPATCH BLOCK ---
       try {
         const timestamp = new Date().toISOString()
         const pusherPromises: Promise<unknown>[] = []
 
-        // 1. ADMIN DISPATCH: Alert & Table Update
+        // 1. ADMIN DISPATCH: Real-time Alert
         const adminDoc = await saveNotificationToDb({
           recipientRole: 'admin',
           title: 'New Paid Order',
@@ -170,7 +307,7 @@ export async function GET(req: Request) {
               associatedOrder: orderId,
             })
 
-            // Trigger drop-down / bell notification alert
+            // Trigger drop-down / bell notification alert on their user channel
             pusherPromises.push(
               pusherServer.trigger(
                 `private-user-${customerId}`,
@@ -185,7 +322,7 @@ export async function GET(req: Request) {
               ),
             )
 
-            // Trigger dedicated customer data re-validation channel
+            // Optional structural data sync signal
             pusherPromises.push(
               pusherServer.trigger(
                 `private-customer-${customerId}`,
@@ -196,7 +333,7 @@ export async function GET(req: Request) {
           }
         }
 
-        // 3. VENDOR DISPATCH: Dropdown Notification & Table Data Sync per Vendor
+        // 3. VENDOR DISPATCH: Real-time Dropdown Alerts per Allocation Vendor
         if (updatedOrder?.items && updatedOrder.items.length > 0) {
           const uniqueVendorIds = new Set<string>()
 
@@ -209,6 +346,7 @@ export async function GET(req: Request) {
             const productRef = isProductPopulated
               ? (item.product as unknown as IProduct)
               : null
+
             const vendorRef = item.vendor || productRef?.vendor
 
             if (vendorRef) {
@@ -232,7 +370,7 @@ export async function GET(req: Request) {
               associatedOrder: orderId,
             })
 
-            // Trigger drop-down / bell notification alert
+            // Trigger drop-down / bell notification alert on private-user-${vendorId}
             pusherPromises.push(
               pusherServer.trigger(
                 `private-user-${vendorId}`,
@@ -247,7 +385,7 @@ export async function GET(req: Request) {
               ),
             )
 
-            // Trigger dedicated vendor table refresh channel
+            // Trigger dedicated vendor dashboard data sync signal
             pusherPromises.push(
               pusherServer.trigger(
                 `private-vendor-${vendorId}`,
@@ -258,12 +396,14 @@ export async function GET(req: Request) {
           }
         }
 
-        // Execute all real-time events concurrently outside the core database transaction lock
+        // Fire all events simultaneously outside of the critical DB transaction block
         await Promise.all(pusherPromises)
       } catch (pusherError) {
-        console.error('Notification handling layer failed safely:', pusherError)
+        console.error(
+          'Real-time push network error handled safely:',
+          pusherError,
+        )
       }
-
       // Clear route caches so dashboard views update seamlessly
       revalidatePath('/admin/orders')
       revalidatePath('/vendor/orders')
