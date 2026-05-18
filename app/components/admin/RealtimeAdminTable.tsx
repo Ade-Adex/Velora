@@ -41,22 +41,20 @@ export function RealtimeAdminTable({
   const router = useRouter()
 
 useEffect(() => {
-  const channelName = 'global-orders-channel'
-  const channel = pusherClient.subscribe(channelName)
+    const channelName = 'private-admin-system-channel'
+    const channel = pusherClient.subscribe(channelName)
 
-  const handleRefresh = () => {
-    router.refresh()
-  }
+    const handleRefresh = () => {
+      router.refresh()
+    }
 
-  channel.bind('order-created', handleRefresh)
-  channel.bind('order-updated', handleRefresh)
+    channel.bind('admin-notification', handleRefresh)
 
-  return () => {
-    channel.unbind('order-created', handleRefresh)
-    channel.unbind('order-updated', handleRefresh)
-    pusherClient.unsubscribe(channelName)
-  }
-}, [router])
+    return () => {
+      channel.unbind('admin-notification', handleRefresh)
+      pusherClient.unsubscribe(channelName)
+    }
+  }, [router])
 
   return (
     <Paper radius="md" withBorder shadow="sm" className="overflow-hidden">

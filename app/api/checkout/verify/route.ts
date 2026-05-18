@@ -1,11 +1,9 @@
-// /app/api/checkout/verify/route.ts
-
 import connectDB from '@/app/lib/mongodb'
 import { pusherServer } from '@/app/lib/pusherServer'
 import { Order } from '@/app/models/Order'
 import { Product } from '@/app/models/Product'
-import { initializeShipments } from '@/app/services/logisticsService' 
-import { saveNotificationToDb } from '@/app/services/notificationService' // Added Service Import
+import { initializeShipments } from '@/app/services/logisticsService'
+import { saveNotificationToDb } from '@/app/services/notificationService'
 import { IOrder, IProduct } from '@/app/types'
 import mongoose, { ClientSession } from 'mongoose'
 import { revalidatePath } from 'next/cache'
@@ -61,7 +59,10 @@ export async function GET(req: Request) {
 
     if (!data.status || data.data.status !== 'success') {
       return NextResponse.redirect(
-        new URL(`/orders/failed?id=${orderId}&error=payment_unsuccessful`, req.url),
+        new URL(
+          `/orders/failed?id=${orderId}&error=payment_unsuccessful`,
+          req.url,
+        ),
       )
     }
 
@@ -131,7 +132,7 @@ export async function GET(req: Request) {
         const timestamp = new Date().toISOString()
         const pusherPromises: Promise<unknown>[] = []
 
-        // 1. Persist and Dispatch System Alert to Admin Shell
+        // 1. ADMIN DISPATCH: Alert & Table Update
         const adminDoc = await saveNotificationToDb({
           recipientRole: 'admin',
           title: 'New Paid Order',
@@ -153,7 +154,7 @@ export async function GET(req: Request) {
           ),
         )
 
-        // 2. Persist and Dispatch System Alert to the Purchasing Customer
+        // 2. CUSTOMER DISPATCH: Dropdown Notification & UI View Sync
         if (updatedOrder?.user) {
           const customerId =
             typeof updatedOrder.user === 'object' && '_id' in updatedOrder.user
@@ -169,6 +170,7 @@ export async function GET(req: Request) {
               associatedOrder: orderId,
             })
 
+            // Trigger drop-down / bell notification alert
             pusherPromises.push(
               pusherServer.trigger(
                 `private-user-${customerId}`,
@@ -182,10 +184,19 @@ export async function GET(req: Request) {
                 },
               ),
             )
+
+            // Trigger dedicated customer data re-validation channel
+            pusherPromises.push(
+              pusherServer.trigger(
+                `private-customer-${customerId}`,
+                'order-updated',
+                { orderId },
+              ),
+            )
           }
         }
 
-        // 3. Identify unique vendors strictly using your model types
+        // 3. VENDOR DISPATCH: Dropdown Notification & Table Data Sync per Vendor
         if (updatedOrder?.items && updatedOrder.items.length > 0) {
           const uniqueVendorIds = new Set<string>()
 
@@ -212,7 +223,6 @@ export async function GET(req: Request) {
             }
           }
 
-          // Trigger notifications for each unique vendor found
           for (const vendorId of uniqueVendorIds) {
             const vendorDoc = await saveNotificationToDb({
               recipientId: vendorId,
@@ -222,6 +232,7 @@ export async function GET(req: Request) {
               associatedOrder: orderId,
             })
 
+            // Trigger drop-down / bell notification alert
             pusherPromises.push(
               pusherServer.trigger(
                 `private-user-${vendorId}`,
@@ -235,15 +246,17 @@ export async function GET(req: Request) {
                 },
               ),
             )
+
+            // Trigger dedicated vendor table refresh channel
+            pusherPromises.push(
+              pusherServer.trigger(
+                `private-vendor-${vendorId}`,
+                'order-created',
+                { orderId },
+              ),
+            )
           }
         }
-
-        // 4. Keep vendor/admin dashboard list items accurately in sync
-        pusherPromises.push(
-          pusherServer.trigger('global-orders-channel', 'order-updated', {
-            orderId,
-          }),
-        )
 
         // Execute all real-time events concurrently outside the core database transaction lock
         await Promise.all(pusherPromises)
@@ -266,8 +279,11 @@ export async function GET(req: Request) {
         innerError instanceof VerificationError
           ? innerError.code
           : 'process_failed'
-          
-      console.error('Transaction Aborted. Verification Error Context:', innerError)
+
+      console.error(
+        'Transaction Aborted. Verification Error Context:',
+        innerError,
+      )
 
       return NextResponse.redirect(
         new URL(`/orders/failed?id=${orderId}&error=${errorCode}`, req.url),
