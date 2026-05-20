@@ -1,12 +1,24 @@
-// /app/lib/pusherClient.ts
+// // /app/lib/pusherClient.ts
 
+// import Pusher from 'pusher-js'
+
+// export const pusherClient =
+//   typeof window !== 'undefined'
+//     ? new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+//         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+//       })
+//     : (null as unknown as Pusher)
+
+
+
+// /app/lib/pusherClient.ts
 import Pusher from 'pusher-js'
 
-// Ensure the code safely skips constructor initialization if executed on the server side
 export const pusherClient =
   typeof window !== 'undefined'
     ? new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-        // If using standard user authentication or custom endpoints, add them here
+        // Add this line to handle private channel handshakes:
+        authEndpoint: '/api/pusher/auth',
       })
-    : (null as unknown as Pusher)
+    : (null as unknown as Pusher)     

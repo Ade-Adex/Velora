@@ -1,5 +1,6 @@
 // /app/admin/orders/page.tsx
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 import connectDB from '@/app/lib/mongodb'
 import { Order } from '@/app/models/Order'

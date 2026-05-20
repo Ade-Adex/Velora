@@ -66,6 +66,8 @@ useEffect(() => {
     pusherClient.unsubscribe(channelName)
   }
 }, [router, user?._id])
+
+  
   return (
     <Paper withBorder radius="lg" shadow="xs">
       <ScrollArea>

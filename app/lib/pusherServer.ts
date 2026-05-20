@@ -1,5 +1,4 @@
 // /app/lib/pusherServer.ts
-// 'use server'
 
 import PusherServer from 'pusher'
 

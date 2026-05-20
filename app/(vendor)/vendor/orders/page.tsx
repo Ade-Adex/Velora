@@ -2,6 +2,7 @@
 
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 import { Box, Title, Text, Stack } from '@mantine/core'
 import { getVendorOrders } from '@/app/services/vendor-service'
