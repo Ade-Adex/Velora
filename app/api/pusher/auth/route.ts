@@ -12,29 +12,37 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    // Pusher sends data as application/x-www-form-urlencoded by default
     const formData = await req.formData()
     const socketId = formData.get('socket_id') as string
     const channelName = formData.get('channel_name') as string
 
-    // 2. Validate specific private channel structural permissions
+    // 2. Validate admin channel permissions
     if (channelName.startsWith('private-admin-') && user.role !== 'admin') {
       return new NextResponse('Forbidden to Non-Admins', { status: 403 })
     }
 
+    // 3. Validate user-specific notification channels
     if (channelName.startsWith('private-user-')) {
-      const vendorIdFromChannel = channelName.replace('private-user-', '')
-      // Ensure vendors can only listen to their own real-time stream
-      if (user.id !== vendorIdFromChannel && user.role !== 'admin') {
-        return new NextResponse('Forbidden Private Channel Channel access', {
+      const targetUserId = channelName.replace('private-user-', '')
+      if (user.id !== targetUserId && user.role !== 'admin') {
+        return new NextResponse('Forbidden Account Channel access', {
           status: 403,
         })
       }
     }
 
-    // 3. Generate authorization string using pusherServer
-    const authResponse = pusherServer.authorizeChannel(socketId, channelName)
+    // 4. Validate vendor-specific dashboard data channels
+    if (channelName.startsWith('private-vendor-')) {
+      const targetVendorId = channelName.replace('private-vendor-', '')
+      if (user.id !== targetVendorId && user.role !== 'admin') {
+        return new NextResponse('Forbidden Vendor Table access', {
+          status: 403,
+        })
+      }
+    }
 
+    // 5. Generate authorization string using pusherServer
+    const authResponse = pusherServer.authorizeChannel(socketId, channelName)
     return NextResponse.json(authResponse)
   } catch (error) {
     console.error('Pusher authentication route failure:', error)
