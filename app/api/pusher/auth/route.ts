@@ -24,7 +24,8 @@ export async function POST(req: Request) {
     // 3. Validate user-specific notification channels
     if (channelName.startsWith('private-user-')) {
       const targetUserId = channelName.replace('private-user-', '')
-      if (user.id !== targetUserId && user.role !== 'admin') {
+      // FIX: Use user._id and ensure it's a string comparison
+      if (String(user._id) !== targetUserId && user.role !== 'admin') {
         return new NextResponse('Forbidden Account Channel access', {
           status: 403,
         })
@@ -34,7 +35,8 @@ export async function POST(req: Request) {
     // 4. Validate vendor-specific dashboard data channels
     if (channelName.startsWith('private-vendor-')) {
       const targetVendorId = channelName.replace('private-vendor-', '')
-      if (user.id !== targetVendorId && user.role !== 'admin') {
+      // FIX: Use user._id and ensure it's a string comparison
+      if (String(user._id) !== targetVendorId && user.role !== 'admin') {
         return new NextResponse('Forbidden Vendor Table access', {
           status: 403,
         })
