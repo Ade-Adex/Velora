@@ -74,58 +74,6 @@ export default function VendorShell({
     }
   }
 
-  // // Fetch initial notifications using Server Action
-  // useEffect(() => {
-  //   const fetchNotifications = async () => {
-  //     if (!user?._id) return
-  //     try {
-  //       const data = await getVendorNotifications(user._id)
-  //       setNotifications(data)
-  //     } catch (err) {
-  //       console.error('Failed to load notifications:', err)
-  //     }
-  //   }
-
-  //   fetchNotifications()
-  // }, [user?._id])
-
-  // // Listen to User-Specific Realtime Notifications via Pusher
-  // useEffect(() => {
-  //   if (!user?._id) return
-
-  //   const stringUserId = user._id.toString()
-  //   const channelName = `private-user-${stringUserId}`
-  //   const channel = pusherClient.subscribe(channelName)
-
-  //   const handleNewNotification = (newNotif: NotificationItem) => {
-  //     setNotifications((prev) => {
-  //       // Safe duplication guard checks
-  //       if (prev.some((n) => n.id === newNotif.id)) return prev
-  //       return [newNotif, ...prev]
-  //     })
-  //   }
-
-  //   channel.bind('new-notification', handleNewNotification)
-
-  //   return () => {
-  //     channel.unbind('new-notification', handleNewNotification)
-  //     pusherClient.unsubscribe(channelName)
-  //   }
-  // }, [user?._id])
-
-  // // Mark all visible notifications as read using Server Action
-  // const markAllAsRead = async () => {
-  //   if (!user?._id) return
-  //   try {
-  //     const success = await markVendorNotificationsRead(user._id)
-  //     if (success) {
-  //       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-  //     }
-  //   } catch (err) {
-  //     console.error('Could not mark items as read:', err)
-  //   }
-  // }
-
   // Fetch initial notifications using Server Action
   useEffect(() => {
     const fetchNotifications = async () => {
